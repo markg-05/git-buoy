@@ -1,0 +1,25 @@
+[package]
+name = "git-buoy"
+version = "0.1.0"
+edition = "2024"
+description = "A living terminal harbor for understanding parallel software work at a glance."
+license = "MIT"
+repository = "https://github.com/markg-05/git-buoy"
+keywords = ["git", "tui", "terminal", "visualization"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.6", features = ["derive"] }
+crossterm = "0.29"
+# Local repositories only: no network transports, no openssl/ssh build deps.
+git2 = { version = "0.21", default-features = false }
+ratatui = "0.30"
+thiserror = "2.0"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+strip = true
+lto = true
