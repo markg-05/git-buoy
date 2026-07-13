@@ -72,7 +72,7 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
     lines.push(cargo_line(
         CARGO_UNTRACKED,
         "untracked files",
-        theme.condition(Condition::Loading),
+        theme.text,
         theme,
     ));
     lines.push(cargo_line(

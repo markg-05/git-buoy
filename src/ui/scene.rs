@@ -5,7 +5,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::Paragraph;
 
 use crate::app::{App, Mode};
-use crate::harbor::{Condition, Dock, DockKind};
+use crate::harbor::{Condition, Dock, DockKind, Vessel};
 
 use super::theme::Theme;
 
@@ -16,7 +16,7 @@ const VESSEL_X: usize = 5;
 /// The pier post that anchors every water row to its dock.
 const POST: &str = "  │ ";
 /// A single busy dock shows at most this many rows of cargo; anything beyond
-/// collapses into a trailing "+N". The exact totals always remain available
+/// collapses into a trailing "…N". The exact totals always remain available
 /// in inspect mode, and this keeps one flooded worktree from swamping the
 /// whole harbor.
 const MAX_CARGO_ROWS: usize = 6;
@@ -27,7 +27,7 @@ pub(super) const VESSEL_HULL: &str = "▙▄▄▟";
 pub(super) const MOORING_BUOY: char = '◍';
 pub(super) const CARGO_STAGED: char = '▣';
 pub(super) const CARGO_UNSTAGED: char = '▢';
-pub(super) const CARGO_UNTRACKED: char = '○';
+pub(super) const CARGO_UNTRACKED: char = '+';
 pub(super) const CARGO_CONFLICT: char = '✕';
 
 pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
@@ -199,22 +199,24 @@ fn water_lines(
             }
             content.push((' ', color));
 
-            let mut cargo = Vec::new();
-            push_cargo(&mut cargo, vessel.staged, CARGO_STAGED, color);
-            push_cargo(&mut cargo, vessel.unstaged, CARGO_UNSTAGED, color);
-            push_cargo(&mut cargo, vessel.untracked, CARGO_UNTRACKED, color);
-            push_cargo(&mut cargo, vessel.conflicted, CARGO_CONFLICT, color);
+            let mut cargo = cargo_cells(vessel, theme);
 
             // Bound the very busy case: keep as much cargo as a few rows hold,
-            // then note the remainder as "+N" rather than drawing thousands.
+            // then note the remainder as "…N" rather than drawing thousands.
             let budget = water_width
                 .saturating_mul(MAX_CARGO_ROWS)
                 .saturating_sub(content.len());
             if cargo.len() > budget {
-                let hidden = cargo.len() - budget;
+                let hidden = cargo[budget..]
+                    .iter()
+                    .filter(|(glyph, _)| *glyph != ' ')
+                    .count();
                 cargo.truncate(budget);
+                while cargo.last().is_some_and(|(glyph, _)| *glyph == ' ') {
+                    cargo.pop();
+                }
                 content.extend(cargo);
-                for ch in format!("+{hidden}").chars() {
+                for ch in format!("…{hidden}").chars() {
                     content.push((ch, theme.dim));
                 }
             } else {
@@ -240,7 +242,37 @@ fn water_lines(
         .collect()
 }
 
-fn push_cargo(out: &mut Vec<(char, Color)>, count: usize, glyph: char, color: Color) {
+fn cargo_cells(vessel: &Vessel, theme: &Theme) -> Vec<(char, Color)> {
+    let mut cargo = Vec::new();
+    push_cargo_group(
+        &mut cargo,
+        vessel.staged,
+        CARGO_STAGED,
+        theme.condition(Condition::Sealed),
+    );
+    push_cargo_group(
+        &mut cargo,
+        vessel.unstaged,
+        CARGO_UNSTAGED,
+        theme.condition(Condition::Loading),
+    );
+    push_cargo_group(&mut cargo, vessel.untracked, CARGO_UNTRACKED, theme.text);
+    push_cargo_group(
+        &mut cargo,
+        vessel.conflicted,
+        CARGO_CONFLICT,
+        theme.condition(Condition::Blocked),
+    );
+    cargo
+}
+
+fn push_cargo_group(out: &mut Vec<(char, Color)>, count: usize, glyph: char, color: Color) {
+    if count == 0 {
+        return;
+    }
+    if !out.is_empty() {
+        out.push((' ', color));
+    }
     out.extend(std::iter::repeat_n((glyph, color), count));
 }
 
@@ -417,10 +449,29 @@ mod tests {
     }
 
     #[test]
+    fn cargo_groups_use_distinct_glyphs_colors_and_spacing() {
+        let theme = Theme::detect();
+        let vessel = Vessel {
+            staged: 1,
+            unstaged: 2,
+            untracked: 3,
+            conflicted: 1,
+        };
+        let cargo = cargo_cells(&vessel, &theme);
+        let glyphs: String = cargo.iter().map(|(glyph, _)| glyph).collect();
+
+        assert_eq!(glyphs, "▣ ▢▢ +++ ✕");
+        assert_eq!(cargo[0].1, theme.condition(Condition::Sealed));
+        assert_eq!(cargo[2].1, theme.condition(Condition::Loading));
+        assert_eq!(cargo[5].1, theme.text);
+        assert_eq!(cargo[9].1, theme.condition(Condition::Blocked));
+    }
+
+    #[test]
     fn untracked_cargo_uses_a_visible_single_cell_glyph() {
         let symbol = Line::from(CARGO_UNTRACKED.to_string());
 
-        assert_eq!(CARGO_UNTRACKED, '○');
+        assert_eq!(CARGO_UNTRACKED, '+');
         assert_eq!(
             symbol.width(),
             1,
@@ -442,6 +493,25 @@ mod tests {
             lines.len() <= MAX_CARGO_ROWS + 1,
             "a flooded dock must stay bounded, got {} rows",
             lines.len()
+        );
+    }
+
+    #[test]
+    fn cargo_overflow_count_ignores_group_separators() {
+        let dock = vessel_dock(Vessel {
+            staged: 1,
+            untracked: 100,
+            ..Vessel::default()
+        });
+        let rendered: String = water_lines(&dock, 20, 0, 0, &Theme::detect())
+            .into_iter()
+            .flat_map(|line| line.spans)
+            .map(|span| span.content.into_owned())
+            .collect();
+
+        assert!(
+            rendered.contains("…16"),
+            "group spacing must not be reported as hidden cargo: {rendered}"
         );
     }
 

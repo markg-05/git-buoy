@@ -91,7 +91,7 @@ A vessel's hull carries **cargo** that counts the pending change categories, and
 | --- | --- |
 | `▣` | Staged files |
 | `▢` | Unstaged (modified) files |
-| `○` | Untracked files |
+| `+` | Untracked files |
 | `✕` | Conflicted files |
 | `▙▄▄▟` | A vessel: work is checked out at this dock |
 | `◍` | A mooring buoy: a branch with no worktree |
