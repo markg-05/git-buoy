@@ -89,6 +89,30 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
     ));
 
     lines.push(Line::default());
+    lines.push(section("Workspace activity", theme));
+    lines.push(activity_line(
+        "observing",
+        "first survey complete; not enough history yet",
+        theme,
+    ));
+    lines.push(activity_line(
+        "recent",
+        "changed within the workspace idle threshold",
+        theme,
+    ));
+    lines.push(activity_line(
+        "idle",
+        "no change during the workspace idle threshold",
+        theme,
+    ));
+    lines.push(symbol_line(
+        ACTIVITY_WAKE.to_string(),
+        "wake shown for recent or directional activity",
+        theme.water,
+        theme,
+    ));
+
+    lines.push(Line::default());
     lines.push(section("Symbols", theme));
     lines.push(symbol_line(
         VESSEL_HULL.to_string(),
@@ -106,12 +130,6 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
         "↑ ↓".to_string(),
         "commits ahead of / behind upstream",
         theme.condition(Condition::Outbound),
-        theme,
-    ));
-    lines.push(symbol_line(
-        ACTIVITY_WAKE.to_string(),
-        "wake from recent or directional activity",
-        theme.water,
         theme,
     ));
     lines.push(symbol_line(
@@ -169,6 +187,17 @@ fn cargo_line(
     theme: &Theme,
 ) -> Line<'static> {
     symbol_line(glyph.to_string(), label, glyph_color, theme)
+}
+
+fn activity_line(label: &'static str, description: &'static str, theme: &Theme) -> Line<'static> {
+    Line::from(vec![
+        Span::raw("    "),
+        Span::styled(
+            format!("{label:<width$}", width = LABEL_WIDTH),
+            Style::new().fg(theme.text).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(description, Style::new().fg(theme.text)),
+    ])
 }
 
 fn symbol_line(
