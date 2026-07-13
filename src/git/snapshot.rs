@@ -1,0 +1,92 @@
+use std::path::PathBuf;
+
+/// A point-in-time description of one repository, decoupled from git2 types
+/// so the harbor mapping can be exercised in tests without a live repository.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RepoSnapshot {
+    /// Directory name of the repository, used as the harbor name.
+    pub name: String,
+    /// The repository's default branch, when one can be determined.
+    pub default_branch: Option<String>,
+    /// All local branches, sorted by name.
+    pub branches: Vec<BranchInfo>,
+    /// The main worktree (unless bare) followed by linked worktrees.
+    pub workspaces: Vec<Workspace>,
+}
+
+/// One local branch, whether or not it is checked out anywhere.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BranchInfo {
+    pub name: String,
+    /// Position relative to the branch's upstream, if it has one.
+    pub sync: Option<SyncState>,
+    /// Summary line of the branch tip commit.
+    pub last_commit: Option<String>,
+}
+
+/// A checked-out working directory: the main worktree or a linked worktree.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Workspace {
+    pub path: PathBuf,
+    pub is_main: bool,
+    pub head: HeadState,
+    pub changes: ChangeCounts,
+    /// A multi-step operation that has started but not finished.
+    pub operation: Option<Operation>,
+}
+
+/// Where a workspace's HEAD points. Detached and unborn HEADs are normal
+/// states, not errors.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HeadState {
+    Branch(String),
+    /// Short commit id.
+    Detached(String),
+    /// Fresh repository with no commits yet.
+    Unborn,
+}
+
+/// Counts of files by change category in one workspace.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ChangeCounts {
+    pub staged: usize,
+    pub unstaged: usize,
+    pub untracked: usize,
+    pub conflicted: usize,
+}
+
+impl ChangeCounts {
+    pub fn is_clean(&self) -> bool {
+        self.staged == 0 && self.unstaged == 0 && self.untracked == 0 && self.conflicted == 0
+    }
+}
+
+/// Position of a branch relative to its upstream.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SyncState {
+    pub upstream: String,
+    pub ahead: usize,
+    pub behind: usize,
+}
+
+/// An in-progress Git operation that blocks normal work until resolved.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Operation {
+    Merge,
+    Rebase,
+    CherryPick,
+    Revert,
+    Bisect,
+}
+
+impl Operation {
+    pub fn label(&self) -> &'static str {
+        match self {
+            Operation::Merge => "merge in progress",
+            Operation::Rebase => "rebase in progress",
+            Operation::CherryPick => "cherry-pick in progress",
+            Operation::Revert => "revert in progress",
+            Operation::Bisect => "bisect in progress",
+        }
+    }
+}
