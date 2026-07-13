@@ -360,6 +360,63 @@ mod tests {
     }
 
     #[test]
+    fn cargo_wraps_only_after_crossing_the_full_water_width() {
+        // At width 20, the water area is 16 cells. Five approach cells, the
+        // four-cell hull, and its separator leave exactly six cargo cells.
+        let exact = vessel_dock(Vessel {
+            staged: 6,
+            ..Vessel::default()
+        });
+        let overflow = vessel_dock(Vessel {
+            staged: 7,
+            ..Vessel::default()
+        });
+
+        assert_eq!(water_lines(&exact, 20, 0, 0, &Theme::detect()).len(), 1);
+        assert_eq!(water_lines(&overflow, 20, 0, 0, &Theme::detect()).len(), 2);
+    }
+
+    #[test]
+    fn wrapped_cargo_preserves_category_order_across_rows() {
+        let dock = vessel_dock(Vessel {
+            staged: 8,
+            unstaged: 8,
+            untracked: 8,
+            conflicted: 8,
+        });
+        let lines = water_lines(&dock, 20, 0, 0, &Theme::detect());
+        assert_eq!(lines.len(), 3);
+
+        let rendered: String = lines
+            .into_iter()
+            .flat_map(|line| line.spans)
+            .map(|span| span.content.into_owned())
+            .collect();
+        let cargo: String = rendered
+            .chars()
+            .filter(|ch| {
+                [
+                    CARGO_STAGED,
+                    CARGO_UNSTAGED,
+                    CARGO_UNTRACKED,
+                    CARGO_CONFLICT,
+                ]
+                .contains(ch)
+            })
+            .collect();
+        assert_eq!(
+            cargo,
+            format!(
+                "{}{}{}{}",
+                CARGO_STAGED.to_string().repeat(8),
+                CARGO_UNSTAGED.to_string().repeat(8),
+                CARGO_UNTRACKED.to_string().repeat(8),
+                CARGO_CONFLICT.to_string().repeat(8)
+            )
+        );
+    }
+
+    #[test]
     fn untracked_cargo_uses_a_visible_single_cell_glyph() {
         let symbol = Line::from(CARGO_UNTRACKED.to_string());
 
