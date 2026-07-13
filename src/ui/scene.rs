@@ -79,8 +79,48 @@ pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     let heights: Vec<usize> = blocks.iter().map(Vec::len).collect();
     let top = scroll_top(&heights, avail, inspecting.then_some(app.selected));
 
-    let lines: Vec<Line> = blocks.into_iter().flatten().skip(top).take(avail).collect();
+    let mut lines: Vec<Line> = if inspecting {
+        blocks.into_iter().flatten().skip(top).take(avail).collect()
+    } else {
+        // Ambient mode has no selection to scroll into view, so reserve the
+        // last row for an explicit count when whole docks would otherwise be
+        // silently omitted below the viewport.
+        let hidden = hidden_docks_below(&heights, avail);
+        if hidden == 0 {
+            blocks.into_iter().flatten().take(avail).collect()
+        } else {
+            let content_height = avail.saturating_sub(1);
+            let hidden = hidden_docks_below(&heights, content_height);
+            let mut lines: Vec<Line> = blocks.into_iter().flatten().take(content_height).collect();
+            lines.push(more_docks_line(hidden, theme));
+            lines
+        }
+    };
+    lines.truncate(avail);
     frame.render_widget(Paragraph::new(lines), area);
+}
+
+/// Count docks whose first line begins below the visible portion of the
+/// flattened scene. A partially visible dock is already represented and is
+/// therefore not included in the count.
+fn hidden_docks_below(heights: &[usize], visible_lines: usize) -> usize {
+    let mut start = 0;
+    heights
+        .iter()
+        .filter(|height| {
+            let hidden = start >= visible_lines;
+            start += **height;
+            hidden
+        })
+        .count()
+}
+
+fn more_docks_line(hidden: usize, theme: &Theme) -> Line<'static> {
+    let noun = if hidden == 1 { "dock" } else { "docks" };
+    Line::from(Span::styled(
+        format!("  … {hidden} more {noun} below"),
+        Style::new().fg(theme.dim),
+    ))
 }
 
 /// Pick the first flattened line to show so the selected dock stays on screen.
@@ -357,5 +397,30 @@ mod tests {
         assert_eq!(scroll_top(&heights, 6, Some(4)), 9);
         // A dock taller than the window pins to its own top.
         assert_eq!(scroll_top(&[10], 4, Some(0)), 0);
+    }
+
+    #[test]
+    fn hidden_dock_count_ignores_partially_visible_docks() {
+        let heights = vec![4, 3, 2];
+
+        assert_eq!(hidden_docks_below(&heights, 9), 0);
+        assert_eq!(hidden_docks_below(&heights, 5), 1);
+        assert_eq!(hidden_docks_below(&heights, 4), 2);
+        assert_eq!(hidden_docks_below(&heights, 0), 3);
+    }
+
+    #[test]
+    fn overflow_marker_uses_singular_and_plural_dock_counts() {
+        let theme = Theme::detect();
+        let text = |count| {
+            more_docks_line(count, &theme)
+                .spans
+                .into_iter()
+                .map(|span| span.content.into_owned())
+                .collect::<String>()
+        };
+
+        assert_eq!(text(1), "  … 1 more dock below");
+        assert_eq!(text(3), "  … 3 more docks below");
     }
 }
