@@ -108,4 +108,27 @@ pub struct Vessel {
     pub unstaged: usize,
     pub untracked: usize,
     pub conflicted: usize,
+    pub activity: VesselActivity,
+}
+
+/// Whether observable Git/worktree state has changed during this run.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum VesselActivity {
+    /// The first survey has arrived, but there is not enough history yet.
+    #[default]
+    Observing,
+    /// This workspace changed within the configured idle threshold.
+    Recent,
+    /// No observable change occurred during the configured idle threshold.
+    Idle,
+}
+
+impl VesselActivity {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Observing => "observing",
+            Self::Recent => "recent",
+            Self::Idle => "idle",
+        }
+    }
 }

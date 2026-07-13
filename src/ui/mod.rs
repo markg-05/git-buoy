@@ -136,6 +136,7 @@ mod tests {
                     unstaged: 40,
                     untracked: 1,
                     conflicted: 0,
+                    ..Vessel::default()
                 }),
                 sync: None,
                 detail,

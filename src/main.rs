@@ -30,6 +30,10 @@ struct Args {
     /// Seconds between repository surveys.
     #[arg(long, default_value_t = 2.0)]
     poll_interval: f64,
+
+    /// Seconds without observable repository changes before a vessel is idle.
+    #[arg(long, default_value_t = 30.0)]
+    idle_after: f64,
 }
 
 fn main() -> Result<()> {
@@ -44,7 +48,8 @@ fn main() -> Result<()> {
 
     let receiver = spawn_collector(root, Duration::from_secs_f64(args.poll_interval.max(0.2)));
 
-    let mut app = App::new(name, args.reduced_motion);
+    let mut app = App::new(name, args.reduced_motion)
+        .with_idle_after(Duration::from_secs_f64(args.idle_after.max(1.0)));
     let theme = ui::Theme::detect();
     let tick = Duration::from_millis(1000 / u64::from(args.fps.clamp(1, 30)));
 
@@ -60,12 +65,12 @@ fn main() -> Result<()> {
 fn spawn_collector(
     root: PathBuf,
     interval: Duration,
-) -> mpsc::Receiver<Result<git::RepoSnapshot, String>> {
+) -> mpsc::Receiver<(Result<git::RepoSnapshot, String>, Instant)> {
     let (sender, receiver) = mpsc::channel();
     thread::spawn(move || {
         loop {
             let snapshot = git::collect(&root).map_err(|e| e.to_string());
-            if sender.send(snapshot).is_err() {
+            if sender.send((snapshot, Instant::now())).is_err() {
                 return;
             }
             thread::sleep(interval);
@@ -78,13 +83,16 @@ fn run(
     mut terminal: ratatui::DefaultTerminal,
     app: &mut App,
     theme: &ui::Theme,
-    receiver: &mpsc::Receiver<Result<git::RepoSnapshot, String>>,
+    receiver: &mpsc::Receiver<(Result<git::RepoSnapshot, String>, Instant)>,
     tick: Duration,
 ) -> Result<()> {
     let mut last_tick = Instant::now();
     loop {
-        while let Ok(snapshot) = receiver.try_recv() {
-            app.update(Msg::Snapshot(snapshot));
+        while let Ok((result, observed_at)) = receiver.try_recv() {
+            app.update(Msg::Snapshot {
+                result,
+                observed_at,
+            });
         }
 
         terminal

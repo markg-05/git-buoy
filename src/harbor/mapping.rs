@@ -1,10 +1,17 @@
 use crate::git::{BranchInfo, HeadState, RepoSnapshot, Workspace};
 
-use super::model::{Condition, Dock, DockKind, Harbor, Vessel};
+use super::model::{Condition, Dock, DockKind, Harbor, Vessel, VesselActivity};
 
 /// Build the harbor scene for a snapshot. Pure: the same snapshot always
 /// produces the same scene.
 pub fn to_harbor(snapshot: &RepoSnapshot) -> Harbor {
+    to_harbor_with_activity(snapshot, |_| VesselActivity::Observing)
+}
+
+pub(crate) fn to_harbor_with_activity(
+    snapshot: &RepoSnapshot,
+    activity_for: impl Fn(&Workspace) -> VesselActivity,
+) -> Harbor {
     let mut docks = Vec::new();
 
     for branch in &snapshot.branches {
@@ -12,7 +19,12 @@ pub fn to_harbor(snapshot: &RepoSnapshot) -> Harbor {
             .workspaces
             .iter()
             .find(|w| matches!(&w.head, HeadState::Branch(name) if name == &branch.name));
-        docks.push(branch_dock(snapshot, branch, workspace));
+        docks.push(branch_dock(
+            snapshot,
+            branch,
+            workspace,
+            workspace.map_or(VesselActivity::Observing, &activity_for),
+        ));
     }
 
     // Workspaces not sitting on a local branch still deserve a dock.
@@ -25,6 +37,7 @@ pub fn to_harbor(snapshot: &RepoSnapshot) -> Harbor {
                     DockKind::DetachedWorktree,
                     "detached HEAD",
                     workspace,
+                    activity_for(workspace),
                 ));
             }
             HeadState::Unborn => {
@@ -33,6 +46,7 @@ pub fn to_harbor(snapshot: &RepoSnapshot) -> Harbor {
                     DockKind::Branch,
                     "unborn HEAD",
                     workspace,
+                    activity_for(workspace),
                 ));
             }
         }
@@ -54,13 +68,14 @@ fn branch_dock(
     snapshot: &RepoSnapshot,
     branch: &BranchInfo,
     workspace: Option<&Workspace>,
+    activity: VesselActivity,
 ) -> Dock {
     let kind = if snapshot.default_branch.as_deref() == Some(branch.name.as_str()) {
         DockKind::MainTerminal
     } else {
         DockKind::Branch
     };
-    let vessel = workspace.map(vessel_for);
+    let vessel = workspace.map(|workspace| vessel_for(workspace, activity));
     let sync = branch.sync.as_ref().map(|s| (s.ahead, s.behind));
     let condition = condition_for(vessel.as_ref(), sync, workspace.and_then(|w| w.operation));
 
@@ -73,7 +88,7 @@ fn branch_dock(
         None => detail.push(("upstream", "none".to_string())),
     }
     match workspace {
-        Some(w) => push_workspace_detail(&mut detail, w),
+        Some(w) => push_workspace_detail(&mut detail, w, activity),
         None => detail.push(("workspace", "not checked out".to_string())),
     }
     if let Some(summary) = &branch.last_commit {
@@ -95,11 +110,12 @@ fn headless_dock(
     kind: DockKind,
     head_note: &'static str,
     workspace: &Workspace,
+    activity: VesselActivity,
 ) -> Dock {
-    let vessel = vessel_for(workspace);
+    let vessel = vessel_for(workspace, activity);
     let condition = condition_for(Some(&vessel), None, workspace.operation);
     let mut detail: Vec<(&'static str, String)> = vec![("head", head_note.to_string())];
-    push_workspace_detail(&mut detail, workspace);
+    push_workspace_detail(&mut detail, workspace, activity);
     Dock {
         name,
         kind,
@@ -110,8 +126,13 @@ fn headless_dock(
     }
 }
 
-fn push_workspace_detail(detail: &mut Vec<(&'static str, String)>, workspace: &Workspace) {
+fn push_workspace_detail(
+    detail: &mut Vec<(&'static str, String)>,
+    workspace: &Workspace,
+    activity: VesselActivity,
+) {
     detail.push(("workspace", workspace.path.display().to_string()));
+    detail.push(("activity", activity.label().to_string()));
     detail.push(("staged", workspace.changes.staged.to_string()));
     detail.push(("unstaged", workspace.changes.unstaged.to_string()));
     detail.push(("untracked", workspace.changes.untracked.to_string()));
@@ -121,12 +142,13 @@ fn push_workspace_detail(detail: &mut Vec<(&'static str, String)>, workspace: &W
     }
 }
 
-fn vessel_for(workspace: &Workspace) -> Vessel {
+fn vessel_for(workspace: &Workspace, activity: VesselActivity) -> Vessel {
     Vessel {
         staged: workspace.changes.staged,
         unstaged: workspace.changes.unstaged,
         untracked: workspace.changes.untracked,
         conflicted: workspace.changes.conflicted,
+        activity,
     }
 }
 
@@ -171,6 +193,7 @@ mod tests {
             is_main: true,
             head,
             changes,
+            activity_token: 0,
             operation: None,
         }
     }
@@ -199,6 +222,7 @@ mod tests {
             unstaged: 3,
             untracked: 1,
             conflicted: 1,
+            ..Vessel::default()
         };
         assert_eq!(
             condition_for(Some(&busy), Some((5, 0)), None),

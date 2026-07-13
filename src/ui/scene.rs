@@ -338,6 +338,9 @@ fn status_text(dock: &Dock) -> String {
         }
     }
     parts.push(dock.condition.label().to_string());
+    if let Some(vessel) = dock.vessel {
+        parts.push(format!("· {}", vessel.activity.label()));
+    }
     parts.join(" ")
 }
 
@@ -387,6 +390,7 @@ mod tests {
             unstaged: 2,
             untracked: 1,
             conflicted: 0,
+            ..Vessel::default()
         });
         assert_eq!(water_lines(&dock, 80, 0, 0, &Theme::detect()).len(), 1);
     }
@@ -415,6 +419,7 @@ mod tests {
             unstaged: 8,
             untracked: 8,
             conflicted: 8,
+            ..Vessel::default()
         });
         let lines = water_lines(&dock, 20, 0, 0, &Theme::detect());
         assert_eq!(lines.len(), 3);
@@ -456,6 +461,7 @@ mod tests {
             unstaged: 2,
             untracked: 3,
             conflicted: 1,
+            ..Vessel::default()
         };
         let cargo = cargo_cells(&vessel, &theme);
         let glyphs: String = cargo.iter().map(|(glyph, _)| glyph).collect();
@@ -486,6 +492,7 @@ mod tests {
             unstaged: 500,
             untracked: 0,
             conflicted: 0,
+            ..Vessel::default()
         });
         let lines = water_lines(&dock, 40, 0, 0, &Theme::detect());
         assert!(lines.len() > 1, "500 changes should wrap onto extra rows");

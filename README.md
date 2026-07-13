@@ -35,7 +35,7 @@ With no path argument, Git Buoy observes the repository containing the current d
 | `m` | Toggle reduced motion |
 | `q` | Quit |
 
-Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, and `--poll-interval` sets how often the repository is re-read.
+Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, `--poll-interval` sets how often the repository is re-read, and `--idle-after` controls when an unchanged workspace is labeled idle.
 
 ## Product intent
 
@@ -99,6 +99,8 @@ A vessel's hull carries **cargo** that counts the pending change categories, and
 | `▙▄▄▟` | A vessel: work is checked out at this dock |
 | `◍` | A mooring buoy: a branch with no worktree |
 | `↑` / `↓` | Commits ahead of / behind the upstream |
+
+An occupied dock is initially labeled `observing`. After Git Buoy sees its repository state change, it is `recent` until the idle threshold passes; an unchanged workspace is then `idle`. This describes observable repository activity, not whether a particular process or person is present.
 
 ## Intended experience
 

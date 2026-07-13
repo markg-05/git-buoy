@@ -31,6 +31,10 @@ pub struct Workspace {
     pub is_main: bool,
     pub head: HeadState,
     pub changes: ChangeCounts,
+    /// Fingerprint of observable workspace state used by the application to
+    /// recognize recent activity across surveys. It has no meaning outside
+    /// comparisons within one run.
+    pub activity_token: u64,
     /// A multi-step operation that has started but not finished.
     pub operation: Option<Operation>,
 }

@@ -1,4 +1,6 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::{Path, PathBuf};
+use std::time::UNIX_EPOCH;
 
 use anyhow::{Context, Result};
 use git2::{Branch, BranchType, Repository, RepositoryState, Status, StatusOptions};
@@ -152,7 +154,55 @@ fn collect_workspace(repo: &Repository, is_main: bool) -> Workspace {
         is_main,
         head: head_state(repo),
         changes: change_counts(repo),
+        activity_token: activity_token(repo),
         operation: operation(repo.state()),
+    }
+}
+
+/// Hash the parts of a workspace that can change while work is being done.
+/// File metadata supplements Git status so repeated edits to an already-dirty
+/// file are still observable even when its status category does not change.
+fn activity_token(repo: &Repository) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    repo.head()
+        .ok()
+        .and_then(|head| head.target())
+        .hash(&mut hasher);
+    format!("{:?}", repo.state()).hash(&mut hasher);
+    hash_metadata(repo.path().join("index"), &mut hasher);
+
+    let mut options = StatusOptions::new();
+    options
+        .include_untracked(true)
+        .recurse_untracked_dirs(true)
+        .exclude_submodules(true);
+    if let Ok(statuses) = repo.statuses(Some(&mut options)) {
+        for entry in statuses.iter() {
+            entry.status().bits().hash(&mut hasher);
+            entry.path_bytes().hash(&mut hasher);
+
+            if let Some(workdir) = repo.workdir()
+                && let Some(delta) = entry.index_to_workdir()
+                && let Some(path) = delta.new_file().path().or_else(|| delta.old_file().path())
+            {
+                hash_metadata(workdir.join(path), &mut hasher);
+            }
+        }
+    }
+    hasher.finish()
+}
+
+fn hash_metadata(path: PathBuf, hasher: &mut impl Hasher) {
+    let Ok(metadata) = path.metadata() else {
+        return;
+    };
+    metadata.len().hash(hasher);
+    metadata.is_dir().hash(hasher);
+    if let Ok(modified) = metadata.modified()
+        && let Ok(since_epoch) = modified.duration_since(UNIX_EPOCH)
+    {
+        since_epoch.as_secs().hash(hasher);
+        since_epoch.subsec_nanos().hash(hasher);
     }
 }
 
