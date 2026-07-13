@@ -7,7 +7,8 @@ use ratatui::widgets::{Block, Clear, Paragraph};
 use crate::harbor::Condition;
 
 use super::scene::{
-    CARGO_CONFLICT, CARGO_STAGED, CARGO_UNSTAGED, CARGO_UNTRACKED, MOORING_BUOY, VESSEL_HULL,
+    ACTIVITY_WAKE, CARGO_CONFLICT, CARGO_STAGED, CARGO_UNSTAGED, CARGO_UNTRACKED, MOORING_BUOY,
+    VESSEL_HULL,
 };
 use super::theme::Theme;
 
@@ -100,6 +101,12 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
         "↑ ↓".to_string(),
         "commits ahead of / behind upstream",
         theme.condition(Condition::Outbound),
+        theme,
+    ));
+    lines.push(symbol_line(
+        ACTIVITY_WAKE.to_string(),
+        "wake from recent or directional activity",
+        theme.water,
         theme,
     ));
 

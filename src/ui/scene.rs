@@ -5,7 +5,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::Paragraph;
 
 use crate::app::{App, Mode};
-use crate::harbor::{Condition, Dock, DockKind, Vessel};
+use crate::harbor::{Condition, Dock, DockKind, Vessel, VesselActivity};
 
 use super::theme::Theme;
 
@@ -33,6 +33,7 @@ pub(super) const CARGO_STAGED: char = '▣';
 pub(super) const CARGO_UNSTAGED: char = '▢';
 pub(super) const CARGO_UNTRACKED: char = '+';
 pub(super) const CARGO_CONFLICT: char = '✕';
+pub(super) const ACTIVITY_WAKE: &str = "≈~";
 
 pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     if area.height == 0 || area.width == 0 {
@@ -274,18 +275,29 @@ fn water_lines(
 ) -> Vec<Line<'static>> {
     let water_width = width.saturating_sub(POST.chars().count()).max(1);
 
-    // A stretch of open water leads up to the vessel.
-    let mut content: Vec<(char, Color)> = (0..VESSEL_X.min(water_width))
-        .map(|x| (wave_char(x, dock_index, frame), theme.water))
-        .collect();
-
     match &dock.vessel {
         Some(vessel) => {
+            let vessel_x = vessel_x(dock, water_width, frame);
+            // Open water leads to the vessel. A wake replaces its last cells
+            // when motion is communicating recent or directional activity.
+            let mut content: Vec<(char, Color)> = (0..vessel_x.min(water_width))
+                .map(|x| (wave_char(x, dock_index, frame), theme.water))
+                .collect();
+            if shows_left_wake(dock, vessel) {
+                overlay_left_wake(&mut content, frame, theme.water);
+            }
             let color = theme.condition(dock.condition);
-            for ch in VESSEL_HULL.chars() {
+            for ch in vessel_hull(vessel, frame).chars() {
                 content.push((ch, color));
             }
             content.push((' ', color));
+
+            if dock.condition == Condition::Incoming {
+                for ch in ACTIVITY_WAKE.chars() {
+                    content.push((ch, theme.water));
+                }
+                content.push((' ', theme.water));
+            }
 
             let mut cargo = cargo_cells(vessel, theme);
 
@@ -310,10 +322,26 @@ fn water_lines(
             } else {
                 content.extend(cargo);
             }
-        }
-        None => content.push((MOORING_BUOY, theme.condition(Condition::Moored))),
-    }
 
+            flow_water(content, water_width, dock_index, frame, theme)
+        }
+        None => {
+            let mut content: Vec<(char, Color)> = (0..VESSEL_X.min(water_width))
+                .map(|x| (wave_char(x, dock_index, frame), theme.water))
+                .collect();
+            content.push((MOORING_BUOY, theme.condition(Condition::Moored)));
+            flow_water(content, water_width, dock_index, frame, theme)
+        }
+    }
+}
+
+fn flow_water(
+    content: Vec<(char, Color)>,
+    water_width: usize,
+    dock_index: usize,
+    frame: u64,
+    theme: &Theme,
+) -> Vec<Line<'static>> {
     // Flow the content across as many rows as it needs, filling the final row
     // out to the edge with open water.
     let rows = content.len().div_ceil(water_width).max(1);
@@ -328,6 +356,48 @@ fn water_lines(
             cells_to_line(cells, theme)
         })
         .collect()
+}
+
+fn vessel_x(dock: &Dock, water_width: usize, frame: u64) -> usize {
+    let base = VESSEL_X.min(water_width.saturating_sub(1));
+    let furthest = water_width
+        .saturating_sub(VESSEL_HULL.chars().count() + 1)
+        .min(base.saturating_add(12));
+    let distance = furthest.saturating_sub(base);
+    if distance == 0 {
+        return base;
+    }
+    let phase = ((frame / 4) % (distance as u64 + 1)) as usize;
+    match dock.condition {
+        Condition::Outbound => base + phase,
+        Condition::Incoming => furthest - phase,
+        Condition::Diverged => base + ((frame / 6) as usize % 2).min(distance),
+        _ => base,
+    }
+}
+
+fn shows_left_wake(dock: &Dock, vessel: &Vessel) -> bool {
+    dock.condition == Condition::Outbound || vessel.activity == VesselActivity::Recent
+}
+
+fn overlay_left_wake(content: &mut [(char, Color)], frame: u64, color: Color) {
+    let wake = if (frame / 3).is_multiple_of(2) {
+        ACTIVITY_WAKE
+    } else {
+        "~≈"
+    };
+    let start = content.len().saturating_sub(wake.chars().count());
+    for (cell, glyph) in content[start..].iter_mut().zip(wake.chars()) {
+        *cell = (glyph, color);
+    }
+}
+
+fn vessel_hull(vessel: &Vessel, frame: u64) -> &'static str {
+    if vessel.activity == VesselActivity::Recent && (frame / 4).is_multiple_of(2) {
+        "▜▄▄▛"
+    } else {
+        VESSEL_HULL
+    }
 }
 
 fn cargo_cells(vessel: &Vessel, theme: &Theme) -> Vec<(char, Color)> {
@@ -465,6 +535,17 @@ mod tests {
         }
     }
 
+    fn motion_dock(condition: Condition, activity: VesselActivity) -> Dock {
+        Dock {
+            condition,
+            vessel: Some(Vessel {
+                activity,
+                ..Vessel::default()
+            }),
+            ..vessel_dock(Vessel::default())
+        }
+    }
+
     fn ambient_app(names: &[&str]) -> App {
         let mut app = App::new("test".to_string(), false);
         app.harbor = Harbor {
@@ -507,6 +588,31 @@ mod tests {
         assert_eq!(row, again);
         let moved: String = (0..40).map(|x| wave_char(x, 0, 10)).collect();
         assert_ne!(row, moved, "the water should drift between frames");
+    }
+
+    #[test]
+    fn branch_sync_controls_vessel_direction() {
+        let outbound = motion_dock(Condition::Outbound, VesselActivity::Idle);
+        let incoming = motion_dock(Condition::Incoming, VesselActivity::Idle);
+        let calm = motion_dock(Condition::Calm, VesselActivity::Idle);
+
+        assert!(vessel_x(&outbound, 40, 16) > vessel_x(&outbound, 40, 0));
+        assert!(vessel_x(&incoming, 40, 16) < vessel_x(&incoming, 40, 0));
+        assert_eq!(vessel_x(&calm, 40, 16), vessel_x(&calm, 40, 0));
+    }
+
+    #[test]
+    fn recent_activity_animates_hull_and_wake() {
+        let vessel = Vessel {
+            activity: VesselActivity::Recent,
+            ..Vessel::default()
+        };
+        assert_ne!(vessel_hull(&vessel, 0), vessel_hull(&vessel, 4));
+
+        let mut water = vec![(' ', Color::Blue); 5];
+        overlay_left_wake(&mut water, 0, Color::Blue);
+        assert_eq!(water[3].0, '≈');
+        assert_eq!(water[4].0, '~');
     }
 
     #[test]

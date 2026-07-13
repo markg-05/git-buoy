@@ -102,8 +102,11 @@ A vessel's hull carries **cargo** that counts the pending change categories, and
 | `▙▄▄▟` | A vessel: work is checked out at this dock |
 | `◍` | A mooring buoy: a branch with no worktree |
 | `↑` / `↓` | Commits ahead of / behind the upstream |
+| `≈~` | A wake from recent or directional activity |
 
 An occupied dock is initially labeled `observing`. After Git Buoy sees its repository state change, it is `recent` until the idle threshold passes; an unchanged workspace is then `idle`. This describes observable repository activity, not whether a particular process or person is present.
+
+Motion reinforces those facts: recent vessels work against a wake, outbound vessels travel away from the pier, incoming vessels travel toward it, and diverged vessels shift without making progress. With reduced motion, the same conditions, arrows, activity words, and cargo remain visible in a fixed frame.
 
 ## Intended experience
 
