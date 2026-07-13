@@ -29,7 +29,10 @@ With no path argument, Git Buoy observes the repository containing the current d
 | Key | Action |
 | --- | --- |
 | `i` or `Enter` | Enter inspect mode on the current dock |
-| `Tab` / `j` / `k` / arrows | Select a dock |
+| `Enter` / right arrow | Drill from dock to vessel to changed files |
+| `Esc` / `h` / left arrow | Step back one inspection level |
+| `Tab` / `Shift-Tab` | Select a dock |
+| `j` / `k` / up/down arrows | Select a dock or, when drilled in, a changed file |
 | `l` or `?` | Toggle the legend overlay |
 | `Esc` | Close the legend, then leave inspect mode, then quit |
 | `m` | Toggle reduced motion |
@@ -107,7 +110,7 @@ An occupied dock is initially labeled `observing`. After Git Buoy sees its repos
 Git Buoy should work in two complementary modes:
 
 1. **Ambient mode:** A quiet, animated overview suitable for a spare terminal pane. Important state changes should be noticeable without demanding attention.
-2. **Inspect mode:** Keyboard-driven navigation for selecting a dock, vessel, change set, pull request, or check and seeing the underlying Git information.
+2. **Inspect mode:** Keyboard-driven navigation drills from a dock into its vessel and exact changed paths. Pull requests and checks join the same hierarchy when remote-hosting observation is enabled.
 
 When every dock does not fit, ambient mode advances through dock-sized pages and reports how many docks remain above or below the current view. Reduced motion keeps the first page static while preserving the same overflow information.
 

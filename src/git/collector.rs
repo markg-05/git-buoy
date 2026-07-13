@@ -6,7 +6,8 @@ use anyhow::{Context, Result};
 use git2::{Branch, BranchType, Repository, RepositoryState, Status, StatusOptions};
 
 use super::snapshot::{
-    BranchInfo, ChangeCounts, HeadState, Operation, RepoSnapshot, SyncState, Workspace,
+    BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, Operation, RepoSnapshot,
+    SyncState, Workspace,
 };
 
 /// Locate the repository containing `path` and return its root directory.
@@ -149,11 +150,13 @@ fn default_branch(repo: &Repository, branches: &[BranchInfo]) -> Option<String> 
 }
 
 fn collect_workspace(repo: &Repository, is_main: bool) -> Workspace {
+    let (changes, change_files) = collect_changes(repo);
     Workspace {
         path: repo_root(repo),
         is_main,
         head: head_state(repo),
-        changes: change_counts(repo),
+        changes,
+        change_files,
         activity_token: activity_token(repo),
         operation: operation(repo.state()),
     }
@@ -222,12 +225,13 @@ fn head_state(repo: &Repository) -> HeadState {
     }
 }
 
-fn change_counts(repo: &Repository) -> ChangeCounts {
+fn collect_changes(repo: &Repository) -> (ChangeCounts, Vec<ChangeFile>) {
     let mut counts = ChangeCounts::default();
+    let mut files = Vec::new();
     let mut options = StatusOptions::new();
     options.include_untracked(true).exclude_submodules(true);
     let Ok(statuses) = repo.statuses(Some(&mut options)) else {
-        return counts;
+        return (counts, files);
     };
     const STAGED: Status = Status::INDEX_NEW
         .union(Status::INDEX_MODIFIED)
@@ -240,21 +244,62 @@ fn change_counts(repo: &Repository) -> ChangeCounts {
         .union(Status::WT_TYPECHANGE);
     for entry in statuses.iter() {
         let status = entry.status();
+        let path = status_path(&entry);
         if status.is_conflicted() {
             counts.conflicted += 1;
+            files.push(ChangeFile {
+                path,
+                kind: ChangeKind::Conflicted,
+            });
             continue;
         }
         if status.intersects(STAGED) {
             counts.staged += 1;
+            files.push(ChangeFile {
+                path: path.clone(),
+                kind: ChangeKind::Staged,
+            });
         }
         if status.intersects(UNSTAGED) {
             counts.unstaged += 1;
+            files.push(ChangeFile {
+                path: path.clone(),
+                kind: ChangeKind::Unstaged,
+            });
         }
         if status.contains(Status::WT_NEW) {
             counts.untracked += 1;
+            files.push(ChangeFile {
+                path,
+                kind: ChangeKind::Untracked,
+            });
         }
     }
-    counts
+    files.sort_by(|a, b| a.path.cmp(&b.path).then_with(|| a.kind.cmp(&b.kind)));
+    (counts, files)
+}
+
+fn status_path(entry: &git2::StatusEntry<'_>) -> PathBuf {
+    entry
+        .index_to_workdir()
+        .and_then(|delta| {
+            delta
+                .new_file()
+                .path()
+                .or_else(|| delta.old_file().path())
+                .map(Path::to_path_buf)
+        })
+        .or_else(|| {
+            entry.head_to_index().and_then(|delta| {
+                delta
+                    .new_file()
+                    .path()
+                    .or_else(|| delta.old_file().path())
+                    .map(Path::to_path_buf)
+            })
+        })
+        .or_else(|| entry.path().ok().map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from("<path unavailable>"))
 }
 
 fn operation(state: RepositoryState) -> Option<Operation> {

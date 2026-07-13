@@ -11,4 +11,4 @@ mod model;
 pub use animation::Animation;
 pub use mapping::to_harbor;
 pub(crate) use mapping::to_harbor_with_activity;
-pub use model::{Condition, Dock, DockKind, Harbor, Vessel, VesselActivity};
+pub use model::{CargoItem, CargoKind, Condition, Dock, DockKind, Harbor, Vessel, VesselActivity};

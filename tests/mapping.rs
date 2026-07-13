@@ -70,7 +70,7 @@ fn local_repository_without_remote_does_not_guess_a_main_terminal() {
     assert_eq!(dock.name, "main");
     assert_eq!(dock.kind, DockKind::Branch);
     assert_eq!(dock.condition, Condition::Local);
-    let vessel = dock.vessel.expect("main worktree is occupied");
+    let vessel = dock.vessel.as_ref().expect("main worktree is occupied");
     assert_eq!(vessel.staged + vessel.unstaged + vessel.untracked, 0);
 }
 
@@ -83,9 +83,21 @@ fn uncommitted_changes_load_cargo() {
     let harbor = to_harbor(&collect(&repo).unwrap());
     let dock = &harbor.docks[0];
     assert_eq!(dock.condition, Condition::Loading);
-    let vessel = dock.vessel.unwrap();
+    let vessel = dock.vessel.as_ref().unwrap();
     assert_eq!(vessel.unstaged, 1);
     assert_eq!(vessel.untracked, 1);
+    assert!(
+        vessel
+            .cargo
+            .iter()
+            .any(|item| item.path == Path::new("README.md"))
+    );
+    assert!(
+        vessel
+            .cargo
+            .iter()
+            .any(|item| item.path == Path::new("notes.txt"))
+    );
 }
 
 #[test]
@@ -96,7 +108,7 @@ fn staged_changes_seal_the_cargo() {
 
     let harbor = to_harbor(&collect(&repo).unwrap());
     assert_eq!(harbor.docks[0].condition, Condition::Sealed);
-    assert_eq!(harbor.docks[0].vessel.unwrap().staged, 1);
+    assert_eq!(harbor.docks[0].vessel.as_ref().unwrap().staged, 1);
 }
 
 #[test]

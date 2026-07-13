@@ -17,6 +17,14 @@ pub enum Mode {
     Inspect,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum InspectTarget {
+    #[default]
+    Dock,
+    Vessel,
+    Change(usize),
+}
+
 /// Everything that can happen to the application.
 #[derive(Debug)]
 pub enum Msg {
@@ -37,6 +45,7 @@ pub struct App {
     pub harbor: Harbor,
     pub mode: Mode,
     pub selected: usize,
+    pub inspect_target: InspectTarget,
     pub reduced_motion: bool,
     pub animation: Animation,
     pub should_quit: bool,
@@ -58,6 +67,7 @@ impl App {
             },
             mode: Mode::Ambient,
             selected: 0,
+            inspect_target: InspectTarget::Dock,
             reduced_motion,
             animation: Animation::default(),
             should_quit: false,
@@ -112,14 +122,14 @@ impl App {
             // Escape peels back one layer at a time: legend, then inspect,
             // then quit.
             KeyCode::Esc if self.show_legend => self.show_legend = false,
-            KeyCode::Esc => match self.mode {
-                Mode::Inspect => self.mode = Mode::Ambient,
-                Mode::Ambient => self.should_quit = true,
-            },
+            KeyCode::Esc | KeyCode::Left | KeyCode::Char('h') => self.step_out(),
             KeyCode::Char('m') => self.reduced_motion = !self.reduced_motion,
-            KeyCode::Char('i') | KeyCode::Enter => self.enter_inspect(),
-            KeyCode::Tab | KeyCode::Down | KeyCode::Char('j') => self.select_next(),
-            KeyCode::BackTab | KeyCode::Up | KeyCode::Char('k') => self.select_previous(),
+            KeyCode::Char('i') => self.enter_inspect(),
+            KeyCode::Enter | KeyCode::Right => self.step_in(),
+            KeyCode::Tab => self.select_next_dock(),
+            KeyCode::BackTab => self.select_previous_dock(),
+            KeyCode::Down | KeyCode::Char('j') => self.select_next(),
+            KeyCode::Up | KeyCode::Char('k') => self.select_previous(),
             _ => {}
         }
     }
@@ -127,7 +137,40 @@ impl App {
     fn enter_inspect(&mut self) {
         if !self.harbor.docks.is_empty() {
             self.mode = Mode::Inspect;
+            self.inspect_target = InspectTarget::Dock;
         }
+    }
+
+    fn step_in(&mut self) {
+        if self.mode == Mode::Ambient {
+            self.enter_inspect();
+            return;
+        }
+        let Some(dock) = self.harbor.docks.get(self.selected) else {
+            return;
+        };
+        self.inspect_target = match self.inspect_target {
+            InspectTarget::Dock if dock.vessel.is_some() => InspectTarget::Vessel,
+            InspectTarget::Vessel if dock.vessel.as_ref().is_some_and(|v| !v.cargo.is_empty()) => {
+                InspectTarget::Change(0)
+            }
+            target => target,
+        };
+    }
+
+    fn step_out(&mut self) {
+        if self.mode == Mode::Ambient {
+            self.should_quit = true;
+            return;
+        }
+        self.inspect_target = match self.inspect_target {
+            InspectTarget::Change(_) => InspectTarget::Vessel,
+            InspectTarget::Vessel => InspectTarget::Dock,
+            InspectTarget::Dock => {
+                self.mode = Mode::Ambient;
+                InspectTarget::Dock
+            }
+        };
     }
 
     fn select_next(&mut self) {
@@ -135,17 +178,70 @@ impl App {
             // The first navigation key only opens inspect mode on the
             // current dock; movement starts with the next press.
             self.enter_inspect();
+        } else if let InspectTarget::Change(selected) = self.inspect_target {
+            if let Some(count) = self.selected_cargo_count().filter(|count| *count > 0) {
+                self.inspect_target = InspectTarget::Change((selected + 1) % count);
+            }
         } else {
-            self.selected = (self.selected + 1) % self.harbor.docks.len();
+            self.select_next_dock();
         }
     }
 
     fn select_previous(&mut self) {
         if self.mode == Mode::Ambient {
             self.enter_inspect();
+        } else if let InspectTarget::Change(selected) = self.inspect_target {
+            if let Some(count) = self.selected_cargo_count().filter(|count| *count > 0) {
+                self.inspect_target = InspectTarget::Change((selected + count - 1) % count);
+            }
         } else {
+            self.select_previous_dock();
+        }
+    }
+
+    fn select_next_dock(&mut self) {
+        if self.mode == Mode::Ambient {
+            self.enter_inspect();
+        } else if !self.harbor.docks.is_empty() {
+            self.selected = (self.selected + 1) % self.harbor.docks.len();
+            self.clamp_inspect_target();
+        }
+    }
+
+    fn select_previous_dock(&mut self) {
+        if self.mode == Mode::Ambient {
+            self.enter_inspect();
+        } else if !self.harbor.docks.is_empty() {
             let count = self.harbor.docks.len();
             self.selected = (self.selected + count - 1) % count;
+            self.clamp_inspect_target();
+        }
+    }
+
+    fn selected_cargo_count(&self) -> Option<usize> {
+        self.harbor
+            .docks
+            .get(self.selected)?
+            .vessel
+            .as_ref()
+            .map(|vessel| vessel.cargo.len())
+    }
+
+    fn clamp_inspect_target(&mut self) {
+        let Some(dock) = self.harbor.docks.get(self.selected) else {
+            self.inspect_target = InspectTarget::Dock;
+            return;
+        };
+        let Some(vessel) = dock.vessel.as_ref() else {
+            self.inspect_target = InspectTarget::Dock;
+            return;
+        };
+        if let InspectTarget::Change(selected) = self.inspect_target {
+            self.inspect_target = if vessel.cargo.is_empty() {
+                InspectTarget::Vessel
+            } else {
+                InspectTarget::Change(selected.min(vessel.cargo.len() - 1))
+            };
         }
     }
 
@@ -153,9 +249,11 @@ impl App {
         if self.harbor.docks.is_empty() {
             self.selected = 0;
             self.mode = Mode::Ambient;
+            self.inspect_target = InspectTarget::Dock;
         } else if self.selected >= self.harbor.docks.len() {
             self.selected = self.harbor.docks.len() - 1;
         }
+        self.clamp_inspect_target();
     }
 }
 
@@ -229,7 +327,9 @@ mod tests {
 
     use std::path::PathBuf;
 
-    use crate::git::{BranchInfo, ChangeCounts, HeadState, RepoSnapshot, Workspace};
+    use crate::git::{
+        BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, RepoSnapshot, Workspace,
+    };
 
     use super::*;
 
@@ -273,7 +373,14 @@ mod tests {
                 path: PathBuf::from("/tmp/activity-test"),
                 is_main: true,
                 head: HeadState::Branch("topic".to_string()),
-                changes: ChangeCounts::default(),
+                changes: ChangeCounts {
+                    unstaged: 1,
+                    ..ChangeCounts::default()
+                },
+                change_files: vec![ChangeFile {
+                    path: PathBuf::from("src/main.rs"),
+                    kind: ChangeKind::Unstaged,
+                }],
                 activity_token: token,
                 operation: None,
             }],
@@ -281,7 +388,7 @@ mod tests {
     }
 
     fn activity(app: &App) -> VesselActivity {
-        app.harbor.docks[0].vessel.unwrap().activity
+        app.harbor.docks[0].vessel.as_ref().unwrap().activity
     }
 
     #[test]
@@ -363,5 +470,25 @@ mod tests {
             observed_at: start + Duration::from_secs(36),
         });
         assert_eq!(activity(&app), VesselActivity::Idle);
+    }
+
+    #[test]
+    fn inspect_drills_into_vessel_and_changed_files_then_steps_back() {
+        let mut app = App::new("test".to_string(), false);
+        app.update(snapshot_msg(Ok(activity_snapshot(1))));
+
+        app.update(key(KeyCode::Char('i')));
+        assert_eq!(app.inspect_target, InspectTarget::Dock);
+        app.update(key(KeyCode::Enter));
+        assert_eq!(app.inspect_target, InspectTarget::Vessel);
+        app.update(key(KeyCode::Enter));
+        assert_eq!(app.inspect_target, InspectTarget::Change(0));
+
+        app.update(key(KeyCode::Esc));
+        assert_eq!(app.inspect_target, InspectTarget::Vessel);
+        app.update(key(KeyCode::Esc));
+        assert_eq!(app.inspect_target, InspectTarget::Dock);
+        app.update(key(KeyCode::Esc));
+        assert_eq!(app.mode, Mode::Ambient);
     }
 }

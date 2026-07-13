@@ -14,7 +14,7 @@ use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Clear, Paragraph};
 
-use crate::app::{App, Mode};
+use crate::app::{App, InspectTarget, Mode};
 
 /// At or above this width the inspect panel floats over the full-width scene;
 /// below it the panel takes the whole body, since there is no room for both.
@@ -49,7 +49,7 @@ fn draw_body(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         Mode::Inspect if area.width >= SPLIT_WIDTH => {
             scene::draw_scene(frame, area, app, theme);
             if let Some(dock) = app.harbor.docks.get(app.selected) {
-                let panel = inspect_panel_area(area, dock);
+                let panel = inspect_panel_area(area, dock, app.inspect_target);
                 frame.render_widget(Clear, panel);
                 inspect::draw_inspect(frame, panel, app, theme);
             }
@@ -59,8 +59,9 @@ fn draw_body(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     }
 }
 
-fn inspect_panel_area(area: Rect, dock: &crate::harbor::Dock) -> Rect {
-    let wanted = u16::try_from(inspect::content_width(dock).saturating_add(2)).unwrap_or(u16::MAX);
+fn inspect_panel_area(area: Rect, dock: &crate::harbor::Dock, target: InspectTarget) -> Rect {
+    let wanted =
+        u16::try_from(inspect::content_width(dock, target).saturating_add(2)).unwrap_or(u16::MAX);
     let panel_width = wanted.clamp(MIN_INSPECT_WIDTH, area.width.saturating_sub(2));
     Rect {
         x: area.x + area.width - panel_width,
@@ -100,7 +101,11 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     } else {
         match app.mode {
             Mode::Ambient => " i inspect · l legend · m motion · q quit",
-            Mode::Inspect => " tab/j/k select · l legend · esc back · q quit",
+            Mode::Inspect => match app.inspect_target {
+                InspectTarget::Dock => " tab dock · enter vessel · l legend · esc back · q quit",
+                InspectTarget::Vessel => " tab dock · enter files · l legend · esc back · q quit",
+                InspectTarget::Change(_) => " j/k file · tab dock · l legend · esc back · q quit",
+            },
         }
     };
     frame.render_widget(
@@ -171,12 +176,12 @@ mod tests {
             ("last commit", commit.to_string()),
         ]);
         let body = Rect::new(0, 1, 120, 10);
-        let panel = inspect_panel_area(body, &app.harbor.docks[0]);
+        let panel = inspect_panel_area(body, &app.harbor.docks[0], app.inspect_target);
 
         assert_eq!(panel.right(), body.right());
         assert_eq!(
             panel.width as usize,
-            inspect::content_width(&app.harbor.docks[0]) + 2
+            inspect::content_width(&app.harbor.docks[0], app.inspect_target) + 2
         );
 
         let lines = render(&app, 120, 12);
@@ -190,7 +195,11 @@ mod tests {
     fn wide_inspect_draws_harbor_under_a_floating_panel() {
         let app = inspect_app(vec![("branch", "feature/cargo".to_string())]);
         let lines = render(&app, SPLIT_WIDTH, 8);
-        let panel = inspect_panel_area(Rect::new(0, 1, SPLIT_WIDTH, 6), &app.harbor.docks[0]);
+        let panel = inspect_panel_area(
+            Rect::new(0, 1, SPLIT_WIDTH, 6),
+            &app.harbor.docks[0],
+            app.inspect_target,
+        );
 
         assert!(lines[1].starts_with("─▶┬─ feature/cargo"));
         assert!(lines[2].contains(scene::VESSEL_HULL));

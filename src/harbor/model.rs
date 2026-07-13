@@ -102,13 +102,40 @@ impl Condition {
 }
 
 /// The activity at an occupied dock, measured in cargo.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Vessel {
+    pub workspace: PathBuf,
     pub staged: usize,
     pub unstaged: usize,
     pub untracked: usize,
     pub conflicted: usize,
     pub activity: VesselActivity,
+    pub cargo: Vec<CargoItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CargoItem {
+    pub path: PathBuf,
+    pub kind: CargoKind,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CargoKind {
+    Staged,
+    Unstaged,
+    Untracked,
+    Conflicted,
+}
+
+impl CargoKind {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Staged => "staged",
+            Self::Unstaged => "unstaged",
+            Self::Untracked => "untracked",
+            Self::Conflicted => "conflicted",
+        }
+    }
 }
 
 /// Whether observable Git/worktree state has changed during this run.
@@ -132,3 +159,4 @@ impl VesselActivity {
         }
     }
 }
+use std::path::PathBuf;

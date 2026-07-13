@@ -8,5 +8,6 @@ mod snapshot;
 
 pub use collector::{collect, discover_root};
 pub use snapshot::{
-    BranchInfo, ChangeCounts, HeadState, Operation, RepoSnapshot, SyncState, Workspace,
+    BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, Operation, RepoSnapshot,
+    SyncState, Workspace,
 };

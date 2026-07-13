@@ -426,7 +426,7 @@ fn status_text(dock: &Dock) -> String {
         }
     }
     parts.push(dock.condition.label().to_string());
-    if let Some(vessel) = dock.vessel {
+    if let Some(vessel) = dock.vessel.as_ref() {
         parts.push(format!("· {}", vessel.activity.label()));
     }
     parts.join(" ")

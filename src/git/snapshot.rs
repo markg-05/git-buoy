@@ -31,12 +31,40 @@ pub struct Workspace {
     pub is_main: bool,
     pub head: HeadState,
     pub changes: ChangeCounts,
+    /// Changed paths, with one entry per category. A path can appear twice
+    /// when it has both staged and unstaged changes.
+    pub change_files: Vec<ChangeFile>,
     /// Fingerprint of observable workspace state used by the application to
     /// recognize recent activity across surveys. It has no meaning outside
     /// comparisons within one run.
     pub activity_token: u64,
     /// A multi-step operation that has started but not finished.
     pub operation: Option<Operation>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ChangeFile {
+    pub path: PathBuf,
+    pub kind: ChangeKind,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ChangeKind {
+    Staged,
+    Unstaged,
+    Untracked,
+    Conflicted,
+}
+
+impl ChangeKind {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Staged => "staged",
+            Self::Unstaged => "unstaged",
+            Self::Untracked => "untracked",
+            Self::Conflicted => "conflicted",
+        }
+    }
 }
 
 /// Where a workspace's HEAD points. Detached and unborn HEADs are normal

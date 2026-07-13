@@ -1,6 +1,8 @@
-use crate::git::{BranchInfo, HeadState, RepoSnapshot, Workspace};
+use crate::git::{BranchInfo, ChangeKind, HeadState, RepoSnapshot, Workspace};
 
-use super::model::{Condition, Dock, DockKind, Harbor, Vessel, VesselActivity};
+use super::model::{
+    CargoItem, CargoKind, Condition, Dock, DockKind, Harbor, Vessel, VesselActivity,
+};
 
 /// Build the harbor scene for a snapshot. Pure: the same snapshot always
 /// produces the same scene.
@@ -144,11 +146,25 @@ fn push_workspace_detail(
 
 fn vessel_for(workspace: &Workspace, activity: VesselActivity) -> Vessel {
     Vessel {
+        workspace: workspace.path.clone(),
         staged: workspace.changes.staged,
         unstaged: workspace.changes.unstaged,
         untracked: workspace.changes.untracked,
         conflicted: workspace.changes.conflicted,
         activity,
+        cargo: workspace
+            .change_files
+            .iter()
+            .map(|file| CargoItem {
+                path: file.path.clone(),
+                kind: match file.kind {
+                    ChangeKind::Staged => CargoKind::Staged,
+                    ChangeKind::Unstaged => CargoKind::Unstaged,
+                    ChangeKind::Untracked => CargoKind::Untracked,
+                    ChangeKind::Conflicted => CargoKind::Conflicted,
+                },
+            })
+            .collect(),
     }
 }
 
@@ -193,6 +209,7 @@ mod tests {
             is_main: true,
             head,
             changes,
+            change_files: Vec::new(),
             activity_token: 0,
             operation: None,
         }
