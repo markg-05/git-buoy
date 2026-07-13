@@ -12,8 +12,9 @@ use super::scene::{
 };
 use super::theme::Theme;
 
-/// Width of the label column so descriptions line up under each other.
-const LABEL_WIDTH: usize = 9;
+/// Label widths keep each section compact while preserving a one-cell gutter.
+const CONDITION_LABEL_WIDTH: usize = 9;
+const ACTIVITY_LABEL_WIDTH: usize = 10;
 
 /// Draw the legend as a centered overlay above the current scene. It reads
 /// the same condition list, descriptions, and glyphs the harbor draws with,
@@ -51,7 +52,11 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
         lines.push(Line::from(vec![
             Span::styled("  ● ", Style::new().fg(color)),
             Span::styled(
-                format!("{:<width$}", condition.label(), width = LABEL_WIDTH),
+                format!(
+                    "{:<width$}",
+                    condition.label(),
+                    width = CONDITION_LABEL_WIDTH
+                ),
                 Style::new().fg(color).add_modifier(Modifier::BOLD),
             ),
             Span::styled(
@@ -191,9 +196,9 @@ fn cargo_line(
 
 fn activity_line(label: &'static str, description: &'static str, theme: &Theme) -> Line<'static> {
     Line::from(vec![
-        Span::raw("    "),
+        Span::styled("  ● ", Style::new().fg(theme.text)),
         Span::styled(
-            format!("{label:<width$}", width = LABEL_WIDTH),
+            format!("{label:<width$}", width = ACTIVITY_LABEL_WIDTH),
             Style::new().fg(theme.text).add_modifier(Modifier::BOLD),
         ),
         Span::styled(description, Style::new().fg(theme.text)),
@@ -221,5 +226,64 @@ fn centered(area: Rect, width: u16, height: u16) -> Rect {
         y: area.y + (area.height - h) / 2,
         width: w,
         height: h,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn text(line: Line<'static>) -> String {
+        line.spans
+            .into_iter()
+            .map(|span| span.content.into_owned())
+            .collect()
+    }
+
+    #[test]
+    fn workspace_activity_descriptions_share_a_column_and_keep_a_gutter() {
+        let theme = Theme::detect();
+        let observing = text(activity_line(
+            "observing",
+            "first survey complete; not enough history yet",
+            &theme,
+        ));
+        let recent = text(activity_line(
+            "recent",
+            "changed within the workspace idle threshold",
+            &theme,
+        ));
+        let idle = text(activity_line(
+            "idle",
+            "no change during the workspace idle threshold",
+            &theme,
+        ));
+
+        assert_eq!(
+            observing.find("first survey"),
+            recent.find("changed within")
+        );
+        assert_eq!(observing.find("first survey"), idle.find("no change"));
+        assert!(observing.contains("● observing first survey"));
+    }
+
+    #[test]
+    fn activity_labels_are_neutral_while_the_wake_uses_water_color() {
+        let theme = Theme::detect();
+        let recent = activity_line(
+            "recent",
+            "changed within the workspace idle threshold",
+            &theme,
+        );
+        let wake = symbol_line(
+            ACTIVITY_WAKE.to_string(),
+            "wake shown for recent or directional activity",
+            theme.water,
+            &theme,
+        );
+
+        assert_eq!(recent.spans[0].style.fg, Some(theme.text));
+        assert_eq!(recent.spans[1].style.fg, Some(theme.text));
+        assert_eq!(wake.spans[0].style.fg, Some(theme.water));
     }
 }
