@@ -59,20 +59,20 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
     lines.push(section("Cargo aboard a vessel", theme));
     lines.push(cargo_line(
         CARGO_STAGED,
-        "staged",
+        "staged files",
         theme.condition(Condition::Sealed),
         theme,
     ));
     lines.push(cargo_line(
         CARGO_UNSTAGED,
-        "unstaged",
+        "unstaged files",
         theme.condition(Condition::Loading),
         theme,
     ));
-    lines.push(cargo_line(CARGO_UNTRACKED, "untracked", theme.dim, theme));
+    lines.push(cargo_line(CARGO_UNTRACKED, "untracked files", theme.dim, theme));
     lines.push(cargo_line(
         CARGO_CONFLICT,
-        "conflicted",
+        "conflicted files",
         theme.condition(Condition::Blocked),
         theme,
     ));
