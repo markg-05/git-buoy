@@ -79,9 +79,12 @@ Every dock resolves to a single **condition**, shown by color and by a word on i
 | | Condition | What it means |
 | --- | --- | --- |
 | 🟩 | **calm** | Checked out, committed, and in sync with the upstream. |
+| ⬜ | **local** | Checked out with no upstream configured. |
 | 🟨 | **loading** | Uncommitted changes are still being loaded (modified or new files). |
 | 🟪 | **sealed** | Changes are staged, ready to become a commit. |
 | 🟦 | **outbound** | Commits are ahead of the upstream, ready to push. |
+| 🔵 | **incoming** | Commits are behind the upstream, ready to pull. |
+| 🟧 | **diverged** | Local and upstream histories both contain unique commits. |
 | 🟥 | **blocked** | A merge conflict or an in-progress operation is stopping work from landing. |
 | ⬜ | **moored** | A branch with no worktree checked out. |
 

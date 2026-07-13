@@ -13,6 +13,9 @@ pub struct Theme {
     loading: Color,
     sealed: Color,
     outbound: Color,
+    incoming: Color,
+    diverged: Color,
+    local: Color,
     blocked: Color,
     moored: Color,
 }
@@ -43,6 +46,9 @@ impl Theme {
             loading: Color::Rgb(229, 192, 100),
             sealed: Color::Rgb(184, 152, 235),
             outbound: Color::Rgb(102, 199, 216),
+            incoming: Color::Rgb(105, 157, 216),
+            diverged: Color::Rgb(214, 150, 91),
+            local: Color::Rgb(172, 178, 188),
             blocked: Color::Rgb(233, 116, 116),
             moored: Color::Rgb(130, 138, 150),
         }
@@ -58,6 +64,9 @@ impl Theme {
             loading: Color::Indexed(179),
             sealed: Color::Indexed(140),
             outbound: Color::Indexed(80),
+            incoming: Color::Indexed(74),
+            diverged: Color::Indexed(173),
+            local: Color::Indexed(250),
             blocked: Color::Indexed(167),
             moored: Color::Indexed(245),
         }
@@ -73,6 +82,9 @@ impl Theme {
             loading: Color::Yellow,
             sealed: Color::Magenta,
             outbound: Color::Cyan,
+            incoming: Color::Blue,
+            diverged: Color::Yellow,
+            local: Color::White,
             blocked: Color::Red,
             moored: Color::Gray,
         }
@@ -84,6 +96,9 @@ impl Theme {
             Condition::Sealed => self.sealed,
             Condition::Loading => self.loading,
             Condition::Outbound => self.outbound,
+            Condition::Incoming => self.incoming,
+            Condition::Diverged => self.diverged,
+            Condition::Local => self.local,
             Condition::Calm => self.calm,
             Condition::Moored => self.moored,
         }

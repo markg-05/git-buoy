@@ -144,10 +144,14 @@ fn condition_for(
         Condition::Sealed
     } else if vessel.unstaged > 0 || vessel.untracked > 0 {
         Condition::Loading
-    } else if sync.is_some_and(|(ahead, _)| ahead > 0) {
-        Condition::Outbound
     } else {
-        Condition::Calm
+        match sync {
+            Some((ahead, behind)) if ahead > 0 && behind > 0 => Condition::Diverged,
+            Some((ahead, _)) if ahead > 0 => Condition::Outbound,
+            Some((_, behind)) if behind > 0 => Condition::Incoming,
+            Some(_) => Condition::Calm,
+            None => Condition::Local,
+        }
     }
 }
 
@@ -223,8 +227,17 @@ mod tests {
         );
         assert_eq!(
             condition_for(Some(&clean), Some((0, 2)), None),
+            Condition::Incoming
+        );
+        assert_eq!(
+            condition_for(Some(&clean), Some((2, 1)), None),
+            Condition::Diverged
+        );
+        assert_eq!(
+            condition_for(Some(&clean), Some((0, 0)), None),
             Condition::Calm
         );
+        assert_eq!(condition_for(Some(&clean), None, None), Condition::Local);
         assert_eq!(condition_for(None, Some((5, 0)), None), Condition::Moored);
     }
 
@@ -291,6 +304,6 @@ mod tests {
         );
         let harbor = to_harbor(&snap);
         assert_eq!(harbor.docks[0].sync, Some((2, 1)));
-        assert_eq!(harbor.docks[0].condition, Condition::Outbound);
+        assert_eq!(harbor.docks[0].condition, Condition::Diverged);
     }
 }

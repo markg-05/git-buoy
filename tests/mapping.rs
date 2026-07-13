@@ -61,7 +61,7 @@ fn seeded_repo() -> (tempfile::TempDir, PathBuf) {
 }
 
 #[test]
-fn clean_repository_is_a_calm_main_terminal() {
+fn clean_repository_without_upstream_is_a_local_main_terminal() {
     let (_temp, repo) = seeded_repo();
     let harbor = to_harbor(&collect(&repo).unwrap());
 
@@ -69,7 +69,7 @@ fn clean_repository_is_a_calm_main_terminal() {
     let dock = &harbor.docks[0];
     assert_eq!(dock.name, "main");
     assert_eq!(dock.kind, DockKind::MainTerminal);
-    assert_eq!(dock.condition, Condition::Calm);
+    assert_eq!(dock.condition, Condition::Local);
     let vessel = dock.vessel.expect("main worktree is occupied");
     assert_eq!(vessel.staged + vessel.unstaged + vessel.untracked, 0);
 }
@@ -188,6 +188,23 @@ fn commits_ahead_of_upstream_are_outbound() {
     let harbor = to_harbor(&snapshot);
     assert_eq!(harbor.docks[0].condition, Condition::Outbound);
     assert_eq!(harbor.docks[0].sync, Some((1, 0)));
+}
+
+#[test]
+fn clean_branch_with_in_sync_upstream_is_calm() {
+    let (temp, repo) = seeded_repo();
+    let clone_path = temp.path().join("clone");
+    git(
+        temp.path(),
+        &[
+            "clone",
+            repo.to_str().unwrap(),
+            clone_path.to_str().unwrap(),
+        ],
+    );
+
+    let harbor = to_harbor(&collect(&clone_path).unwrap());
+    assert_eq!(harbor.docks[0].condition, Condition::Calm);
 }
 
 #[test]

@@ -32,7 +32,7 @@ pub enum DockKind {
 
 /// What a dock communicates at a glance. Exactly one condition applies,
 /// chosen by priority: blocked work outranks pending cargo, which outranks
-/// outbound commits, which outranks calm water.
+/// branch synchronization, which outranks calm water.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Condition {
     /// Conflicts or an unfinished operation prevent work from landing.
@@ -43,7 +43,13 @@ pub enum Condition {
     Loading,
     /// Commits ahead of upstream, ready to leave the harbor.
     Outbound,
-    /// An occupied dock with nothing pending.
+    /// Commits behind upstream, ready to enter the harbor.
+    Incoming,
+    /// Local and upstream both have commits the other does not.
+    Diverged,
+    /// An occupied branch with no upstream configured.
+    Local,
+    /// An occupied dock with nothing pending and an in-sync upstream.
     Calm,
     /// A branch with no active workspace.
     Moored,
@@ -53,11 +59,14 @@ impl Condition {
     /// Every condition in a natural reading order, from settled work through
     /// to problems and empty docks. The in-app legend and the README table
     /// both follow this order so the two never drift apart.
-    pub const ALL: [Condition; 6] = [
+    pub const ALL: [Condition; 9] = [
         Condition::Calm,
+        Condition::Local,
         Condition::Loading,
         Condition::Sealed,
         Condition::Outbound,
+        Condition::Incoming,
+        Condition::Diverged,
         Condition::Blocked,
         Condition::Moored,
     ];
@@ -68,6 +77,9 @@ impl Condition {
             Condition::Sealed => "sealed",
             Condition::Loading => "loading",
             Condition::Outbound => "outbound",
+            Condition::Incoming => "incoming",
+            Condition::Diverged => "diverged",
+            Condition::Local => "local",
             Condition::Calm => "calm",
             Condition::Moored => "moored",
         }
@@ -80,6 +92,9 @@ impl Condition {
             Condition::Loading => "uncommitted changes still being loaded",
             Condition::Sealed => "changes staged, ready to become a commit",
             Condition::Outbound => "commits ahead of upstream, ready to push",
+            Condition::Incoming => "commits behind upstream, ready to pull",
+            Condition::Diverged => "local and upstream histories have diverged",
+            Condition::Local => "checked out with no upstream configured",
             Condition::Blocked => "a conflict or in-progress operation stops work",
             Condition::Moored => "a branch with no worktree checked out",
         }
