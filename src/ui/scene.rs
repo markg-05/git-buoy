@@ -27,7 +27,7 @@ pub(super) const VESSEL_HULL: &str = "▙▄▄▟";
 pub(super) const MOORING_BUOY: char = '◍';
 pub(super) const CARGO_STAGED: char = '▣';
 pub(super) const CARGO_UNSTAGED: char = '▢';
-pub(super) const CARGO_UNTRACKED: char = '·';
+pub(super) const CARGO_UNTRACKED: char = '○';
 pub(super) const CARGO_CONFLICT: char = '✕';
 
 pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
@@ -317,6 +317,18 @@ mod tests {
             conflicted: 0,
         });
         assert_eq!(water_lines(&dock, 80, 0, 0, &Theme::detect()).len(), 1);
+    }
+
+    #[test]
+    fn untracked_cargo_uses_a_visible_single_cell_glyph() {
+        let symbol = Line::from(CARGO_UNTRACKED.to_string());
+
+        assert_eq!(CARGO_UNTRACKED, '○');
+        assert_eq!(
+            symbol.width(),
+            1,
+            "cargo counts must preserve one cell each"
+        );
     }
 
     #[test]

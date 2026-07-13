@@ -69,7 +69,12 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
         theme.condition(Condition::Loading),
         theme,
     ));
-    lines.push(cargo_line(CARGO_UNTRACKED, "untracked files", theme.dim, theme));
+    lines.push(cargo_line(
+        CARGO_UNTRACKED,
+        "untracked files",
+        theme.condition(Condition::Loading),
+        theme,
+    ));
     lines.push(cargo_line(
         CARGO_CONFLICT,
         "conflicted files",
