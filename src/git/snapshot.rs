@@ -22,6 +22,24 @@ pub struct BranchInfo {
     pub sync: Option<SyncState>,
     /// Summary line of the branch tip commit.
     pub last_commit: Option<String>,
+    /// Branch-tip identity and provenance used to recognize live transitions
+    /// without exposing git2 commit or reflog types.
+    pub tip: Option<TipInfo>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TipInfo {
+    pub id: String,
+    pub summary: String,
+    pub parent_count: usize,
+    pub action: TipAction,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TipAction {
+    Commit,
+    Merge,
+    Other,
 }
 
 /// A checked-out working directory: the main worktree or a linked worktree.

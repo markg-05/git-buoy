@@ -156,6 +156,7 @@ mod tests {
                 ("路径", "/tmp/港口".to_string()),
                 ("last commit", "ready".to_string()),
             ],
+            events: Vec::new(),
         }
     }
 

@@ -19,6 +19,31 @@ pub struct Dock {
     /// Label and value pairs shown verbatim in inspect mode. The metaphor
     /// offers orientation; these carry the exact Git facts.
     pub detail: Vec<(&'static str, String)>,
+    /// Short-lived transitions observed while Git Buoy is running.
+    pub events: Vec<DockEvent>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DockEvent {
+    pub kind: EventKind,
+    pub summary: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EventKind {
+    Commit,
+    Push,
+    Merge,
+}
+
+impl EventKind {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Commit => "committed",
+            Self::Push => "pushed",
+            Self::Merge => "merged",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -104,6 +104,7 @@ fn branch_dock(
         vessel,
         sync,
         detail,
+        events: Vec::new(),
     }
 }
 
@@ -125,6 +126,7 @@ fn headless_dock(
         vessel: Some(vessel),
         sync: None,
         detail,
+        events: Vec::new(),
     }
 }
 
@@ -220,6 +222,7 @@ mod tests {
             name: name.to_string(),
             sync: None,
             last_commit: Some("initial".to_string()),
+            tip: None,
         }
     }
 

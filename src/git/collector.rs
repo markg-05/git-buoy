@@ -7,7 +7,7 @@ use git2::{Branch, BranchType, Repository, RepositoryState, Status, StatusOption
 
 use super::snapshot::{
     BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, Operation, RepoSnapshot,
-    SyncState, Workspace,
+    SyncState, TipAction, TipInfo, Workspace,
 };
 
 /// Locate the repository containing `path` and return its root directory.
@@ -72,20 +72,46 @@ fn collect_branches(repo: &Repository) -> Vec<BranchInfo> {
         .flatten()
         .filter_map(|(branch, _)| {
             let name = branch.name().ok().flatten()?.to_string();
-            let last_commit = branch
-                .get()
-                .peel_to_commit()
-                .ok()
-                .and_then(|c| c.summary().ok().flatten().map(str::to_string));
+            let tip = branch.get().peel_to_commit().ok().map(|commit| {
+                let summary = commit
+                    .summary()
+                    .ok()
+                    .flatten()
+                    .unwrap_or("(no summary)")
+                    .to_string();
+                TipInfo {
+                    id: commit.id().to_string(),
+                    summary,
+                    parent_count: commit.parent_count(),
+                    action: tip_action(repo, &name),
+                }
+            });
             Some(BranchInfo {
                 sync: branch_sync(repo, &branch),
                 name,
-                last_commit,
+                last_commit: tip.as_ref().map(|tip| tip.summary.clone()),
+                tip,
             })
         })
         .collect();
     out.sort_by(|a, b| a.name.cmp(&b.name));
     out
+}
+
+fn tip_action(repo: &Repository, branch_name: &str) -> TipAction {
+    let reference = format!("refs/heads/{branch_name}");
+    let message = repo.reflog(&reference).ok().and_then(|reflog| {
+        reflog
+            .get(0)
+            .and_then(|entry| entry.message().ok().flatten().map(str::to_string))
+    });
+    match message.as_deref() {
+        Some(message) if message.starts_with("commit") => TipAction::Commit,
+        Some(message) if message.starts_with("merge ") || message.starts_with("pull ") => {
+            TipAction::Merge
+        }
+        _ => TipAction::Other,
+    }
 }
 
 fn branch_sync(repo: &Repository, branch: &Branch) -> Option<SyncState> {
@@ -331,6 +357,7 @@ mod tests {
                 name: (*name).to_string(),
                 sync: None,
                 last_commit: None,
+                tip: None,
             })
             .collect()
     }

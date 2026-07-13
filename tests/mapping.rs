@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use git_buoy::git::{HeadState, Operation, collect};
+use git_buoy::git::{HeadState, Operation, TipAction, collect};
 use git_buoy::harbor::{Condition, DockKind, to_harbor};
 
 fn git(dir: &Path, args: &[&str]) {
@@ -128,6 +128,29 @@ fn merge_conflict_blocks_the_dock() {
     let harbor = to_harbor(&snapshot);
     let main = harbor.docks.iter().find(|d| d.name == "main").unwrap();
     assert_eq!(main.condition, Condition::Blocked);
+}
+
+#[test]
+fn successful_merge_tip_records_merge_provenance() {
+    let (_temp, repo) = seeded_repo();
+    git(&repo, &["checkout", "-b", "feature"]);
+    commit_file(&repo, "feature.txt", "feature\n", "feature change");
+    git(&repo, &["checkout", "main"]);
+    commit_file(&repo, "main.txt", "main\n", "main change");
+    git(
+        &repo,
+        &["merge", "--no-ff", "feature", "-m", "merge feature"],
+    );
+
+    let snapshot = collect(&repo).unwrap();
+    let tip = snapshot
+        .branches
+        .iter()
+        .find(|branch| branch.name == "main")
+        .and_then(|branch| branch.tip.as_ref())
+        .unwrap();
+    assert_eq!(tip.parent_count, 2);
+    assert_eq!(tip.action, TipAction::Merge);
 }
 
 #[test]

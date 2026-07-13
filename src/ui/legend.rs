@@ -7,8 +7,8 @@ use ratatui::widgets::{Block, Clear, Paragraph};
 use crate::harbor::Condition;
 
 use super::scene::{
-    ACTIVITY_WAKE, CARGO_CONFLICT, CARGO_STAGED, CARGO_UNSTAGED, CARGO_UNTRACKED, MOORING_BUOY,
-    VESSEL_HULL,
+    ACTIVITY_WAKE, CARGO_CONFLICT, CARGO_STAGED, CARGO_UNSTAGED, CARGO_UNTRACKED, EVENT_COMMIT,
+    EVENT_MERGE, EVENT_PUSH, MOORING_BUOY, VESSEL_HULL,
 };
 use super::theme::Theme;
 
@@ -107,6 +107,27 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
         ACTIVITY_WAKE.to_string(),
         "wake from recent or directional activity",
         theme.water,
+        theme,
+    ));
+
+    lines.push(Line::default());
+    lines.push(section("Live transitions", theme));
+    lines.push(symbol_line(
+        EVENT_COMMIT.to_string(),
+        "a commit observed during this run",
+        theme.condition(Condition::Sealed),
+        theme,
+    ));
+    lines.push(symbol_line(
+        EVENT_PUSH.to_string(),
+        "ahead commits sent upstream",
+        theme.condition(Condition::Outbound),
+        theme,
+    ));
+    lines.push(symbol_line(
+        EVENT_MERGE.to_string(),
+        "a merge commit arriving at a dock",
+        theme.condition(Condition::Calm),
         theme,
     ));
 

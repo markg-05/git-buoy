@@ -145,6 +145,7 @@ mod tests {
                 }),
                 sync: None,
                 detail,
+                events: Vec::new(),
             }],
         };
         app.mode = Mode::Inspect;

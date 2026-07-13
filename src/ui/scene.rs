@@ -5,7 +5,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::Paragraph;
 
 use crate::app::{App, Mode};
-use crate::harbor::{Condition, Dock, DockKind, Vessel, VesselActivity};
+use crate::harbor::{Condition, Dock, DockEvent, DockKind, EventKind, Vessel, VesselActivity};
 
 use super::theme::Theme;
 
@@ -34,6 +34,9 @@ pub(super) const CARGO_UNSTAGED: char = '▢';
 pub(super) const CARGO_UNTRACKED: char = '+';
 pub(super) const CARGO_CONFLICT: char = '✕';
 pub(super) const ACTIVITY_WAKE: &str = "≈~";
+pub(super) const EVENT_COMMIT: &str = "▣ committed";
+pub(super) const EVENT_PUSH: &str = "▙▄▄▟→ pushed";
+pub(super) const EVENT_MERGE: &str = "←▣ merged";
 
 pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     if area.height == 0 || area.width == 0 {
@@ -322,6 +325,11 @@ fn water_lines(
             } else {
                 content.extend(cargo);
             }
+            for event in &dock.events {
+                content.push((' ', theme.dim));
+                content.push((' ', theme.dim));
+                content.extend(event_cells(event, frame, theme));
+            }
 
             flow_water(content, water_width, dock_index, frame, theme)
         }
@@ -333,6 +341,22 @@ fn water_lines(
             flow_water(content, water_width, dock_index, frame, theme)
         }
     }
+}
+
+fn event_cells(event: &DockEvent, frame: u64, theme: &Theme) -> Vec<(char, Color)> {
+    let phase = ((frame / 3) % 6) as usize;
+    let (leading, marker, color) = match event.kind {
+        EventKind::Commit => (phase % 2, EVENT_COMMIT, theme.condition(Condition::Sealed)),
+        EventKind::Push => (phase, EVENT_PUSH, theme.condition(Condition::Outbound)),
+        EventKind::Merge => (
+            5usize.saturating_sub(phase),
+            EVENT_MERGE,
+            theme.condition(Condition::Calm),
+        ),
+    };
+    std::iter::repeat_n((' ', theme.water), leading)
+        .chain(marker.chars().map(|glyph| (glyph, color)))
+        .collect()
 }
 
 fn flow_water(
@@ -499,6 +523,9 @@ fn status_text(dock: &Dock) -> String {
     if let Some(vessel) = dock.vessel.as_ref() {
         parts.push(format!("· {}", vessel.activity.label()));
     }
+    if let Some(event) = dock.events.last() {
+        parts.push(format!("· {}", event.kind.label()));
+    }
     parts.join(" ")
 }
 
@@ -532,6 +559,7 @@ mod tests {
             vessel: Some(vessel),
             sync: None,
             detail: Vec::new(),
+            events: Vec::new(),
         }
     }
 
@@ -559,6 +587,7 @@ mod tests {
                     vessel: None,
                     sync: None,
                     detail: Vec::new(),
+                    events: Vec::new(),
                 })
                 .collect(),
         };
@@ -613,6 +642,30 @@ mod tests {
         overlay_left_wake(&mut water, 0, Color::Blue);
         assert_eq!(water[3].0, '≈');
         assert_eq!(water[4].0, '~');
+    }
+
+    #[test]
+    fn live_transition_markers_move_in_their_semantic_direction() {
+        let theme = Theme::detect();
+        let push = DockEvent {
+            kind: EventKind::Push,
+            summary: String::new(),
+        };
+        let merge = DockEvent {
+            kind: EventKind::Merge,
+            summary: String::new(),
+        };
+        let leading_spaces =
+            |cells: Vec<(char, Color)>| cells.iter().take_while(|(glyph, _)| *glyph == ' ').count();
+
+        assert!(
+            leading_spaces(event_cells(&push, 12, &theme))
+                > leading_spaces(event_cells(&push, 0, &theme))
+        );
+        assert!(
+            leading_spaces(event_cells(&merge, 12, &theme))
+                < leading_spaces(event_cells(&merge, 0, &theme))
+        );
     }
 
     #[test]
