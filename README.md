@@ -4,7 +4,7 @@
 
 Git Buoy is an experimental terminal application that turns the state of a Git repository into an animated seaport. Instead of presenting another commit graph or a wall of status text, it gives branches, worktrees, coding agents, pull requests, and CI activity a shared visual language.
 
-The goal is not to disguise Git. It is to make a busy repository feel legible—especially when several worktrees or coding agents are active at once—while creating something calm and interesting enough to leave running in a spare terminal pane.
+The goal is not to disguise Git. It is to make a busy repository feel legible, especially when several worktrees or coding agents are active at once, while creating something calm and interesting enough to leave running in a spare terminal pane.
 
 ## Status
 
@@ -49,8 +49,8 @@ The mapping will evolve as the product is prototyped. Clarity takes precedence o
 
 Git Buoy should work in two complementary modes:
 
-1. **Ambient mode** — a quiet, animated overview suitable for a spare terminal pane. Important state changes should be noticeable without demanding attention.
-2. **Inspect mode** — keyboard-driven navigation for selecting a dock, vessel, change set, pull request, or check and seeing the underlying Git information.
+1. **Ambient mode:** A quiet, animated overview suitable for a spare terminal pane. Important state changes should be noticeable without demanding attention.
+2. **Inspect mode:** Keyboard-driven navigation for selecting a dock, vessel, change set, pull request, or check and seeing the underlying Git information.
 
 The visual style should feel cozy, precise, and restrained. Animation should carry information rather than merely add activity. The application must remain understandable with reduced motion and in terminals with limited color support.
 
@@ -65,7 +65,7 @@ The first useful version should focus on one local repository and establish the 
 - Provide keyboard inspection of the real Git data behind each visual object.
 - Degrade gracefully across terminal sizes and color capabilities.
 
-Remote hosting data—pull requests, reviews, CI, and releases—belongs in a later milestone after the local experience is convincing.
+Remote hosting data, including pull requests, reviews, CI, and releases, belongs in a later milestone after the local experience is convincing.
 
 ## Non-goals
 
