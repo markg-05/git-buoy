@@ -61,14 +61,14 @@ fn seeded_repo() -> (tempfile::TempDir, PathBuf) {
 }
 
 #[test]
-fn clean_repository_without_upstream_is_a_local_main_terminal() {
+fn local_repository_without_remote_does_not_guess_a_main_terminal() {
     let (_temp, repo) = seeded_repo();
     let harbor = to_harbor(&collect(&repo).unwrap());
 
     assert_eq!(harbor.docks.len(), 1);
     let dock = &harbor.docks[0];
     assert_eq!(dock.name, "main");
-    assert_eq!(dock.kind, DockKind::MainTerminal);
+    assert_eq!(dock.kind, DockKind::Branch);
     assert_eq!(dock.condition, Condition::Local);
     let vessel = dock.vessel.expect("main worktree is occupied");
     assert_eq!(vessel.staged + vessel.unstaged + vessel.untracked, 0);
@@ -139,7 +139,7 @@ fn linked_worktree_gets_its_own_occupied_dock() {
     assert!(feature.vessel.is_some(), "worktree dock should be occupied");
     let main = harbor.docks.iter().find(|d| d.name == "main").unwrap();
     assert!(main.vessel.is_some(), "main worktree stays occupied");
-    assert_eq!(harbor.docks[0].kind, DockKind::MainTerminal);
+    assert_eq!(main.kind, DockKind::Branch);
 }
 
 #[test]

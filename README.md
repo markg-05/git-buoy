@@ -58,7 +58,7 @@ The metaphor is functional, not decorative. Every object in the scene should com
 | Development concept | Harbor representation |
 | --- | --- |
 | Repository | Harbor |
-| Default branch | Main terminal |
+| Default branch, when identified by a remote or bare-repository `HEAD` | Main terminal |
 | Branch or worktree | Dock |
 | Active developer or coding agent | Vessel at a dock |
 | Uncommitted changes | Cargo being loaded |
@@ -118,6 +118,7 @@ The visual style should feel cozy, precise, and restrained. Animation should car
 The first useful version focuses on one local repository and establishes the core model:
 
 - Discover branches and linked worktrees.
+- Identify the main terminal only when Git provides an authoritative default-branch reference.
 - Observe clean, modified, staged, ahead, behind, and conflicted states.
 - Update the scene as local repository state changes.
 - Represent concurrent work without requiring any particular coding agent.

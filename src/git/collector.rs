@@ -102,22 +102,48 @@ fn branch_sync(repo: &Repository, branch: &Branch) -> Option<SyncState> {
     })
 }
 
-/// Best-effort default branch: the remote HEAD if origin has one, then a
-/// conventional local name, then the first branch alphabetically.
+/// Determine the default branch only from an authoritative local reference.
+///
+/// A normal local repository does not record which branch is the default:
+/// `HEAD` is merely the branch currently checked out. A remote-tracking HEAD
+/// does carry that meaning, as does `HEAD` in a bare repository. If neither is
+/// available, returning `None` is more truthful than guessing from a name.
 fn default_branch(repo: &Repository, branches: &[BranchInfo]) -> Option<String> {
-    if let Ok(reference) = repo.find_reference("refs/remotes/origin/HEAD")
+    let mut remotes: Vec<String> = repo
+        .remotes()
+        .ok()
+        .into_iter()
+        .flat_map(|names| {
+            names
+                .iter()
+                .filter_map(|name| name.ok().flatten().map(str::to_string))
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    remotes.sort_by_key(|remote| (remote != "origin", remote.clone()));
+
+    for remote in remotes {
+        let reference_name = format!("refs/remotes/{remote}/HEAD");
+        let prefix = format!("refs/remotes/{remote}/");
+        if let Ok(reference) = repo.find_reference(&reference_name)
+            && let Ok(Some(target)) = reference.symbolic_target()
+            && let Some(name) = target.strip_prefix(&prefix)
+            && branches.iter().any(|branch| branch.name == name)
+        {
+            return Some(name.to_string());
+        }
+    }
+
+    if repo.is_bare()
+        && let Ok(reference) = repo.find_reference("HEAD")
         && let Ok(Some(target)) = reference.symbolic_target()
-        && let Some(name) = target.strip_prefix("refs/remotes/origin/")
-        && branches.iter().any(|b| b.name == name)
+        && let Some(name) = target.strip_prefix("refs/heads/")
+        && branches.iter().any(|branch| branch.name == name)
     {
         return Some(name.to_string());
     }
-    for candidate in ["main", "master", "trunk"] {
-        if branches.iter().any(|b| b.name == candidate) {
-            return Some(candidate.to_string());
-        }
-    }
-    branches.first().map(|b| b.name.clone())
+
+    None
 }
 
 fn collect_workspace(repo: &Repository, is_main: bool) -> Workspace {
@@ -194,5 +220,44 @@ fn operation(state: RepositoryState) -> Option<Operation> {
         S::CherryPick | S::CherryPickSequence => Some(Operation::CherryPick),
         S::Revert | S::RevertSequence => Some(Operation::Revert),
         S::Bisect => Some(Operation::Bisect),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::default_branch;
+    use crate::git::BranchInfo;
+    use git2::Repository;
+
+    fn branches(names: &[&str]) -> Vec<BranchInfo> {
+        names
+            .iter()
+            .map(|name| BranchInfo {
+                name: (*name).to_string(),
+                sync: None,
+                last_commit: None,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn does_not_guess_a_default_branch_from_conventional_names() {
+        let directory = tempfile::tempdir().unwrap();
+        let repo = Repository::init(directory.path()).unwrap();
+
+        assert_eq!(default_branch(&repo, &branches(&["main", "topic"])), None);
+    }
+
+    #[test]
+    fn bare_head_identifies_the_default_branch() {
+        let directory = tempfile::tempdir().unwrap();
+        let repo = Repository::init_bare(directory.path()).unwrap();
+        repo.reference_symbolic("HEAD", "refs/heads/trunk", true, "test")
+            .unwrap();
+
+        assert_eq!(
+            default_branch(&repo, &branches(&["topic", "trunk"])),
+            Some("trunk".to_string())
+        );
     }
 }
