@@ -109,6 +109,8 @@ Git Buoy should work in two complementary modes:
 1. **Ambient mode:** A quiet, animated overview suitable for a spare terminal pane. Important state changes should be noticeable without demanding attention.
 2. **Inspect mode:** Keyboard-driven navigation for selecting a dock, vessel, change set, pull request, or check and seeing the underlying Git information.
 
+When every dock does not fit, ambient mode advances through dock-sized pages and reports how many docks remain above or below the current view. Reduced motion keeps the first page static while preserving the same overflow information.
+
 ![Inspect mode floating a detail panel over the harbor](docs/inspect.svg)
 
 <sup>Inspect mode: the detail panel floats over the full-width harbor and sizes itself to its content, so workspace paths and commit messages stay on one line.</sup>

@@ -15,6 +15,10 @@ const COMPACT_WIDTH: u16 = 46;
 const VESSEL_X: usize = 5;
 /// The pier post that anchors every water row to its dock.
 const POST: &str = "  │ ";
+/// Ambient pages hold long enough to be read before advancing. At the default
+/// 12 FPS this is ten seconds; `--fps` intentionally controls the cadence just
+/// as it controls the water animation.
+const AMBIENT_PAGE_HOLD_FRAMES: u64 = 120;
 /// A single busy dock shows at most this many rows of cargo; anything beyond
 /// collapses into a trailing "…N". The exact totals always remain available
 /// in inspect mode, and this keeps one flooded worktree from swamping the
@@ -77,22 +81,43 @@ pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
 
     let avail = area.height as usize;
     let heights: Vec<usize> = blocks.iter().map(Vec::len).collect();
-    let top = scroll_top(&heights, avail, inspecting.then_some(app.selected));
-
     let mut lines: Vec<Line> = if inspecting {
+        let top = scroll_top(&heights, avail, Some(app.selected));
         blocks.into_iter().flatten().skip(top).take(avail).collect()
     } else {
-        // Ambient mode has no selection to scroll into view, so reserve the
-        // last row for an explicit count when whole docks would otherwise be
-        // silently omitted below the viewport.
-        let hidden = hidden_docks_below(&heights, avail);
-        if hidden == 0 {
-            blocks.into_iter().flatten().take(avail).collect()
+        let pages = ambient_pages(&heights, avail);
+        if pages.len() == 1 {
+            // A one-row viewport cannot show a dock and an overflow marker at
+            // once. Keep the marker truthful and static rather than cycling an
+            // unreadable view.
+            let hidden = hidden_docks_below(&heights, avail);
+            if hidden == 0 {
+                blocks.into_iter().flatten().take(avail).collect()
+            } else {
+                let content_height = avail.saturating_sub(1);
+                let hidden = hidden_docks_below(&heights, content_height);
+                let mut lines: Vec<Line> =
+                    blocks.into_iter().flatten().take(content_height).collect();
+                lines.push(dock_position_line(0, hidden, width, theme));
+                lines
+            }
         } else {
-            let content_height = avail.saturating_sub(1);
-            let hidden = hidden_docks_below(&heights, content_height);
-            let mut lines: Vec<Line> = blocks.into_iter().flatten().take(content_height).collect();
-            lines.push(more_docks_line(hidden, theme));
+            let page_index = ambient_page_index(frame_number, pages.len(), app.reduced_motion);
+            let page = pages[page_index];
+            let content_height = avail - 1;
+            let mut lines: Vec<Line> = blocks
+                .into_iter()
+                .skip(page.start)
+                .take(page.end - page.start)
+                .flatten()
+                .take(content_height)
+                .collect();
+            lines.push(dock_position_line(
+                page.start,
+                heights.len() - page.end,
+                width,
+                theme,
+            ));
             lines
         }
     };
@@ -115,12 +140,75 @@ fn hidden_docks_below(heights: &[usize], visible_lines: usize) -> usize {
         .count()
 }
 
-fn more_docks_line(hidden: usize, theme: &Theme) -> Line<'static> {
-    let noun = if hidden == 1 { "dock" } else { "docks" };
-    Line::from(Span::styled(
-        format!("  … {hidden} more {noun} below"),
-        Style::new().fg(theme.dim),
-    ))
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct AmbientPage {
+    start: usize,
+    end: usize,
+}
+
+/// Split docks into stable pages without cutting between ordinary dock rows.
+/// One row is reserved for position information whenever cycling is needed.
+/// A single dock taller than the remaining space is clipped on its own page so
+/// its pier is still seen and the cycle can continue.
+fn ambient_pages(heights: &[usize], avail: usize) -> Vec<AmbientPage> {
+    if heights.is_empty() {
+        return Vec::new();
+    }
+    if avail < 2 || hidden_docks_below(heights, avail) == 0 {
+        return vec![AmbientPage {
+            start: 0,
+            end: heights.len(),
+        }];
+    }
+
+    let capacity = avail - 1;
+    let mut pages = Vec::new();
+    let mut start = 0;
+    while start < heights.len() {
+        let mut end = start;
+        let mut used = 0usize;
+        while end < heights.len() {
+            let height = heights[end];
+            if end > start && used.saturating_add(height) > capacity {
+                break;
+            }
+            end += 1;
+            used = used.saturating_add(height);
+            if used >= capacity {
+                break;
+            }
+        }
+        pages.push(AmbientPage { start, end });
+        start = end;
+    }
+    pages
+}
+
+fn ambient_page_index(frame: u64, page_count: usize, reduced_motion: bool) -> usize {
+    if reduced_motion || page_count <= 1 {
+        return 0;
+    }
+    ((frame / AMBIENT_PAGE_HOLD_FRAMES) % page_count as u64) as usize
+}
+
+fn dock_position_line(above: usize, below: usize, width: usize, theme: &Theme) -> Line<'static> {
+    let docks = |count| if count == 1 { "dock" } else { "docks" };
+    let full = match (above, below) {
+        (0, below) => format!("  … {below} more {} below", docks(below)),
+        (above, 0) => format!("  … {above} {} above", docks(above)),
+        (above, below) => format!("  … {above} above · {below} below"),
+    };
+    let compact = match (above, below) {
+        (0, below) => format!("… ↓{below}"),
+        (above, 0) => format!("… ↑{above}"),
+        (above, below) => format!("… ↑{above} ↓{below}"),
+    };
+    let text = if full.chars().count() <= width {
+        full
+    } else {
+        compact
+    };
+    Line::from(Span::styled(text, Style::new().fg(theme.dim)))
 }
 
 /// Pick the first flattened line to show so the selected dock stays on screen.
@@ -359,7 +447,10 @@ fn wave_char(x: usize, dock_index: usize, frame: u64) -> char {
 
 #[cfg(test)]
 mod tests {
-    use crate::harbor::{Condition, DockKind, Vessel};
+    use ratatui::Terminal;
+    use ratatui::backend::TestBackend;
+
+    use crate::harbor::{Condition, DockKind, Harbor, Vessel};
 
     use super::*;
 
@@ -372,6 +463,41 @@ mod tests {
             sync: None,
             detail: Vec::new(),
         }
+    }
+
+    fn ambient_app(names: &[&str]) -> App {
+        let mut app = App::new("test".to_string(), false);
+        app.harbor = Harbor {
+            name: "test".to_string(),
+            docks: names
+                .iter()
+                .map(|name| Dock {
+                    name: (*name).to_string(),
+                    kind: DockKind::Branch,
+                    condition: Condition::Moored,
+                    vessel: None,
+                    sync: None,
+                    detail: Vec::new(),
+                })
+                .collect(),
+        };
+        app.loaded = true;
+        app
+    }
+
+    fn render_scene(app: &App, width: u16, height: u16) -> Vec<String> {
+        let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
+        terminal
+            .draw(|frame| draw_scene(frame, frame.area(), app, &Theme::detect()))
+            .unwrap();
+        let buffer = terminal.backend().buffer();
+        (0..height)
+            .map(|y| {
+                (0..width)
+                    .map(|x| buffer.cell((x, y)).unwrap().symbol())
+                    .collect::<String>()
+            })
+            .collect()
     }
 
     #[test]
@@ -544,17 +670,90 @@ mod tests {
     }
 
     #[test]
-    fn overflow_marker_uses_singular_and_plural_dock_counts() {
+    fn ambient_pages_preserve_dock_boundaries_and_cover_every_dock() {
+        assert_eq!(
+            ambient_pages(&[3, 3, 3, 3, 3], 7),
+            vec![
+                AmbientPage { start: 0, end: 2 },
+                AmbientPage { start: 2, end: 4 },
+                AmbientPage { start: 4, end: 5 },
+            ]
+        );
+        assert_eq!(
+            ambient_pages(&[4, 2, 5, 1], 7),
+            vec![
+                AmbientPage { start: 0, end: 2 },
+                AmbientPage { start: 2, end: 4 },
+            ]
+        );
+    }
+
+    #[test]
+    fn ambient_pages_handle_exact_fit_tall_docks_and_tiny_views() {
+        assert_eq!(
+            ambient_pages(&[3, 3], 6),
+            vec![AmbientPage { start: 0, end: 2 }]
+        );
+        assert_eq!(
+            ambient_pages(&[10, 3, 3], 6),
+            vec![
+                AmbientPage { start: 0, end: 1 },
+                AmbientPage { start: 1, end: 2 },
+                AmbientPage { start: 2, end: 3 },
+            ]
+        );
+        assert_eq!(
+            ambient_pages(&[1, 1, 1], 1),
+            vec![AmbientPage { start: 0, end: 3 }]
+        );
+    }
+
+    #[test]
+    fn ambient_page_index_holds_wraps_and_stops_for_reduced_motion() {
+        assert_eq!(ambient_page_index(0, 3, false), 0);
+        assert_eq!(ambient_page_index(119, 3, false), 0);
+        assert_eq!(ambient_page_index(120, 3, false), 1);
+        assert_eq!(ambient_page_index(240, 3, false), 2);
+        assert_eq!(ambient_page_index(360, 3, false), 0);
+        assert_eq!(ambient_page_index(u64::MAX, 3, true), 0);
+    }
+
+    #[test]
+    fn dock_position_marker_reports_both_directions_and_compacts() {
         let theme = Theme::detect();
-        let text = |count| {
-            more_docks_line(count, &theme)
+        let text = |above, below, width| {
+            dock_position_line(above, below, width, &theme)
                 .spans
                 .into_iter()
                 .map(|span| span.content.into_owned())
                 .collect::<String>()
         };
 
-        assert_eq!(text(1), "  … 1 more dock below");
-        assert_eq!(text(3), "  … 3 more docks below");
+        assert_eq!(text(0, 1, 80), "  … 1 more dock below");
+        assert_eq!(text(0, 3, 80), "  … 3 more docks below");
+        assert_eq!(text(3, 4, 80), "  … 3 above · 4 below");
+        assert_eq!(text(1, 0, 80), "  … 1 dock above");
+        assert_eq!(text(12, 34, 8), "… ↑12 ↓34");
+    }
+
+    #[test]
+    fn ambient_render_advances_pages_and_reduced_motion_returns_to_first() {
+        let mut app = ambient_app(&["dock-0", "dock-1", "dock-2", "dock-3", "dock-4"]);
+
+        let first = render_scene(&app, 40, 4);
+        assert!(first[0].contains("dock-0"));
+        assert!(first[3].contains("2 more docks below"));
+
+        for _ in 0..AMBIENT_PAGE_HOLD_FRAMES {
+            app.animation.tick();
+        }
+        let second = render_scene(&app, 40, 4);
+        assert!(second[0].contains("dock-3"));
+        assert!(second[2].contains("3 docks above"));
+
+        app.reduced_motion = true;
+        let reduced = render_scene(&app, 40, 4);
+        assert!(reduced[0].contains("dock-0"));
+        assert!(reduced[3].contains("2 more docks below"));
     }
 }
