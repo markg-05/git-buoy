@@ -58,12 +58,13 @@ Press `s` to open the session-local Harbor Controls panel. Use `j`/`k` to select
 | Motion | Switch between full and reduced motion. The `m` shortcut remains available. |
 | Overflow pages | Cycle automatically or hold the first page when docks exceed the available height. |
 | Page interval | Choose how long each overflowing page remains visible. |
+| Setting help | Show or hide the immediate logbook note explaining the selected control. |
 | Repository survey | Change the local repository polling interval. |
 | Workspace idle | Change how long unchanged work remains active before it is labeled idle. |
 | GitHub observer | Enable or disable the optional GitHub layer. No GitHub request is made while it is off. |
 | GitHub survey | Change the GitHub polling interval. |
 
-Reduced motion pauses overflow cycling without changing its setting. If motion is restored, cycling resumes only when **Overflow pages** is still set to cycle.
+Setting help is on by default. Its fixed logbook-note region updates immediately as selection moves and is omitted when terminal height is too constrained. Reduced motion pauses overflow cycling without changing its setting. If motion is restored, cycling resumes only when **Overflow pages** is still set to cycle.
 
 ## Product intent
 

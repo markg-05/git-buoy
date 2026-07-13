@@ -256,12 +256,29 @@ mod tests {
         app.show_settings = true;
         app.settings_selected = 1;
 
-        let lines = render(&app, 72, 18);
+        let lines = render(&app, 72, 22);
         assert!(lines.iter().any(|line| line.contains("Harbor controls")));
         assert!(lines.iter().any(|line| line.contains("Overflow pages")));
         assert!(lines.iter().any(|line| line.contains("cycle")));
+        assert!(
+            lines
+                .iter()
+                .any(|line| line.contains("Logbook note · Overflow pages"))
+        );
+        assert!(lines.iter().any(|line| line.contains("Advances only")));
         assert!(lines.iter().any(|line| line.contains("Session only")));
         assert!(lines[0].ends_with("settings "));
+    }
+
+    #[test]
+    fn disabling_setting_help_removes_the_logbook_note() {
+        let mut app = inspect_app(Vec::new());
+        app.show_settings = true;
+        app.settings.setting_help = false;
+
+        let lines = render(&app, 72, 22);
+        assert!(lines.iter().all(|line| !line.contains("Logbook note")));
+        assert!(lines.iter().any(|line| line.contains("Setting help")));
     }
 
     #[test]

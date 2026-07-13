@@ -72,6 +72,7 @@ pub enum SettingItem {
     Motion,
     AutoCycle,
     CycleInterval,
+    SettingHelp,
     PollInterval,
     IdleAfter,
     GithubEnabled,
@@ -79,10 +80,11 @@ pub enum SettingItem {
 }
 
 impl SettingItem {
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 8] = [
         Self::Motion,
         Self::AutoCycle,
         Self::CycleInterval,
+        Self::SettingHelp,
         Self::PollInterval,
         Self::IdleAfter,
         Self::GithubEnabled,
@@ -94,10 +96,40 @@ impl SettingItem {
             Self::Motion => "Motion",
             Self::AutoCycle => "Overflow pages",
             Self::CycleInterval => "Page interval",
+            Self::SettingHelp => "Setting help",
             Self::PollInterval => "Repository survey",
             Self::IdleAfter => "Workspace idle",
             Self::GithubEnabled => "GitHub observer",
             Self::GithubPollInterval => "GitHub survey",
+        }
+    }
+
+    pub fn help(self) -> &'static str {
+        match self {
+            Self::Motion => {
+                "Stops visual animation while keeping every condition, arrow, and activity label visible."
+            }
+            Self::AutoCycle => {
+                "Advances only when docks overflow the available height. Reduced motion pauses it."
+            }
+            Self::CycleInterval => {
+                "Controls how long each overflowing dock page remains visible before the next one."
+            }
+            Self::SettingHelp => {
+                "Shows this logbook note for the selected control. Very short terminals omit the note."
+            }
+            Self::PollInterval => {
+                "Controls how often local branches, worktrees, changes, and synchronization are surveyed."
+            }
+            Self::IdleAfter => {
+                "Sets how long a workspace can remain unchanged before its vessel is labeled idle."
+            }
+            Self::GithubEnabled => {
+                "Surveys pull requests, reviews, checks, and releases through the authenticated gh CLI."
+            }
+            Self::GithubPollInterval => {
+                "Controls the remote survey cadence while the GitHub observer is enabled."
+            }
         }
     }
 }
@@ -107,6 +139,7 @@ pub struct AppSettings {
     pub reduced_motion: bool,
     pub auto_cycle: bool,
     pub cycle_interval: Duration,
+    pub setting_help: bool,
     pub poll_interval: Duration,
     pub idle_after: Duration,
     pub github_enabled: bool,
@@ -133,6 +166,7 @@ impl AppSettings {
                 }
             }
             SettingItem::CycleInterval => duration_label(self.cycle_interval, "every"),
+            SettingItem::SettingHelp => if self.setting_help { "on" } else { "off" }.to_string(),
             SettingItem::PollInterval => duration_label(self.poll_interval, "every"),
             SettingItem::IdleAfter => duration_label(self.idle_after, "after"),
             SettingItem::GithubEnabled => {
@@ -156,6 +190,7 @@ impl Default for AppSettings {
             reduced_motion: false,
             auto_cycle: true,
             cycle_interval: DEFAULT_CYCLE_INTERVAL,
+            setting_help: true,
             poll_interval: DEFAULT_POLL_INTERVAL,
             idle_after: DEFAULT_IDLE_AFTER,
             github_enabled: false,
@@ -417,6 +452,7 @@ impl App {
                     step_duration(self.settings.cycle_interval, &CYCLE_INTERVALS, forward);
                 self.reset_page_cycle();
             }
+            SettingItem::SettingHelp => self.settings.setting_help = !self.settings.setting_help,
             SettingItem::PollInterval => {
                 self.settings.poll_interval =
                     step_duration(self.settings.poll_interval, &POLL_INTERVALS, forward);
@@ -1198,7 +1234,7 @@ mod tests {
         observe(&mut app, activity_snapshot(1), start);
 
         app.update(key(KeyCode::Char('s')));
-        for _ in 0..4 {
+        for _ in 0..5 {
             app.update(key(KeyCode::Char('j')));
         }
         app.update(key(KeyCode::Left));
@@ -1210,6 +1246,21 @@ mod tests {
             start + Duration::from_secs(15),
         );
         assert_eq!(activity(&app), VesselActivity::Idle);
+    }
+
+    #[test]
+    fn setting_help_is_on_by_default_and_can_be_toggled() {
+        let mut app = App::new("test".to_string(), false);
+        assert!(app.settings.setting_help);
+
+        app.update(key(KeyCode::Char('s')));
+        for _ in 0..3 {
+            app.update(key(KeyCode::Char('j')));
+        }
+        app.update(key(KeyCode::Right));
+        assert!(!app.settings.setting_help);
+        app.update(key(KeyCode::Left));
+        assert!(app.settings.setting_help);
     }
 
     #[test]
@@ -1362,7 +1413,7 @@ mod tests {
         assert!(!app.harbor.convoys.is_empty());
 
         app.update(key(KeyCode::Char('s')));
-        for _ in 0..5 {
+        for _ in 0..6 {
             app.update(key(KeyCode::Char('j')));
         }
         app.update(key(KeyCode::Right));
