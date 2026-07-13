@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
 
 use anyhow::{Context, Result};
-use git2::{Branch, BranchType, Repository, RepositoryState, Status, StatusOptions};
+use git2::{Branch, BranchType, Repository, RepositoryState, Status, StatusOptions, Statuses};
 
 use super::snapshot::{
     BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, Operation, RepoSnapshot,
@@ -176,22 +176,53 @@ fn default_branch(repo: &Repository, branches: &[BranchInfo]) -> Option<String> 
 }
 
 fn collect_workspace(repo: &Repository, is_main: bool) -> Workspace {
-    let (changes, change_files) = collect_changes(repo);
+    let statuses = collect_statuses(repo, false).ok();
+    let (changes, change_files) = statuses
+        .as_ref()
+        .map(|statuses| collect_changes(statuses))
+        .unwrap_or_default();
+    let activity_token = match statuses.as_ref() {
+        Some(statuses) if !has_untracked_directory(statuses) => {
+            activity_token(repo, Some(statuses))
+        }
+        _ => {
+            let recursive_statuses = collect_statuses(repo, true).ok();
+            activity_token(repo, recursive_statuses.as_ref())
+        }
+    };
     Workspace {
         path: repo_root(repo),
         is_main,
         head: head_state(repo),
         changes,
         change_files,
-        activity_token: activity_token(repo),
+        activity_token,
         operation: operation(repo.state()),
     }
+}
+
+fn collect_statuses(
+    repo: &Repository,
+    recurse_untracked_dirs: bool,
+) -> Result<Statuses<'_>, git2::Error> {
+    let mut options = StatusOptions::new();
+    options
+        .include_untracked(true)
+        .recurse_untracked_dirs(recurse_untracked_dirs)
+        .exclude_submodules(true);
+    repo.statuses(Some(&mut options))
+}
+
+fn has_untracked_directory(statuses: &Statuses<'_>) -> bool {
+    statuses
+        .iter()
+        .any(|entry| entry.status().contains(Status::WT_NEW) && entry.path_bytes().ends_with(b"/"))
 }
 
 /// Hash the parts of a workspace that can change while work is being done.
 /// File metadata supplements Git status so repeated edits to an already-dirty
 /// file are still observable even when its status category does not change.
-fn activity_token(repo: &Repository) -> u64 {
+fn activity_token(repo: &Repository, statuses: Option<&Statuses<'_>>) -> u64 {
     let mut hasher = DefaultHasher::new();
     repo.head()
         .ok()
@@ -200,12 +231,7 @@ fn activity_token(repo: &Repository) -> u64 {
     format!("{:?}", repo.state()).hash(&mut hasher);
     hash_metadata(repo.path().join("index"), &mut hasher);
 
-    let mut options = StatusOptions::new();
-    options
-        .include_untracked(true)
-        .recurse_untracked_dirs(true)
-        .exclude_submodules(true);
-    if let Ok(statuses) = repo.statuses(Some(&mut options)) {
+    if let Some(statuses) = statuses {
         for entry in statuses.iter() {
             entry.status().bits().hash(&mut hasher);
             entry.path_bytes().hash(&mut hasher);
@@ -251,14 +277,9 @@ fn head_state(repo: &Repository) -> HeadState {
     }
 }
 
-fn collect_changes(repo: &Repository) -> (ChangeCounts, Vec<ChangeFile>) {
+fn collect_changes(statuses: &Statuses<'_>) -> (ChangeCounts, Vec<ChangeFile>) {
     let mut counts = ChangeCounts::default();
     let mut files = Vec::new();
-    let mut options = StatusOptions::new();
-    options.include_untracked(true).exclude_submodules(true);
-    let Ok(statuses) = repo.statuses(Some(&mut options)) else {
-        return (counts, files);
-    };
     const STAGED: Status = Status::INDEX_NEW
         .union(Status::INDEX_MODIFIED)
         .union(Status::INDEX_DELETED)

@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use git_buoy::git::{HeadState, Operation, TipAction, collect};
+use git_buoy::git::{ChangeKind, HeadState, Operation, TipAction, collect};
 use git_buoy::harbor::{Condition, DockKind, to_harbor};
 
 fn git(dir: &Path, args: &[&str]) {
@@ -97,6 +97,50 @@ fn uncommitted_changes_load_cargo() {
             .cargo
             .iter()
             .any(|item| item.path == Path::new("notes.txt"))
+    );
+}
+
+#[test]
+fn repeated_edits_to_a_dirty_file_change_the_activity_token() {
+    let (_temp, repo) = seeded_repo();
+    fs::write(repo.join("README.md"), "# first revision\n").unwrap();
+    let first = collect(&repo).unwrap().workspaces[0].activity_token;
+
+    fs::write(
+        repo.join("README.md"),
+        "# second revision with different metadata\n",
+    )
+    .unwrap();
+    let second = collect(&repo).unwrap().workspaces[0].activity_token;
+
+    assert_ne!(first, second);
+}
+
+#[test]
+fn nested_untracked_directory_keeps_summary_and_activity_behavior() {
+    let (_temp, repo) = seeded_repo();
+    let draft = repo.join("drafts").join("nested").join("note.txt");
+    fs::create_dir_all(draft.parent().unwrap()).unwrap();
+    fs::write(&draft, "first draft\n").unwrap();
+
+    let first = collect(&repo).unwrap();
+    let workspace = &first.workspaces[0];
+    assert_eq!(workspace.changes.untracked, 1);
+    assert_eq!(
+        workspace
+            .change_files
+            .iter()
+            .filter(|file| file.kind == ChangeKind::Untracked)
+            .count(),
+        1
+    );
+
+    fs::write(&draft, "second draft with different metadata\n").unwrap();
+    let second = collect(&repo).unwrap();
+
+    assert_ne!(
+        workspace.activity_token,
+        second.workspaces[0].activity_token
     );
 }
 
