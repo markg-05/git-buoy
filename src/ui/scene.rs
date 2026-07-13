@@ -1,6 +1,6 @@
 use ratatui::Frame;
 use ratatui::layout::Rect;
-use ratatui::style::{Modifier, Style};
+use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Paragraph;
 
@@ -11,10 +11,15 @@ use super::theme::Theme;
 
 /// Terminals narrower than this drop the water art for a compact list.
 const COMPACT_WIDTH: u16 = 46;
-/// Rows per dock in the full scene: pier, water, gap.
-const ROWS_PER_DOCK: usize = 3;
 /// Column where a vessel's hull begins on its water line.
 const VESSEL_X: usize = 5;
+/// The pier post that anchors every water row to its dock.
+const POST: &str = "  │ ";
+/// A single busy dock shows at most this many rows of cargo; anything beyond
+/// collapses into a trailing "+N". The exact totals always remain available
+/// in inspect mode, and this keeps one flooded worktree from swamping the
+/// whole harbor.
+const MAX_CARGO_ROWS: usize = 6;
 
 // Glyphs shared with the legend, kept here as the single source so the two
 // never disagree about what the harbor draws.
@@ -45,35 +50,59 @@ pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     }
 
     let compact = area.width < COMPACT_WIDTH;
-    let rows_per_dock = if compact { 1 } else { ROWS_PER_DOCK };
-    let visible = (area.height as usize / rows_per_dock).max(1);
-    // Keep the selection on screen; otherwise show from the top.
-    let first = match app.mode {
-        Mode::Inspect if app.selected >= visible => app.selected + 1 - visible,
-        _ => 0,
-    };
-
     let width = area.width as usize;
     let frame_number = app.animation.frame();
-    let mut lines: Vec<Line> = Vec::new();
-    for (index, dock) in app
+    let inspecting = app.mode == Mode::Inspect;
+
+    // Each dock renders to a block of one or more lines. Blocks vary in height
+    // because a vessel's cargo can wrap, so the visible window is computed over
+    // the flattened lines rather than a fixed rows-per-dock.
+    let blocks: Vec<Vec<Line>> = app
         .harbor
         .docks
         .iter()
         .enumerate()
-        .skip(first)
-        .take(visible)
-    {
-        let selected = app.mode == Mode::Inspect && index == app.selected;
-        if compact {
-            lines.push(compact_line(dock, selected, theme));
-        } else {
-            lines.push(pier_line(dock, width, selected, theme));
-            lines.push(water_line(dock, width, index, frame_number, theme));
-            lines.push(Line::default());
-        }
-    }
+        .map(|(index, dock)| {
+            let selected = inspecting && index == app.selected;
+            if compact {
+                vec![compact_line(dock, selected, theme)]
+            } else {
+                let mut block = vec![pier_line(dock, width, selected, theme)];
+                block.extend(water_lines(dock, width, index, frame_number, theme));
+                block.push(Line::default());
+                block
+            }
+        })
+        .collect();
+
+    let avail = area.height as usize;
+    let heights: Vec<usize> = blocks.iter().map(Vec::len).collect();
+    let top = scroll_top(&heights, avail, inspecting.then_some(app.selected));
+
+    let lines: Vec<Line> = blocks.into_iter().flatten().skip(top).take(avail).collect();
     frame.render_widget(Paragraph::new(lines), area);
+}
+
+/// Pick the first flattened line to show so the selected dock stays on screen.
+/// Without a selection (ambient mode) the harbor is anchored at the top.
+fn scroll_top(heights: &[usize], avail: usize, selected: Option<usize>) -> usize {
+    let total: usize = heights.iter().sum();
+    let max_top = total.saturating_sub(avail);
+    let Some(sel) = selected else {
+        return 0;
+    };
+    let start: usize = heights[..sel.min(heights.len())].iter().sum();
+    let end = start + heights.get(sel).copied().unwrap_or(0);
+
+    let mut top = 0;
+    if end > avail {
+        top = end - avail;
+    }
+    // A dock taller than the window pins to its own top rather than its bottom.
+    if start < top {
+        top = start;
+    }
+    top.min(max_top)
 }
 
 /// The pier: a horizontal walkway carrying the dock's name and condition.
@@ -105,47 +134,98 @@ fn pier_line(dock: &Dock, width: usize, selected: bool, theme: &Theme) -> Line<'
     ])
 }
 
-/// The water: drifting waves with a vessel or mooring buoy at the dock.
-///
-/// `  │  ~  ▙▄▄▟ ▣▣▢    ≈      ~        ≈   `
-fn water_line(
+/// The water beneath a dock: open sea with a vessel and its cargo, or a
+/// mooring buoy. Cargo is drawn in full and wraps onto extra rows when it
+/// runs past the terminal edge, so a busy vessel reads as visibly loaded.
+fn water_lines(
     dock: &Dock,
     width: usize,
     dock_index: usize,
     frame: u64,
     theme: &Theme,
-) -> Line<'static> {
-    let post = "  │ ";
-    let water_width = width.saturating_sub(post.chars().count());
+) -> Vec<Line<'static>> {
+    let water_width = width.saturating_sub(POST.chars().count()).max(1);
 
-    let (craft, craft_color) = match &dock.vessel {
+    // A stretch of open water leads up to the vessel.
+    let mut content: Vec<(char, Color)> = (0..VESSEL_X.min(water_width))
+        .map(|x| (wave_char(x, dock_index, frame), theme.water))
+        .collect();
+
+    match &dock.vessel {
         Some(vessel) => {
-            let mut hull = format!("{VESSEL_HULL} ");
-            hull.push_str(&cargo_glyphs(vessel.staged, CARGO_STAGED));
-            hull.push_str(&cargo_glyphs(vessel.unstaged, CARGO_UNSTAGED));
-            hull.push_str(&cargo_glyphs(vessel.untracked, CARGO_UNTRACKED));
-            hull.push_str(&cargo_glyphs(vessel.conflicted, CARGO_CONFLICT));
-            (hull.trim_end().to_string(), theme.condition(dock.condition))
+            let color = theme.condition(dock.condition);
+            for ch in VESSEL_HULL.chars() {
+                content.push((ch, color));
+            }
+            content.push((' ', color));
+
+            let mut cargo = Vec::new();
+            push_cargo(&mut cargo, vessel.staged, CARGO_STAGED, color);
+            push_cargo(&mut cargo, vessel.unstaged, CARGO_UNSTAGED, color);
+            push_cargo(&mut cargo, vessel.untracked, CARGO_UNTRACKED, color);
+            push_cargo(&mut cargo, vessel.conflicted, CARGO_CONFLICT, color);
+
+            // Bound the very busy case: keep as much cargo as a few rows hold,
+            // then note the remainder as "+N" rather than drawing thousands.
+            let budget = water_width
+                .saturating_mul(MAX_CARGO_ROWS)
+                .saturating_sub(content.len());
+            if cargo.len() > budget {
+                let hidden = cargo.len() - budget;
+                cargo.truncate(budget);
+                content.extend(cargo);
+                for ch in format!("+{hidden}").chars() {
+                    content.push((ch, theme.dim));
+                }
+            } else {
+                content.extend(cargo);
+            }
         }
-        None => (MOORING_BUOY.to_string(), theme.condition(Condition::Moored)),
-    };
+        None => content.push((MOORING_BUOY, theme.condition(Condition::Moored))),
+    }
 
-    let craft_len = craft.chars().count();
-    let craft_x = VESSEL_X.min(water_width);
-    let after_craft = water_width.saturating_sub(craft_x + craft_len);
+    // Flow the content across as many rows as it needs, filling the final row
+    // out to the edge with open water.
+    let rows = content.len().div_ceil(water_width).max(1);
+    (0..rows)
+        .map(|row| {
+            let start = row * water_width;
+            let end = (start + water_width).min(content.len());
+            let mut cells = content[start..end].to_vec();
+            for col in cells.len()..water_width {
+                cells.push((wave_char(col, dock_index, frame), theme.water));
+            }
+            cells_to_line(cells, theme)
+        })
+        .collect()
+}
 
-    Line::from(vec![
-        Span::styled(post.to_string(), Style::new().fg(theme.pier)),
-        Span::styled(
-            waves(0, craft_x, dock_index, frame),
-            Style::new().fg(theme.water),
-        ),
-        Span::styled(craft, Style::new().fg(craft_color)),
-        Span::styled(
-            waves(craft_x + craft_len, after_craft, dock_index, frame),
-            Style::new().fg(theme.water),
-        ),
-    ])
+fn push_cargo(out: &mut Vec<(char, Color)>, count: usize, glyph: char, color: Color) {
+    out.extend(std::iter::repeat_n((glyph, color), count));
+}
+
+/// Turn a row of coloured cells into a line, prefixed with the pier post and
+/// merging neighbouring cells that share a colour into one span.
+fn cells_to_line(cells: Vec<(char, Color)>, theme: &Theme) -> Line<'static> {
+    let mut spans = vec![Span::styled(POST.to_string(), Style::new().fg(theme.pier))];
+    let mut run = String::new();
+    let mut run_color: Option<Color> = None;
+    for (ch, color) in cells {
+        if run_color != Some(color) {
+            if let Some(previous) = run_color {
+                spans.push(Span::styled(
+                    std::mem::take(&mut run),
+                    Style::new().fg(previous),
+                ));
+            }
+            run_color = Some(color);
+        }
+        run.push(ch);
+    }
+    if let Some(previous) = run_color {
+        spans.push(Span::styled(run, Style::new().fg(previous)));
+    }
+    Line::from(spans)
 }
 
 /// Narrow-terminal fallback: one accurate line per dock, no art.
@@ -189,18 +269,6 @@ fn status_text(dock: &Dock) -> String {
     parts.join(" ")
 }
 
-/// Up to four glyphs per cargo category keeps busy docks readable.
-fn cargo_glyphs(count: usize, glyph: char) -> String {
-    std::iter::repeat_n(glyph, count.min(4)).collect()
-}
-
-/// A stretch of water starting at column `start`, `len` cells long.
-fn waves(start: usize, len: usize, dock_index: usize, frame: u64) -> String {
-    (start..start + len)
-        .map(|x| wave_char(x, dock_index, frame))
-        .collect()
-}
-
 /// Deterministic wave field: sparse crests drifting slowly left. Every glyph
 /// is a pure function of position and frame, so a paused frame is a valid
 /// static scene (reduced motion) and tests can assert exact output.
@@ -216,7 +284,20 @@ fn wave_char(x: usize, dock_index: usize, frame: u64) -> char {
 
 #[cfg(test)]
 mod tests {
-    use super::wave_char;
+    use crate::harbor::{Condition, DockKind, Vessel};
+
+    use super::*;
+
+    fn vessel_dock(vessel: Vessel) -> Dock {
+        Dock {
+            name: "x".to_string(),
+            kind: DockKind::Branch,
+            condition: Condition::Loading,
+            vessel: Some(vessel),
+            sync: None,
+            detail: Vec::new(),
+        }
+    }
 
     #[test]
     fn waves_are_deterministic_per_frame() {
@@ -225,5 +306,44 @@ mod tests {
         assert_eq!(row, again);
         let moved: String = (0..40).map(|x| wave_char(x, 0, 10)).collect();
         assert_ne!(row, moved, "the water should drift between frames");
+    }
+
+    #[test]
+    fn light_cargo_stays_on_one_row() {
+        let dock = vessel_dock(Vessel {
+            staged: 1,
+            unstaged: 2,
+            untracked: 1,
+            conflicted: 0,
+        });
+        assert_eq!(water_lines(&dock, 80, 0, 0, &Theme::detect()).len(), 1);
+    }
+
+    #[test]
+    fn heavy_cargo_wraps_but_stays_bounded() {
+        let dock = vessel_dock(Vessel {
+            staged: 0,
+            unstaged: 500,
+            untracked: 0,
+            conflicted: 0,
+        });
+        let lines = water_lines(&dock, 40, 0, 0, &Theme::detect());
+        assert!(lines.len() > 1, "500 changes should wrap onto extra rows");
+        assert!(
+            lines.len() <= MAX_CARGO_ROWS + 1,
+            "a flooded dock must stay bounded, got {} rows",
+            lines.len()
+        );
+    }
+
+    #[test]
+    fn scroll_keeps_the_selected_dock_in_view() {
+        let heights = vec![3, 3, 3, 3, 3]; // 15 lines total
+        assert_eq!(scroll_top(&heights, 6, None), 0);
+        assert_eq!(scroll_top(&heights, 6, Some(0)), 0);
+        // The last dock occupies lines 12..15; a 6-line window scrolls to 9.
+        assert_eq!(scroll_top(&heights, 6, Some(4)), 9);
+        // A dock taller than the window pins to its own top.
+        assert_eq!(scroll_top(&[10], 4, Some(0)), 0);
     }
 }

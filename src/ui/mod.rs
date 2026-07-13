@@ -12,14 +12,15 @@ use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
-use ratatui::widgets::Paragraph;
+use ratatui::widgets::{Clear, Paragraph};
 
 use crate::app::{App, Mode};
 
-/// Minimum width for showing the inspect panel beside the scene instead of
-/// in place of it.
+/// At or above this width the inspect panel floats over the full-width scene;
+/// below it the panel takes the whole body, since there is no room for both.
 const SPLIT_WIDTH: u16 = 76;
-const INSPECT_WIDTH: u16 = 42;
+/// The inspect overlay never shrinks below this, even for a bare dock.
+const MIN_INSPECT_WIDTH: u16 = 34;
 
 pub fn draw(frame: &mut Frame, app: &App, theme: &Theme) {
     let [header, body, footer] = Layout::vertical([
@@ -43,14 +44,24 @@ pub fn draw(frame: &mut Frame, app: &App, theme: &Theme) {
 fn draw_body(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     match app.mode {
         Mode::Ambient => scene::draw_scene(frame, area, app, theme),
+        // The scene keeps its full width and the panel floats over it, sized
+        // to its own content rather than squeezed into a fixed column.
         Mode::Inspect if area.width >= SPLIT_WIDTH => {
-            let [scene_area, inspect_area] =
-                Layout::horizontal([Constraint::Min(0), Constraint::Length(INSPECT_WIDTH)])
-                    .areas(area);
-            scene::draw_scene(frame, scene_area, app, theme);
-            inspect::draw_inspect(frame, inspect_area, app, theme);
+            scene::draw_scene(frame, area, app, theme);
+            if let Some(dock) = app.harbor.docks.get(app.selected) {
+                let wanted = inspect::content_width(dock).saturating_add(2) as u16;
+                let panel_width = wanted.clamp(MIN_INSPECT_WIDTH, area.width.saturating_sub(2));
+                let panel = Rect {
+                    x: area.x + area.width - panel_width,
+                    y: area.y,
+                    width: panel_width,
+                    height: area.height,
+                };
+                frame.render_widget(Clear, panel);
+                inspect::draw_inspect(frame, panel, app, theme);
+            }
         }
-        // Too narrow for a split: precision wins over ambience.
+        // Too narrow to float: precision wins over ambience, panel takes over.
         Mode::Inspect => inspect::draw_inspect(frame, area, app, theme),
     }
 }

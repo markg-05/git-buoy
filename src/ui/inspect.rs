@@ -5,8 +5,29 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Paragraph, Wrap};
 
 use crate::app::App;
+use crate::harbor::Dock;
 
 use super::theme::Theme;
+
+/// Width the panel needs to show its longest detail line and its title without
+/// wrapping. The overlay is sized to this so paths and commit messages stay on
+/// one line whenever the terminal has room.
+pub fn content_width(dock: &Dock) -> usize {
+    let label_width = dock
+        .detail
+        .iter()
+        .map(|(label, _)| label.chars().count())
+        .max()
+        .unwrap_or(0);
+    let widest_row = dock
+        .detail
+        .iter()
+        // Mirrors the " {label}  {value}" layout drawn below.
+        .map(|(_, value)| 1 + label_width + 2 + value.chars().count())
+        .max()
+        .unwrap_or(0);
+    widest_row.max(dock.name.chars().count() + 2)
+}
 
 /// The inspect panel: exact Git facts behind the selected dock, stated
 /// plainly. The metaphor stops at this border.
