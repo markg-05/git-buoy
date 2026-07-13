@@ -18,10 +18,6 @@ const COMPACT_WIDTH: u16 = 46;
 const VESSEL_X: usize = 5;
 /// The pier post that anchors every water row to its dock.
 const POST: &str = "  │ ";
-/// Ambient pages hold long enough to be read before advancing. At the default
-/// 12 FPS this is ten seconds; `--fps` intentionally controls the cadence just
-/// as it controls the water animation.
-const AMBIENT_PAGE_HOLD_FRAMES: u64 = 120;
 /// A single busy dock shows at most this many rows of cargo; anything beyond
 /// collapses into a trailing "…N". The exact totals always remain available
 /// in inspect mode, and this keeps one flooded worktree from swamping the
@@ -131,7 +127,12 @@ pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
                 lines
             }
         } else {
-            let page_index = ambient_page_index(frame_number, pages.len(), app.reduced_motion);
+            let page_index = ambient_page_index(
+                app.page_cycle_frame(),
+                pages.len(),
+                app.settings.auto_cycle && !app.settings.reduced_motion,
+                app.settings.page_hold_frames(),
+            );
             let page = pages[page_index];
             let content_height = avail - 1;
             let mut lines: Vec<Line> = blocks
@@ -213,11 +214,11 @@ fn ambient_pages(heights: &[usize], avail: usize) -> Vec<AmbientPage> {
     pages
 }
 
-fn ambient_page_index(frame: u64, page_count: usize, reduced_motion: bool) -> usize {
-    if reduced_motion || page_count <= 1 {
+fn ambient_page_index(frame: u64, page_count: usize, auto_cycle: bool, hold_frames: u64) -> usize {
+    if !auto_cycle || page_count <= 1 {
         return 0;
     }
-    ((frame / AMBIENT_PAGE_HOLD_FRAMES) % page_count as u64) as usize
+    ((frame / hold_frames.max(1)) % page_count as u64) as usize
 }
 
 fn dock_position_line(above: usize, below: usize, width: usize, theme: &Theme) -> Line<'static> {
@@ -1030,13 +1031,13 @@ mod tests {
     }
 
     #[test]
-    fn ambient_page_index_holds_wraps_and_stops_for_reduced_motion() {
-        assert_eq!(ambient_page_index(0, 3, false), 0);
-        assert_eq!(ambient_page_index(119, 3, false), 0);
-        assert_eq!(ambient_page_index(120, 3, false), 1);
-        assert_eq!(ambient_page_index(240, 3, false), 2);
-        assert_eq!(ambient_page_index(360, 3, false), 0);
-        assert_eq!(ambient_page_index(u64::MAX, 3, true), 0);
+    fn ambient_page_index_holds_wraps_and_respects_auto_cycle() {
+        assert_eq!(ambient_page_index(0, 3, true, 120), 0);
+        assert_eq!(ambient_page_index(119, 3, true, 120), 0);
+        assert_eq!(ambient_page_index(120, 3, true, 120), 1);
+        assert_eq!(ambient_page_index(240, 3, true, 120), 2);
+        assert_eq!(ambient_page_index(360, 3, true, 120), 0);
+        assert_eq!(ambient_page_index(u64::MAX, 3, false, 120), 0);
     }
 
     #[test]
@@ -1065,14 +1066,20 @@ mod tests {
         assert!(first[0].contains("dock-0"));
         assert!(first[3].contains("2 more docks below"));
 
-        for _ in 0..AMBIENT_PAGE_HOLD_FRAMES {
+        for _ in 0..app.settings.page_hold_frames() {
             app.animation.tick();
         }
         let second = render_scene(&app, 40, 4);
         assert!(second[0].contains("dock-3"));
         assert!(second[2].contains("3 docks above"));
 
-        app.reduced_motion = true;
+        app.settings.auto_cycle = false;
+        let held = render_scene(&app, 40, 4);
+        assert!(held[0].contains("dock-0"));
+        assert!(held[3].contains("2 more docks below"));
+
+        app.settings.auto_cycle = true;
+        app.settings.reduced_motion = true;
         let reduced = render_scene(&app, 40, 4);
         assert!(reduced[0].contains("dock-0"));
         assert!(reduced[3].contains("2 more docks below"));

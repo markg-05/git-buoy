@@ -63,7 +63,8 @@ Supporting decisions made at the same time:
 - Remote-hosting features live in a separate opt-in `src/hosting/` layer. The
   first adapter invokes an authenticated GitHub CLI process and parses its JSON
   output; the core still compiles git2 without network transports and performs
-  no hosting survey unless `--github` is supplied. Adapter failures are data
-  shown by the application and never stop local observation.
+  no hosting survey unless `--github` is supplied or the user explicitly
+  enables GitHub observation in the session settings. Adapter failures are
+  data shown by the application and never stop local observation.
 - Reverting the pure-Rust alternative `gix` remains possible behind the
   `src/git/` boundary if libgit2 becomes a limitation.

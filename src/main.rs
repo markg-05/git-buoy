@@ -35,7 +35,7 @@ struct Args {
     #[arg(long, default_value_t = 30.0)]
     idle_after: f64,
 
-    /// Observe pull requests, reviews, checks, and releases through GitHub CLI.
+    /// Start with pull requests, reviews, checks, and releases enabled.
     #[arg(long)]
     github: bool,
 
@@ -54,19 +54,17 @@ fn main() -> Result<()> {
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_else(|| "repository".to_string());
 
-    let receiver = spawn_collector(
-        root.clone(),
-        Duration::from_secs_f64(args.poll_interval.max(0.2)),
-    );
-    let hosting_receiver = args.github.then(|| {
-        spawn_hosting_collector(
-            root,
-            Duration::from_secs_f64(args.github_poll_interval.max(5.0)),
-        )
-    });
+    let mut collector = spawn_collector(root.clone());
+    let mut hosting_collector = spawn_hosting_collector(root);
 
     let mut app = App::new(name, args.reduced_motion)
-        .with_idle_after(Duration::from_secs_f64(args.idle_after.max(1.0)));
+        .with_frames_per_second(args.fps)
+        .with_poll_interval(Duration::from_secs_f64(args.poll_interval.max(0.2)))
+        .with_idle_after(Duration::from_secs_f64(args.idle_after.max(1.0)))
+        .with_github(
+            args.github,
+            Duration::from_secs_f64(args.github_poll_interval.max(5.0)),
+        );
     let theme = ui::Theme::detect();
     let tick = Duration::from_millis(1000 / u64::from(args.fps.clamp(1, 30)));
 
@@ -75,72 +73,117 @@ fn main() -> Result<()> {
         terminal,
         &mut app,
         &theme,
-        &receiver,
-        hosting_receiver.as_ref(),
+        &mut collector,
+        &mut hosting_collector,
         tick,
     );
     ratatui::restore();
     result
 }
 
-fn spawn_hosting_collector(
-    root: PathBuf,
-    interval: Duration,
-) -> mpsc::Receiver<Result<hosting::HostingSnapshot, String>> {
-    let (sender, receiver) = mpsc::channel();
-    thread::spawn(move || {
-        loop {
-            let snapshot = hosting::collect_github(&root).map_err(|error| error.to_string());
-            if sender.send(snapshot).is_err() {
-                return;
-            }
-            thread::sleep(interval);
-        }
-    });
-    receiver
+fn spawn_hosting_collector(root: PathBuf) -> Collector<Result<hosting::HostingSnapshot, String>> {
+    spawn_worker(move || hosting::collect_github(&root).map_err(|error| error.to_string()))
 }
 
-/// Survey the repository on an interval, off the render path so animation
-/// never waits on repository reads. The thread ends when the UI drops the
-/// receiver.
-fn spawn_collector(
-    root: PathBuf,
-    interval: Duration,
-) -> mpsc::Receiver<(Result<git::RepoSnapshot, String>, Instant)> {
-    let (sender, receiver) = mpsc::channel();
+fn spawn_collector(root: PathBuf) -> Collector<(Result<git::RepoSnapshot, String>, Instant)> {
+    spawn_worker(move || {
+        let snapshot = git::collect(&root).map_err(|error| error.to_string());
+        (snapshot, Instant::now())
+    })
+}
+
+/// A request-driven worker keeps repository and hosting reads off the render
+/// path while allowing session settings to change their cadence immediately.
+struct Collector<T> {
+    requests: mpsc::Sender<()>,
+    results: mpsc::Receiver<T>,
+    in_flight: bool,
+    last_started: Option<Instant>,
+}
+
+impl<T> Collector<T> {
+    fn request_if_due(&mut self, interval: Duration) {
+        if self.in_flight
+            || self
+                .last_started
+                .is_some_and(|started| started.elapsed() < interval)
+        {
+            return;
+        }
+        if self.requests.send(()).is_ok() {
+            self.in_flight = true;
+            self.last_started = Some(Instant::now());
+        }
+    }
+
+    fn try_recv(&mut self) -> Option<T> {
+        let result = self.results.try_recv().ok()?;
+        self.in_flight = false;
+        Some(result)
+    }
+
+    fn reset_schedule(&mut self) {
+        self.last_started = None;
+    }
+}
+
+fn spawn_worker<T, F>(collect: F) -> Collector<T>
+where
+    T: Send + 'static,
+    F: Fn() -> T + Send + 'static,
+{
+    let (request_sender, request_receiver) = mpsc::channel();
+    let (result_sender, result_receiver) = mpsc::channel();
     thread::spawn(move || {
-        loop {
-            let snapshot = git::collect(&root).map_err(|e| e.to_string());
-            if sender.send((snapshot, Instant::now())).is_err() {
+        while request_receiver.recv().is_ok() {
+            if result_sender.send(collect()).is_err() {
                 return;
             }
-            thread::sleep(interval);
         }
     });
-    receiver
+    Collector {
+        requests: request_sender,
+        results: result_receiver,
+        in_flight: false,
+        last_started: None,
+    }
 }
 
 fn run(
     mut terminal: ratatui::DefaultTerminal,
     app: &mut App,
     theme: &ui::Theme,
-    receiver: &mpsc::Receiver<(Result<git::RepoSnapshot, String>, Instant)>,
-    hosting_receiver: Option<&mpsc::Receiver<Result<hosting::HostingSnapshot, String>>>,
+    collector: &mut Collector<(Result<git::RepoSnapshot, String>, Instant)>,
+    hosting_collector: &mut Collector<Result<hosting::HostingSnapshot, String>>,
     tick: Duration,
 ) -> Result<()> {
     let mut last_tick = Instant::now();
+    let mut github_was_enabled = false;
     loop {
-        while let Ok((result, observed_at)) = receiver.try_recv() {
+        collector.request_if_due(app.settings.poll_interval);
+        while let Some((result, observed_at)) = collector.try_recv() {
             app.update(Msg::Snapshot {
                 result,
                 observed_at,
             });
         }
-        if let Some(receiver) = hosting_receiver {
-            while let Ok(result) = receiver.try_recv() {
+
+        if app.settings.github_enabled {
+            if !github_was_enabled {
+                hosting_collector.reset_schedule();
+            }
+            hosting_collector.request_if_due(app.settings.github_poll_interval);
+            while let Some(result) = hosting_collector.try_recv() {
+                app.update(Msg::Hosting(result));
+            }
+        } else {
+            // Drain an observation that completed just as the user disabled
+            // the adapter; App intentionally ignores it while disabled.
+            while let Some(result) = hosting_collector.try_recv() {
                 app.update(Msg::Hosting(result));
             }
         }
+        github_was_enabled = app.settings.github_enabled;
 
         terminal
             .draw(|frame| ui::draw(frame, app, theme))

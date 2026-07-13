@@ -4,6 +4,7 @@
 mod inspect;
 mod legend;
 mod scene;
+mod settings;
 mod theme;
 
 pub use theme::Theme;
@@ -34,9 +35,11 @@ pub fn draw(frame: &mut Frame, app: &App, theme: &Theme) {
     draw_body(frame, body, app, theme);
     draw_footer(frame, footer, app, theme);
 
-    // The legend floats above everything else so it can be summoned in either
-    // mode without disturbing the scene underneath.
-    if app.show_legend {
+    // Controls and legend float above either experience without disturbing
+    // the harbor underneath. The state machine keeps them mutually exclusive.
+    if app.show_settings {
+        settings::draw_settings(frame, frame.area(), app, theme);
+    } else if app.show_legend {
         legend::draw_legend(frame, frame.area(), theme, app.legend_scroll);
     }
 }
@@ -79,9 +82,11 @@ fn draw_header(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     ]);
     frame.render_widget(Paragraph::new(title), area);
 
-    let mode = match app.mode {
-        Mode::Ambient => "ambient ",
-        Mode::Inspect => "inspect ",
+    let mode = match (app.show_settings, app.show_legend, app.mode) {
+        (true, _, _) => "settings ",
+        (_, true, _) => "legend ",
+        (_, _, Mode::Ambient) => "ambient ",
+        (_, _, Mode::Inspect) => "inspect ",
     };
     let mode_label = Paragraph::new(Span::styled(mode, Style::new().fg(theme.dim))).right_aligned();
     frame.render_widget(mode_label, area);
@@ -104,11 +109,13 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         frame.render_widget(warning, area);
         return;
     }
-    let hints = if app.show_legend {
+    let hints = if app.show_settings {
+        " j/k select · h/l or ←/→ adjust · s/esc close · session only"
+    } else if app.show_legend {
         " j/k scroll · l/esc close legend"
     } else {
         match app.mode {
-            Mode::Ambient => " i inspect · l legend · m motion · q quit",
+            Mode::Ambient => " i inspect · s settings · l legend · m motion · q quit",
             Mode::Inspect => match app.inspect_target {
                 InspectTarget::Dock => {
                     " tab dock · enter vessel · p pull request · l legend · esc back · q quit"
@@ -132,7 +139,7 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         Paragraph::new(Span::styled(hints, Style::new().fg(theme.dim))),
         area,
     );
-    if app.reduced_motion {
+    if app.settings.reduced_motion && !app.show_settings {
         let badge = Paragraph::new(Span::styled("reduced motion ", Style::new().fg(theme.dim)))
             .right_aligned();
         frame.render_widget(badge, area);
@@ -241,5 +248,30 @@ mod tests {
         );
         assert!(lines.iter().all(|line| !line.contains(scene::VESSEL_HULL)));
         assert!(lines[2].contains("/tmp/repo"));
+    }
+
+    #[test]
+    fn settings_float_over_the_harbor_with_selected_value() {
+        let mut app = inspect_app(vec![("workspace", "/tmp/repo".to_string())]);
+        app.show_settings = true;
+        app.settings_selected = 1;
+
+        let lines = render(&app, 72, 18);
+        assert!(lines.iter().any(|line| line.contains("Harbor controls")));
+        assert!(lines.iter().any(|line| line.contains("Overflow pages")));
+        assert!(lines.iter().any(|line| line.contains("cycle")));
+        assert!(lines.iter().any(|line| line.contains("Session only")));
+        assert!(lines[0].ends_with("settings "));
+    }
+
+    #[test]
+    fn short_settings_panel_scrolls_to_the_selected_control() {
+        let mut app = inspect_app(Vec::new());
+        app.show_settings = true;
+        app.settings_selected = crate::app::SettingItem::ALL.len() - 1;
+
+        let lines = render(&app, 40, 7);
+        assert!(lines.iter().any(|line| line.contains("GitHub survey")));
+        assert!(lines.iter().any(|line| line.contains('▶')));
     }
 }

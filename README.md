@@ -26,29 +26,44 @@ cargo run --release -- path/to/some/repository
 
 With no path argument, Git Buoy observes the repository containing the current directory.
 
-To include GitHub state, install and authenticate [GitHub CLI](https://cli.github.com/), then add `--github`:
+To start with GitHub state enabled, install and authenticate [GitHub CLI](https://cli.github.com/), then add `--github`:
 
 ```sh
 gh auth login
 cargo run --release -- --github path/to/some/repository
 ```
 
-GitHub failures are shown in the footer and do not stop local repository observation.
+GitHub observation can also be enabled during a session from Harbor Controls. GitHub failures are shown in the footer and do not stop local repository observation.
 
 | Key | Action |
 | --- | --- |
 | `i` or `Enter` | Enter inspect mode on the current dock |
+| `s` | Open Harbor Controls |
 | `Enter` / right arrow | Drill from dock to vessel to changed files |
 | `Esc` / `h` / left arrow | Step back one inspection level |
 | `Tab` / `Shift-Tab` | Select a dock |
-| `j` / `k` / up/down arrows | Select a dock or drilled-in item; scroll the legend while it is open |
+| `j` / `k` / up/down arrows | Select a dock, drilled-in item, or harbor control; scroll the legend while it is open |
 | `p` | Inspect a pull request on the selected dock |
-| `l` or `?` | Toggle the legend overlay |
-| `Esc` | Close the legend, then leave inspect mode, then quit |
+| `l` or `?` | Toggle the legend overlay; `l` adjusts a selected harbor control while that panel is open |
+| `Esc` | Close the active overlay, then leave inspect mode, then quit |
 | `m` | Toggle reduced motion |
 | `q` | Quit |
 
-Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, `--poll-interval` sets how often the repository is re-read, and `--idle-after` controls when an unchanged workspace is labeled idle. `--github` enables optional hosting data; `--github-poll-interval` controls its independent refresh rate.
+Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, `--poll-interval` sets how often the repository is re-read, and `--idle-after` controls when an unchanged workspace is labeled idle. `--github` starts with optional hosting data enabled; `--github-poll-interval` sets its initial independent refresh rate.
+
+Press `s` to open the session-local Harbor Controls panel. Use `j`/`k` to select a row, left/right or `h`/`l` to adjust it, and `s` or `Esc` to close the panel. CLI flags provide starting values; changes made in the panel last for the current run only.
+
+| Harbor control | Behavior |
+| --- | --- |
+| Motion | Switch between full and reduced motion. The `m` shortcut remains available. |
+| Overflow pages | Cycle automatically or hold the first page when docks exceed the available height. |
+| Page interval | Choose how long each overflowing page remains visible. |
+| Repository survey | Change the local repository polling interval. |
+| Workspace idle | Change how long unchanged work remains active before it is labeled idle. |
+| GitHub observer | Enable or disable the optional GitHub layer. No GitHub request is made while it is off. |
+| GitHub survey | Change the GitHub polling interval. |
+
+Reduced motion pauses overflow cycling without changing its setting. If motion is restored, cycling resumes only when **Overflow pages** is still set to cycle.
 
 ## Product intent
 
@@ -133,7 +148,7 @@ Git Buoy should work in two complementary modes:
 1. **Ambient mode:** A quiet, animated overview suitable for a spare terminal pane. Important state changes should be noticeable without demanding attention.
 2. **Inspect mode:** Keyboard-driven navigation drills from a dock into its vessel and exact changed paths. Pull requests and checks join the same hierarchy when remote-hosting observation is enabled.
 
-When every dock does not fit, ambient mode advances through dock-sized pages and reports how many docks remain above or below the current view. Reduced motion keeps the first page static while preserving the same overflow information.
+When every dock does not fit, ambient mode advances through dock-sized pages by default and reports how many docks remain above or below the current view. Harbor Controls can hold the first page instead. Reduced motion also keeps the first page static while preserving the independent cycling preference and the same overflow information.
 
 ![Inspect mode floating a detail panel over the harbor](docs/inspect.svg)
 

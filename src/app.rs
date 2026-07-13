@@ -12,7 +12,39 @@ use crate::harbor::{
 use crate::hosting::{CheckState, HostingSnapshot, MergeState, ReviewState};
 
 const DEFAULT_IDLE_AFTER: Duration = Duration::from_secs(30);
+const DEFAULT_POLL_INTERVAL: Duration = Duration::from_secs(2);
+const DEFAULT_GITHUB_POLL_INTERVAL: Duration = Duration::from_secs(30);
+const DEFAULT_CYCLE_INTERVAL: Duration = Duration::from_secs(10);
+const DEFAULT_FRAMES_PER_SECOND: u8 = 12;
 const EVENT_LIFETIME: Duration = Duration::from_secs(12);
+
+const CYCLE_INTERVALS: [Duration; 4] = [
+    Duration::from_secs(5),
+    Duration::from_secs(10),
+    Duration::from_secs(20),
+    Duration::from_secs(30),
+];
+const POLL_INTERVALS: [Duration; 5] = [
+    Duration::from_millis(500),
+    Duration::from_secs(1),
+    Duration::from_secs(2),
+    Duration::from_secs(5),
+    Duration::from_secs(10),
+];
+const IDLE_INTERVALS: [Duration; 5] = [
+    Duration::from_secs(10),
+    Duration::from_secs(30),
+    Duration::from_secs(60),
+    Duration::from_secs(120),
+    Duration::from_secs(300),
+];
+const GITHUB_POLL_INTERVALS: [Duration; 5] = [
+    Duration::from_secs(10),
+    Duration::from_secs(30),
+    Duration::from_secs(60),
+    Duration::from_secs(120),
+    Duration::from_secs(300),
+];
 
 /// The two complementary experiences: a passive overview and keyboard-driven
 /// access to exact repository details.
@@ -33,6 +65,117 @@ pub enum InspectTarget {
         pull_request: usize,
         check: usize,
     },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SettingItem {
+    Motion,
+    AutoCycle,
+    CycleInterval,
+    PollInterval,
+    IdleAfter,
+    GithubEnabled,
+    GithubPollInterval,
+}
+
+impl SettingItem {
+    pub const ALL: [Self; 7] = [
+        Self::Motion,
+        Self::AutoCycle,
+        Self::CycleInterval,
+        Self::PollInterval,
+        Self::IdleAfter,
+        Self::GithubEnabled,
+        Self::GithubPollInterval,
+    ];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Motion => "Motion",
+            Self::AutoCycle => "Overflow pages",
+            Self::CycleInterval => "Page interval",
+            Self::PollInterval => "Repository survey",
+            Self::IdleAfter => "Workspace idle",
+            Self::GithubEnabled => "GitHub observer",
+            Self::GithubPollInterval => "GitHub survey",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AppSettings {
+    pub reduced_motion: bool,
+    pub auto_cycle: bool,
+    pub cycle_interval: Duration,
+    pub poll_interval: Duration,
+    pub idle_after: Duration,
+    pub github_enabled: bool,
+    pub github_poll_interval: Duration,
+    frames_per_second: u8,
+}
+
+impl AppSettings {
+    pub fn value_label(&self, item: SettingItem) -> String {
+        match item {
+            SettingItem::Motion => if self.reduced_motion {
+                "reduced"
+            } else {
+                "full"
+            }
+            .to_string(),
+            SettingItem::AutoCycle => {
+                if !self.auto_cycle {
+                    "hold first page".to_string()
+                } else if self.reduced_motion {
+                    "cycle (paused)".to_string()
+                } else {
+                    "cycle".to_string()
+                }
+            }
+            SettingItem::CycleInterval => duration_label(self.cycle_interval, "every"),
+            SettingItem::PollInterval => duration_label(self.poll_interval, "every"),
+            SettingItem::IdleAfter => duration_label(self.idle_after, "after"),
+            SettingItem::GithubEnabled => {
+                if self.github_enabled { "on" } else { "off" }.to_string()
+            }
+            SettingItem::GithubPollInterval => duration_label(self.github_poll_interval, "every"),
+        }
+    }
+
+    pub fn page_hold_frames(&self) -> u64 {
+        self.cycle_interval
+            .as_secs()
+            .saturating_mul(u64::from(self.frames_per_second))
+            .max(1)
+    }
+}
+
+impl Default for AppSettings {
+    fn default() -> Self {
+        Self {
+            reduced_motion: false,
+            auto_cycle: true,
+            cycle_interval: DEFAULT_CYCLE_INTERVAL,
+            poll_interval: DEFAULT_POLL_INTERVAL,
+            idle_after: DEFAULT_IDLE_AFTER,
+            github_enabled: false,
+            github_poll_interval: DEFAULT_GITHUB_POLL_INTERVAL,
+            frames_per_second: DEFAULT_FRAMES_PER_SECOND,
+        }
+    }
+}
+
+fn duration_label(duration: Duration, prefix: &str) -> String {
+    let millis = duration.as_millis();
+    if millis < 1_000 {
+        return format!("{prefix} {} ms", millis);
+    }
+    let seconds = duration.as_secs();
+    if seconds < 60 {
+        format!("{prefix} {seconds} s")
+    } else {
+        format!("{prefix} {} min", seconds / 60)
+    }
 }
 
 /// Everything that can happen to the application.
@@ -58,7 +201,7 @@ pub struct App {
     pub mode: Mode,
     pub selected: usize,
     pub inspect_target: InspectTarget,
-    pub reduced_motion: bool,
+    pub settings: AppSettings,
     pub animation: Animation,
     pub should_quit: bool,
     /// Most recent collector failure, shown until a survey succeeds again.
@@ -68,15 +211,23 @@ pub struct App {
     /// Whether the legend overlay is currently shown.
     pub show_legend: bool,
     pub legend_scroll: usize,
+    /// Whether the session-local harbor controls are shown.
+    pub show_settings: bool,
+    pub settings_selected: usize,
     /// Most recent optional hosting failure, independent from local Git.
     pub hosting_error: Option<String>,
     activity: ActivityTracker,
     transitions: TransitionTracker,
     hosting: Option<HostingSnapshot>,
+    cycle_origin_frame: u64,
 }
 
 impl App {
     pub fn new(name: String, reduced_motion: bool) -> Self {
+        let settings = AppSettings {
+            reduced_motion,
+            ..AppSettings::default()
+        };
         Self {
             harbor: Harbor {
                 name,
@@ -86,29 +237,53 @@ impl App {
             mode: Mode::Ambient,
             selected: 0,
             inspect_target: InspectTarget::Dock,
-            reduced_motion,
+            settings,
             animation: Animation::default(),
             should_quit: false,
             error: None,
             loaded: false,
             show_legend: false,
             legend_scroll: 0,
+            show_settings: false,
+            settings_selected: 0,
             hosting_error: None,
             activity: ActivityTracker::new(DEFAULT_IDLE_AFTER),
             transitions: TransitionTracker::default(),
             hosting: None,
+            cycle_origin_frame: 0,
         }
     }
 
     pub fn with_idle_after(mut self, idle_after: Duration) -> Self {
+        self.settings.idle_after = idle_after;
         self.activity.idle_after = idle_after;
         self
+    }
+
+    pub fn with_poll_interval(mut self, poll_interval: Duration) -> Self {
+        self.settings.poll_interval = poll_interval;
+        self
+    }
+
+    pub fn with_github(mut self, enabled: bool, poll_interval: Duration) -> Self {
+        self.settings.github_enabled = enabled;
+        self.settings.github_poll_interval = poll_interval;
+        self
+    }
+
+    pub fn with_frames_per_second(mut self, frames_per_second: u8) -> Self {
+        self.settings.frames_per_second = frames_per_second.clamp(1, 30);
+        self
+    }
+
+    pub fn page_cycle_frame(&self) -> u64 {
+        self.animation.frame().wrapping_sub(self.cycle_origin_frame)
     }
 
     pub fn update(&mut self, msg: Msg) {
         match msg {
             Msg::Tick => {
-                if !self.reduced_motion {
+                if !self.settings.reduced_motion {
                     self.animation.tick();
                 }
             }
@@ -137,7 +312,9 @@ impl App {
                         dock.events.push(active.event);
                     }
                 }
-                if let Some(hosting) = &self.hosting {
+                if self.settings.github_enabled
+                    && let Some(hosting) = &self.hosting
+                {
                     apply_hosting(&mut harbor, hosting);
                 }
                 self.harbor = harbor;
@@ -152,13 +329,18 @@ impl App {
                 self.error = Some(message);
             }
             Msg::Hosting(Ok(snapshot)) => {
+                if !self.settings.github_enabled {
+                    return;
+                }
                 apply_hosting(&mut self.harbor, &snapshot);
                 self.hosting = Some(snapshot);
                 self.hosting_error = None;
                 self.clamp_selection();
             }
             Msg::Hosting(Err(message)) => {
-                self.hosting_error = Some(message);
+                if self.settings.github_enabled {
+                    self.hosting_error = Some(message);
+                }
             }
             Msg::Key(key) => self.handle_key(key),
         }
@@ -167,7 +349,32 @@ impl App {
     fn handle_key(&mut self, key: KeyEvent) {
         match key.code {
             KeyCode::Char('q') => self.should_quit = true,
-            KeyCode::Char('l') | KeyCode::Char('?') => self.show_legend = !self.show_legend,
+            KeyCode::Esc if self.show_settings => self.show_settings = false,
+            KeyCode::Char('s') if self.show_settings => self.show_settings = false,
+            KeyCode::Down | KeyCode::Char('j') if self.show_settings => {
+                self.settings_selected = (self.settings_selected + 1) % SettingItem::ALL.len();
+            }
+            KeyCode::Up | KeyCode::Char('k') if self.show_settings => {
+                self.settings_selected =
+                    (self.settings_selected + SettingItem::ALL.len() - 1) % SettingItem::ALL.len();
+            }
+            KeyCode::Left | KeyCode::Char('h') if self.show_settings => {
+                self.adjust_setting(false);
+            }
+            KeyCode::Right | KeyCode::Char('l') | KeyCode::Enter | KeyCode::Char(' ')
+                if self.show_settings =>
+            {
+                self.adjust_setting(true);
+            }
+            _ if self.show_settings => {}
+            KeyCode::Char('s') => {
+                self.show_settings = true;
+                self.show_legend = false;
+            }
+            KeyCode::Char('l') | KeyCode::Char('?') => {
+                self.show_legend = !self.show_legend;
+                self.show_settings = false;
+            }
             // Escape peels back one layer at a time: legend, then inspect,
             // then quit.
             KeyCode::Esc if self.show_legend => self.show_legend = false,
@@ -179,7 +386,9 @@ impl App {
             }
             _ if self.show_legend => {}
             KeyCode::Esc | KeyCode::Left | KeyCode::Char('h') => self.step_out(),
-            KeyCode::Char('m') => self.reduced_motion = !self.reduced_motion,
+            KeyCode::Char('m') => {
+                self.toggle_motion();
+            }
             KeyCode::Char('i') => self.enter_inspect(),
             KeyCode::Char('p') => self.inspect_pull_request(),
             KeyCode::Enter | KeyCode::Right => self.step_in(),
@@ -189,6 +398,62 @@ impl App {
             KeyCode::Up | KeyCode::Char('k') => self.select_previous(),
             _ => {}
         }
+    }
+
+    fn adjust_setting(&mut self, forward: bool) {
+        let item = SettingItem::ALL[self.settings_selected];
+        match item {
+            SettingItem::Motion => {
+                self.toggle_motion();
+            }
+            SettingItem::AutoCycle => {
+                self.settings.auto_cycle = !self.settings.auto_cycle;
+                if self.settings.auto_cycle {
+                    self.reset_page_cycle();
+                }
+            }
+            SettingItem::CycleInterval => {
+                self.settings.cycle_interval =
+                    step_duration(self.settings.cycle_interval, &CYCLE_INTERVALS, forward);
+                self.reset_page_cycle();
+            }
+            SettingItem::PollInterval => {
+                self.settings.poll_interval =
+                    step_duration(self.settings.poll_interval, &POLL_INTERVALS, forward);
+            }
+            SettingItem::IdleAfter => {
+                self.settings.idle_after =
+                    step_duration(self.settings.idle_after, &IDLE_INTERVALS, forward);
+                self.activity.idle_after = self.settings.idle_after;
+            }
+            SettingItem::GithubEnabled => {
+                self.settings.github_enabled = !self.settings.github_enabled;
+                if !self.settings.github_enabled {
+                    clear_hosting(&mut self.harbor);
+                    self.hosting = None;
+                    self.hosting_error = None;
+                    self.clamp_selection();
+                }
+            }
+            SettingItem::GithubPollInterval => {
+                self.settings.github_poll_interval = step_duration(
+                    self.settings.github_poll_interval,
+                    &GITHUB_POLL_INTERVALS,
+                    forward,
+                );
+            }
+        }
+    }
+
+    fn toggle_motion(&mut self) {
+        self.settings.reduced_motion = !self.settings.reduced_motion;
+        if !self.settings.reduced_motion {
+            self.reset_page_cycle();
+        }
+    }
+
+    fn reset_page_cycle(&mut self) {
+        self.cycle_origin_frame = self.animation.frame();
     }
 
     fn enter_inspect(&mut self) {
@@ -429,7 +694,21 @@ impl App {
     }
 }
 
-fn apply_hosting(harbor: &mut Harbor, snapshot: &HostingSnapshot) {
+fn step_duration(current: Duration, choices: &[Duration], forward: bool) -> Duration {
+    let closest = choices
+        .iter()
+        .enumerate()
+        .min_by_key(|(_, choice)| current.abs_diff(**choice))
+        .map_or(0, |(index, _)| index);
+    let next = if forward {
+        (closest + 1) % choices.len()
+    } else {
+        (closest + choices.len() - 1) % choices.len()
+    };
+    choices[next]
+}
+
+fn clear_hosting(harbor: &mut Harbor) {
     harbor
         .docks
         .retain(|dock| dock.kind != DockKind::RemoteBranch);
@@ -437,6 +716,11 @@ fn apply_hosting(harbor: &mut Harbor, snapshot: &HostingSnapshot) {
         dock.clearances.clear();
         dock.detail.retain(|(label, _)| *label != "pull requests");
     }
+    harbor.convoys.clear();
+}
+
+fn apply_hosting(harbor: &mut Harbor, snapshot: &HostingSnapshot) {
+    clear_hosting(harbor);
 
     for pull_request in &snapshot.pull_requests {
         let clearance = Clearance {
@@ -875,6 +1159,60 @@ mod tests {
     }
 
     #[test]
+    fn settings_overlay_owns_navigation_and_closes_without_changing_mode() {
+        let mut app = App::new("test".to_string(), false);
+        app.update(snapshot_msg(Ok(snapshot_with_branches(&["a", "b"]))));
+
+        app.update(key(KeyCode::Char('s')));
+        assert!(app.show_settings);
+        assert!(!app.show_legend);
+        app.update(key(KeyCode::Char('j')));
+        assert_eq!(app.settings_selected, 1);
+        app.update(key(KeyCode::Right));
+        assert!(!app.settings.auto_cycle);
+        assert_eq!(app.selected, 0);
+        assert_eq!(app.mode, Mode::Ambient);
+
+        for _ in 0..300 {
+            app.update(Msg::Tick);
+        }
+        app.update(key(KeyCode::Right));
+        assert!(app.settings.auto_cycle);
+        assert_eq!(app.page_cycle_frame(), 0);
+
+        // Legend and dock navigation do not leak through the controls layer.
+        app.update(key(KeyCode::Char('?')));
+        app.update(key(KeyCode::Tab));
+        assert!(!app.show_legend);
+        assert_eq!(app.mode, Mode::Ambient);
+
+        app.update(key(KeyCode::Esc));
+        assert!(!app.show_settings);
+        assert!(!app.should_quit);
+    }
+
+    #[test]
+    fn idle_threshold_setting_updates_activity_tracker_immediately() {
+        let start = Instant::now();
+        let mut app = App::new("test".to_string(), false);
+        observe(&mut app, activity_snapshot(1), start);
+
+        app.update(key(KeyCode::Char('s')));
+        for _ in 0..4 {
+            app.update(key(KeyCode::Char('j')));
+        }
+        app.update(key(KeyCode::Left));
+        assert_eq!(app.settings.idle_after, Duration::from_secs(10));
+
+        observe(
+            &mut app,
+            activity_snapshot(1),
+            start + Duration::from_secs(15),
+        );
+        assert_eq!(activity(&app), VesselActivity::Idle);
+    }
+
+    #[test]
     fn workspace_activity_moves_from_observing_to_recent_to_idle() {
         let start = Instant::now();
         let mut app = App::new("test".to_string(), false).with_idle_after(Duration::from_secs(30));
@@ -978,7 +1316,8 @@ mod tests {
 
     #[test]
     fn hosting_data_attaches_prs_creates_remote_docks_and_supports_check_inspection() {
-        let mut app = App::new("test".to_string(), false);
+        let mut app =
+            App::new("test".to_string(), false).with_github(true, DEFAULT_GITHUB_POLL_INTERVAL);
         app.update(snapshot_msg(Ok(snapshot_with_branches(&["topic"]))));
         app.update(Msg::Hosting(Ok(hosting_snapshot())));
 
@@ -1011,5 +1350,30 @@ mod tests {
                 check: 0
             }
         );
+    }
+
+    #[test]
+    fn disabling_github_clears_remote_state_and_ignores_late_results() {
+        let mut app =
+            App::new("test".to_string(), false).with_github(true, DEFAULT_GITHUB_POLL_INTERVAL);
+        app.update(snapshot_msg(Ok(snapshot_with_branches(&["topic"]))));
+        app.update(Msg::Hosting(Ok(hosting_snapshot())));
+        assert_eq!(app.harbor.docks.len(), 2);
+        assert!(!app.harbor.convoys.is_empty());
+
+        app.update(key(KeyCode::Char('s')));
+        for _ in 0..5 {
+            app.update(key(KeyCode::Char('j')));
+        }
+        app.update(key(KeyCode::Right));
+
+        assert!(!app.settings.github_enabled);
+        assert_eq!(app.harbor.docks.len(), 1);
+        assert!(app.harbor.docks[0].clearances.is_empty());
+        assert!(app.harbor.convoys.is_empty());
+
+        app.update(Msg::Hosting(Ok(hosting_snapshot())));
+        assert_eq!(app.harbor.docks.len(), 1);
+        assert!(app.harbor.convoys.is_empty());
     }
 }

@@ -14,8 +14,9 @@ const RELEASE_FIELDS: &str = "tagName,name,isDraft,isPrerelease,isLatest,publish
 
 /// Survey GitHub through the optional `gh` executable.
 ///
-/// This is never called unless the user supplies `--github`; the local Git
-/// collector and core harbor remain offline and do not require `gh`.
+/// This is only called after the user opts in through `--github` or Harbor
+/// Controls; the local Git collector and core harbor remain offline and do not
+/// require `gh`.
 pub fn collect_github(root: &Path) -> Result<HostingSnapshot> {
     let prs = run_gh(
         root,
