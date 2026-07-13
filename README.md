@@ -73,7 +73,7 @@ The metaphor is functional, not decorative. Every object in the scene should com
 | Repository | Harbor |
 | Default branch, when identified by a remote or bare-repository `HEAD` | Main terminal |
 | Branch or worktree | Dock |
-| Active developer or coding agent | Vessel at a dock |
+| Checked-out workspace | Vessel at a dock |
 | Uncommitted changes | Cargo being loaded |
 | Commit | Sealed cargo container |
 | Push | Outbound vessel |

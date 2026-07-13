@@ -38,7 +38,7 @@ Use product terms consistently:
 - **Harbor**: the visual scene representing one observed repository.
 - **Main terminal**: the repository's default branch.
 - **Dock**: a branch or linked worktree, depending on the final information model.
-- **Vessel**: an active developer process or coding agent associated with work.
+- **Vessel**: a checked-out workspace at a dock. Its activity describes observed repository changes, not the presence of a person or process.
 - **Cargo**: changes moving toward a commit, push, review, merge, or release.
 - **Ambient mode**: the passive overview experience.
 - **Inspect mode**: keyboard-driven access to exact repository details.
