@@ -5,7 +5,10 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::Paragraph;
 
 use crate::app::{App, Mode};
-use crate::harbor::{Condition, Dock, DockEvent, DockKind, EventKind, Vessel, VesselActivity};
+use crate::harbor::{
+    Clearance, Condition, Dock, DockEvent, DockKind, EventKind, InspectionStatus, ReviewStatus,
+    Vessel, VesselActivity,
+};
 
 use super::theme::Theme;
 
@@ -37,6 +40,8 @@ pub(super) const ACTIVITY_WAKE: &str = "≈~";
 pub(super) const EVENT_COMMIT: &str = "▣ committed";
 pub(super) const EVENT_PUSH: &str = "▙▄▄▟→ pushed";
 pub(super) const EVENT_MERGE: &str = "←▣ merged";
+pub(super) const CLEARANCE_FLAG: &str = "PR#";
+pub(super) const RELEASE_CONVOY: &str = "▙▄▄▟ ▙▄▄▟→";
 
 pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     if area.height == 0 || area.width == 0 {
@@ -49,7 +54,7 @@ pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         frame.render_widget(waiting, area);
         return;
     }
-    if app.harbor.docks.is_empty() {
+    if app.harbor.docks.is_empty() && app.harbor.convoys.is_empty() {
         let empty = Paragraph::new("open water: no branches yet")
             .style(Style::new().fg(theme.dim))
             .centered();
@@ -57,9 +62,29 @@ pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         return;
     }
 
+    let frame_number = app.animation.frame();
+    let mut area = area;
+    if let Some(convoy) = app
+        .harbor
+        .convoys
+        .iter()
+        .find(|convoy| convoy.is_latest)
+        .or_else(|| app.harbor.convoys.first())
+    {
+        let convoy_area = Rect::new(area.x, area.y, area.width, 1);
+        frame.render_widget(
+            Paragraph::new(convoy_line(convoy, frame_number, theme)),
+            convoy_area,
+        );
+        area.y = area.y.saturating_add(1);
+        area.height = area.height.saturating_sub(1);
+        if area.height == 0 || app.harbor.docks.is_empty() {
+            return;
+        }
+    }
+
     let compact = area.width < COMPACT_WIDTH;
     let width = area.width as usize;
-    let frame_number = app.animation.frame();
     let inspecting = app.mode == Mode::Inspect;
 
     // Each dock renders to a block of one or more lines. Blocks vary in height
@@ -266,6 +291,26 @@ fn pier_line(dock: &Dock, width: usize, selected: bool, theme: &Theme) -> Line<'
     ])
 }
 
+fn convoy_line(convoy: &crate::harbor::Convoy, frame: u64, theme: &Theme) -> Line<'static> {
+    let travel = " ".repeat(((frame / 4) % 6) as usize);
+    let prerelease = if convoy.is_prerelease {
+        " · prerelease"
+    } else {
+        ""
+    };
+    Line::from(vec![
+        Span::styled("  convoy ", Style::new().fg(theme.dim)),
+        Span::styled(
+            format!("{travel}{RELEASE_CONVOY}"),
+            Style::new().fg(theme.condition(Condition::Outbound)),
+        ),
+        Span::styled(
+            format!(" {}{}", convoy.tag, prerelease),
+            Style::new().fg(theme.text),
+        ),
+    ])
+}
+
 /// The water beneath a dock: open sea with a vessel and its cargo, or a
 /// mooring buoy. Cargo is drawn in full and wraps onto extra rows when it
 /// runs past the terminal edge, so a busy vessel reads as visibly loaded.
@@ -330,7 +375,26 @@ fn water_lines(
                 content.push((' ', theme.dim));
                 content.extend(event_cells(event, frame, theme));
             }
+            for clearance in &dock.clearances {
+                content.push((' ', theme.dim));
+                content.push((' ', theme.dim));
+                content.extend(clearance_cells(clearance, theme));
+            }
 
+            flow_water(content, water_width, dock_index, frame, theme)
+        }
+        None if !dock.clearances.is_empty() => {
+            let mut content: Vec<(char, Color)> = (0..VESSEL_X.min(water_width))
+                .map(|x| (wave_char(x, dock_index, frame), theme.water))
+                .collect();
+            for ch in VESSEL_HULL.chars() {
+                content.push((ch, theme.condition(Condition::Awaiting)));
+            }
+            content.push((' ', theme.dim));
+            for clearance in &dock.clearances {
+                content.extend(clearance_cells(clearance, theme));
+                content.push((' ', theme.dim));
+            }
             flow_water(content, water_width, dock_index, frame, theme)
         }
         None => {
@@ -341,6 +405,37 @@ fn water_lines(
             flow_water(content, water_width, dock_index, frame, theme)
         }
     }
+}
+
+fn clearance_cells(clearance: &Clearance, theme: &Theme) -> Vec<(char, Color)> {
+    let inspection = clearance.inspection_status();
+    let inspection_glyph = match inspection {
+        InspectionStatus::Passing => '✓',
+        InspectionStatus::Failing => '!',
+        InspectionStatus::Pending => '…',
+        InspectionStatus::Unknown => '?',
+    };
+    let review_glyph = match clearance.review {
+        ReviewStatus::Approved => '✓',
+        ReviewStatus::ChangesRequested => '!',
+        ReviewStatus::Required => '…',
+        ReviewStatus::None => '?',
+    };
+    let color = match inspection {
+        InspectionStatus::Failing => theme.condition(Condition::Blocked),
+        InspectionStatus::Pending => theme.condition(Condition::Loading),
+        InspectionStatus::Passing if clearance.review == ReviewStatus::Approved => {
+            theme.condition(Condition::Calm)
+        }
+        _ => theme.condition(Condition::Awaiting),
+    };
+    format!(
+        "{CLEARANCE_FLAG}{} {review_glyph}{inspection_glyph}",
+        clearance.number
+    )
+    .chars()
+    .map(|glyph| (glyph, color))
+    .collect()
 }
 
 fn event_cells(event: &DockEvent, frame: u64, theme: &Theme) -> Vec<(char, Color)> {
@@ -505,6 +600,7 @@ fn kind_note(kind: DockKind) -> &'static str {
     match kind {
         DockKind::MainTerminal => " · main terminal",
         DockKind::DetachedWorktree => " · detached",
+        DockKind::RemoteBranch => " · remote PR",
         DockKind::Branch => "",
     }
 }
@@ -525,6 +621,27 @@ fn status_text(dock: &Dock) -> String {
     }
     if let Some(event) = dock.events.last() {
         parts.push(format!("· {}", event.kind.label()));
+    }
+    if let Some(clearance) = dock.clearances.first() {
+        let review = match clearance.review {
+            ReviewStatus::Approved => '✓',
+            ReviewStatus::ChangesRequested => '!',
+            ReviewStatus::Required => '…',
+            ReviewStatus::None => '?',
+        };
+        let checks = match clearance.inspection_status() {
+            InspectionStatus::Passing => '✓',
+            InspectionStatus::Failing => '!',
+            InspectionStatus::Pending => '…',
+            InspectionStatus::Unknown => '?',
+        };
+        parts.push(format!(
+            "· {CLEARANCE_FLAG}{} {review}{checks}",
+            clearance.number
+        ));
+        if dock.clearances.len() > 1 {
+            parts.push(format!("+{}", dock.clearances.len() - 1));
+        }
     }
     parts.join(" ")
 }
@@ -560,6 +677,7 @@ mod tests {
             sync: None,
             detail: Vec::new(),
             events: Vec::new(),
+            clearances: Vec::new(),
         }
     }
 
@@ -578,6 +696,7 @@ mod tests {
         let mut app = App::new("test".to_string(), false);
         app.harbor = Harbor {
             name: "test".to_string(),
+            convoys: Vec::new(),
             docks: names
                 .iter()
                 .map(|name| Dock {
@@ -588,6 +707,7 @@ mod tests {
                     sync: None,
                     detail: Vec::new(),
                     events: Vec::new(),
+                    clearances: Vec::new(),
                 })
                 .collect(),
         };
@@ -666,6 +786,48 @@ mod tests {
             leading_spaces(event_cells(&merge, 12, &theme))
                 < leading_spaces(event_cells(&merge, 0, &theme))
         );
+    }
+
+    #[test]
+    fn clearance_marker_reports_review_and_check_state() {
+        let clearance = Clearance {
+            number: 42,
+            title: String::new(),
+            url: String::new(),
+            is_draft: false,
+            review: ReviewStatus::Approved,
+            landing: crate::harbor::LandingStatus::Blocked,
+            inspections: vec![crate::harbor::Inspection {
+                name: "test".to_string(),
+                status: InspectionStatus::Failing,
+                url: None,
+            }],
+        };
+        let marker: String = clearance_cells(&clearance, &Theme::detect())
+            .into_iter()
+            .map(|(glyph, _)| glyph)
+            .collect();
+
+        assert_eq!(marker, "PR#42 ✓!");
+    }
+
+    #[test]
+    fn latest_release_renders_as_a_convoy() {
+        let convoy = crate::harbor::Convoy {
+            tag: "v1.0.0".to_string(),
+            name: "One".to_string(),
+            is_latest: true,
+            is_prerelease: false,
+            published_at: None,
+        };
+        let rendered = convoy_line(&convoy, 0, &Theme::detect())
+            .spans
+            .iter()
+            .map(|span| span.content.as_ref())
+            .collect::<String>();
+
+        assert!(rendered.contains(RELEASE_CONVOY));
+        assert!(rendered.contains("v1.0.0"));
     }
 
     #[test]

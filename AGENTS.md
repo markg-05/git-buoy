@@ -50,11 +50,12 @@ These mappings are hypotheses, not immutable branding. When the metaphor conflic
 The implementation stack is Rust with ratatui, crossterm, and git2; see [docs/adr/0001-implementation-stack.md](docs/adr/0001-implementation-stack.md). The code is layered so each concern can change alone:
 
 - `src/git/` collects repository state into a plain `RepoSnapshot`.
+- `src/hosting/` optionally collects remote-hosting state into a plain `HostingSnapshot`; it must remain opt-in and non-fatal.
 - `src/harbor/` maps snapshots to the pure scene model (`Harbor`, `Dock`, `Vessel`) and owns the deterministic animation clock.
 - `src/ui/` renders the scene with ratatui and owns all terminal specifics.
 - `src/app.rs` is the state machine (mode, selection, message handling) between them.
 
-Keep new work within this layering: git2 types must not leak past `src/git/`, and rendering types must not leak below `src/ui/`.
+Keep new work within this layering: git2 types must not leak past `src/git/`, hosting-provider response types must not leak past `src/hosting/`, and rendering types must not leak below `src/ui/`.
 
 Proposals for consequential architecture changes should evaluate at least:
 

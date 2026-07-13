@@ -99,6 +99,7 @@ impl Theme {
             Condition::Incoming => self.incoming,
             Condition::Diverged => self.diverged,
             Condition::Local => self.local,
+            Condition::Awaiting => self.outbound,
             Condition::Calm => self.calm,
             Condition::Moored => self.moored,
         }

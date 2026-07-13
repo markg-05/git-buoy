@@ -7,8 +7,8 @@ use ratatui::widgets::{Block, Clear, Paragraph};
 use crate::harbor::Condition;
 
 use super::scene::{
-    ACTIVITY_WAKE, CARGO_CONFLICT, CARGO_STAGED, CARGO_UNSTAGED, CARGO_UNTRACKED, EVENT_COMMIT,
-    EVENT_MERGE, EVENT_PUSH, MOORING_BUOY, VESSEL_HULL,
+    ACTIVITY_WAKE, CARGO_CONFLICT, CARGO_STAGED, CARGO_UNSTAGED, CARGO_UNTRACKED, CLEARANCE_FLAG,
+    EVENT_COMMIT, EVENT_MERGE, EVENT_PUSH, MOORING_BUOY, RELEASE_CONVOY, VESSEL_HULL,
 };
 use super::theme::Theme;
 
@@ -18,7 +18,7 @@ const LABEL_WIDTH: usize = 9;
 /// Draw the legend as a centered overlay above the current scene. It reads
 /// the same condition list, descriptions, and glyphs the harbor draws with,
 /// so it can never describe a state the scene renders differently.
-pub fn draw_legend(frame: &mut Frame, screen: Rect, theme: &Theme) {
+pub fn draw_legend(frame: &mut Frame, screen: Rect, theme: &Theme, scroll: usize) {
     let lines = legend_lines(theme);
     let width = lines
         .iter()
@@ -30,12 +30,17 @@ pub fn draw_legend(frame: &mut Frame, screen: Rect, theme: &Theme) {
     let area = centered(screen, width, height);
 
     let block = Block::bordered()
-        .title(" Legend ")
+        .title(" Legend · j/k scroll ")
         .border_style(Style::new().fg(theme.pier))
         .title_style(Style::new().fg(theme.text).add_modifier(Modifier::BOLD));
 
     frame.render_widget(Clear, area);
-    frame.render_widget(Paragraph::new(lines).block(block), area);
+    frame.render_widget(
+        Paragraph::new(lines)
+            .block(block)
+            .scroll((u16::try_from(scroll).unwrap_or(u16::MAX), 0)),
+        area,
+    );
 }
 
 fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
@@ -107,6 +112,18 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
         ACTIVITY_WAKE.to_string(),
         "wake from recent or directional activity",
         theme.water,
+        theme,
+    ));
+    lines.push(symbol_line(
+        format!("{CLEARANCE_FLAG}42 ✓!"),
+        "pull request: review passed, check failed",
+        theme.condition(Condition::Blocked),
+        theme,
+    ));
+    lines.push(symbol_line(
+        RELEASE_CONVOY.to_string(),
+        "latest published release convoy",
+        theme.condition(Condition::Outbound),
         theme,
     ));
 

@@ -4,6 +4,8 @@ pub struct Harbor {
     pub name: String,
     /// Main terminal first, then occupied docks, then moored branches.
     pub docks: Vec<Dock>,
+    /// Published releases reported by an optional hosting observer.
+    pub convoys: Vec<Convoy>,
 }
 
 /// One berth in the harbor: a branch or a checked-out worktree.
@@ -21,6 +23,117 @@ pub struct Dock {
     pub detail: Vec<(&'static str, String)>,
     /// Short-lived transitions observed while Git Buoy is running.
     pub events: Vec<DockEvent>,
+    /// Pull requests associated with this branch.
+    pub clearances: Vec<Clearance>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Clearance {
+    pub number: u64,
+    pub title: String,
+    pub url: String,
+    pub is_draft: bool,
+    pub review: ReviewStatus,
+    pub landing: LandingStatus,
+    pub inspections: Vec<Inspection>,
+}
+
+impl Clearance {
+    pub fn inspection_status(&self) -> InspectionStatus {
+        if self
+            .inspections
+            .iter()
+            .any(|inspection| inspection.status == InspectionStatus::Failing)
+        {
+            InspectionStatus::Failing
+        } else if self
+            .inspections
+            .iter()
+            .any(|inspection| inspection.status == InspectionStatus::Pending)
+        {
+            InspectionStatus::Pending
+        } else if !self.inspections.is_empty()
+            && self
+                .inspections
+                .iter()
+                .all(|inspection| inspection.status == InspectionStatus::Passing)
+        {
+            InspectionStatus::Passing
+        } else {
+            InspectionStatus::Unknown
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Inspection {
+    pub name: String,
+    pub status: InspectionStatus,
+    pub url: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InspectionStatus {
+    Passing,
+    Failing,
+    Pending,
+    Unknown,
+}
+
+impl InspectionStatus {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Passing => "passing",
+            Self::Failing => "failing",
+            Self::Pending => "pending",
+            Self::Unknown => "unknown",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReviewStatus {
+    Approved,
+    ChangesRequested,
+    Required,
+    None,
+}
+
+impl ReviewStatus {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Approved => "approved",
+            Self::ChangesRequested => "changes requested",
+            Self::Required => "review required",
+            Self::None => "no review decision",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LandingStatus {
+    Ready,
+    Blocked,
+    Unknown,
+}
+
+impl LandingStatus {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Ready => "ready",
+            Self::Blocked => "blocked",
+            Self::Unknown => "unknown",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Convoy {
+    pub tag: String,
+    pub name: String,
+    pub is_latest: bool,
+    pub is_prerelease: bool,
+    pub published_at: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -53,6 +166,8 @@ pub enum DockKind {
     Branch,
     /// A worktree whose HEAD is not on any local branch.
     DetachedWorktree,
+    /// A pull-request head branch not present among local branches.
+    RemoteBranch,
 }
 
 /// What a dock communicates at a glance. Exactly one condition applies,
@@ -74,6 +189,8 @@ pub enum Condition {
     Diverged,
     /// An occupied branch with no upstream configured.
     Local,
+    /// A remote-only pull-request branch awaiting clearance.
+    Awaiting,
     /// An occupied dock with nothing pending and an in-sync upstream.
     Calm,
     /// A branch with no active workspace.
@@ -84,7 +201,7 @@ impl Condition {
     /// Every condition in a natural reading order, from settled work through
     /// to problems and empty docks. The in-app legend and the README table
     /// both follow this order so the two never drift apart.
-    pub const ALL: [Condition; 9] = [
+    pub const ALL: [Condition; 10] = [
         Condition::Calm,
         Condition::Local,
         Condition::Loading,
@@ -92,6 +209,7 @@ impl Condition {
         Condition::Outbound,
         Condition::Incoming,
         Condition::Diverged,
+        Condition::Awaiting,
         Condition::Blocked,
         Condition::Moored,
     ];
@@ -105,6 +223,7 @@ impl Condition {
             Condition::Incoming => "incoming",
             Condition::Diverged => "diverged",
             Condition::Local => "local",
+            Condition::Awaiting => "awaiting",
             Condition::Calm => "calm",
             Condition::Moored => "moored",
         }
@@ -120,6 +239,7 @@ impl Condition {
             Condition::Incoming => "commits behind upstream, ready to pull",
             Condition::Diverged => "local and upstream histories have diverged",
             Condition::Local => "checked out with no upstream configured",
+            Condition::Awaiting => "remote pull request awaiting clearance",
             Condition::Blocked => "a conflict or in-progress operation stops work",
             Condition::Moored => "a branch with no worktree checked out",
         }

@@ -5,7 +5,11 @@ use std::time::{Duration, Instant};
 use crossterm::event::{KeyCode, KeyEvent};
 
 use crate::git::{RepoSnapshot, TipAction};
-use crate::harbor::{self, Animation, DockEvent, EventKind, Harbor, VesselActivity};
+use crate::harbor::{
+    self, Animation, Clearance, Condition, Convoy, Dock, DockEvent, DockKind, EventKind, Harbor,
+    Inspection, InspectionStatus, LandingStatus, ReviewStatus, VesselActivity,
+};
+use crate::hosting::{CheckState, HostingSnapshot, MergeState, ReviewState};
 
 const DEFAULT_IDLE_AFTER: Duration = Duration::from_secs(30);
 const EVENT_LIFETIME: Duration = Duration::from_secs(12);
@@ -24,6 +28,11 @@ pub enum InspectTarget {
     Dock,
     Vessel,
     Change(usize),
+    PullRequest(usize),
+    Check {
+        pull_request: usize,
+        check: usize,
+    },
 }
 
 /// Everything that can happen to the application.
@@ -37,6 +46,8 @@ pub enum Msg {
         result: Result<RepoSnapshot, String>,
         observed_at: Instant,
     },
+    /// A fresh optional remote-hosting survey arrived.
+    Hosting(Result<HostingSnapshot, String>),
 }
 
 /// Application state: the current scene plus mode, selection, and clock.
@@ -56,8 +67,12 @@ pub struct App {
     pub loaded: bool,
     /// Whether the legend overlay is currently shown.
     pub show_legend: bool,
+    pub legend_scroll: usize,
+    /// Most recent optional hosting failure, independent from local Git.
+    pub hosting_error: Option<String>,
     activity: ActivityTracker,
     transitions: TransitionTracker,
+    hosting: Option<HostingSnapshot>,
 }
 
 impl App {
@@ -66,6 +81,7 @@ impl App {
             harbor: Harbor {
                 name,
                 docks: Vec::new(),
+                convoys: Vec::new(),
             },
             mode: Mode::Ambient,
             selected: 0,
@@ -76,8 +92,11 @@ impl App {
             error: None,
             loaded: false,
             show_legend: false,
+            legend_scroll: 0,
+            hosting_error: None,
             activity: ActivityTracker::new(DEFAULT_IDLE_AFTER),
             transitions: TransitionTracker::default(),
+            hosting: None,
         }
     }
 
@@ -118,6 +137,9 @@ impl App {
                         dock.events.push(active.event);
                     }
                 }
+                if let Some(hosting) = &self.hosting {
+                    apply_hosting(&mut harbor, hosting);
+                }
                 self.harbor = harbor;
                 self.loaded = true;
                 self.error = None;
@@ -128,6 +150,15 @@ impl App {
                 ..
             } => {
                 self.error = Some(message);
+            }
+            Msg::Hosting(Ok(snapshot)) => {
+                apply_hosting(&mut self.harbor, &snapshot);
+                self.hosting = Some(snapshot);
+                self.hosting_error = None;
+                self.clamp_selection();
+            }
+            Msg::Hosting(Err(message)) => {
+                self.hosting_error = Some(message);
             }
             Msg::Key(key) => self.handle_key(key),
         }
@@ -140,9 +171,17 @@ impl App {
             // Escape peels back one layer at a time: legend, then inspect,
             // then quit.
             KeyCode::Esc if self.show_legend => self.show_legend = false,
+            KeyCode::Down | KeyCode::Char('j') if self.show_legend => {
+                self.legend_scroll = self.legend_scroll.saturating_add(1);
+            }
+            KeyCode::Up | KeyCode::Char('k') if self.show_legend => {
+                self.legend_scroll = self.legend_scroll.saturating_sub(1);
+            }
+            _ if self.show_legend => {}
             KeyCode::Esc | KeyCode::Left | KeyCode::Char('h') => self.step_out(),
             KeyCode::Char('m') => self.reduced_motion = !self.reduced_motion,
             KeyCode::Char('i') => self.enter_inspect(),
+            KeyCode::Char('p') => self.inspect_pull_request(),
             KeyCode::Enter | KeyCode::Right => self.step_in(),
             KeyCode::Tab => self.select_next_dock(),
             KeyCode::BackTab => self.select_previous_dock(),
@@ -172,8 +211,33 @@ impl App {
             InspectTarget::Vessel if dock.vessel.as_ref().is_some_and(|v| !v.cargo.is_empty()) => {
                 InspectTarget::Change(0)
             }
+            InspectTarget::PullRequest(pull_request)
+                if dock
+                    .clearances
+                    .get(pull_request)
+                    .is_some_and(|clearance| !clearance.inspections.is_empty()) =>
+            {
+                InspectTarget::Check {
+                    pull_request,
+                    check: 0,
+                }
+            }
             target => target,
         };
+    }
+
+    fn inspect_pull_request(&mut self) {
+        if self.mode == Mode::Ambient {
+            self.enter_inspect();
+        }
+        if self
+            .harbor
+            .docks
+            .get(self.selected)
+            .is_some_and(|dock| !dock.clearances.is_empty())
+        {
+            self.inspect_target = InspectTarget::PullRequest(0);
+        }
     }
 
     fn step_out(&mut self) {
@@ -183,6 +247,8 @@ impl App {
         }
         self.inspect_target = match self.inspect_target {
             InspectTarget::Change(_) => InspectTarget::Vessel,
+            InspectTarget::Check { pull_request, .. } => InspectTarget::PullRequest(pull_request),
+            InspectTarget::PullRequest(_) => InspectTarget::Dock,
             InspectTarget::Vessel => InspectTarget::Dock,
             InspectTarget::Dock => {
                 self.mode = Mode::Ambient;
@@ -201,7 +267,29 @@ impl App {
                 self.inspect_target = InspectTarget::Change((selected + 1) % count);
             }
         } else {
-            self.select_next_dock();
+            match self.inspect_target {
+                InspectTarget::PullRequest(selected) => {
+                    if let Some(count) = self.selected_clearance_count().filter(|count| *count > 0)
+                    {
+                        self.inspect_target = InspectTarget::PullRequest((selected + 1) % count);
+                    }
+                }
+                InspectTarget::Check {
+                    pull_request,
+                    check,
+                } => {
+                    if let Some(count) = self
+                        .selected_inspection_count(pull_request)
+                        .filter(|count| *count > 0)
+                    {
+                        self.inspect_target = InspectTarget::Check {
+                            pull_request,
+                            check: (check + 1) % count,
+                        };
+                    }
+                }
+                _ => self.select_next_dock(),
+            }
         }
     }
 
@@ -213,7 +301,30 @@ impl App {
                 self.inspect_target = InspectTarget::Change((selected + count - 1) % count);
             }
         } else {
-            self.select_previous_dock();
+            match self.inspect_target {
+                InspectTarget::PullRequest(selected) => {
+                    if let Some(count) = self.selected_clearance_count().filter(|count| *count > 0)
+                    {
+                        self.inspect_target =
+                            InspectTarget::PullRequest((selected + count - 1) % count);
+                    }
+                }
+                InspectTarget::Check {
+                    pull_request,
+                    check,
+                } => {
+                    if let Some(count) = self
+                        .selected_inspection_count(pull_request)
+                        .filter(|count| *count > 0)
+                    {
+                        self.inspect_target = InspectTarget::Check {
+                            pull_request,
+                            check: (check + count - 1) % count,
+                        };
+                    }
+                }
+                _ => self.select_previous_dock(),
+            }
         }
     }
 
@@ -245,6 +356,22 @@ impl App {
             .map(|vessel| vessel.cargo.len())
     }
 
+    fn selected_clearance_count(&self) -> Option<usize> {
+        self.harbor
+            .docks
+            .get(self.selected)
+            .map(|dock| dock.clearances.len())
+    }
+
+    fn selected_inspection_count(&self, pull_request: usize) -> Option<usize> {
+        self.harbor
+            .docks
+            .get(self.selected)?
+            .clearances
+            .get(pull_request)
+            .map(|clearance| clearance.inspections.len())
+    }
+
     fn clamp_inspect_target(&mut self) {
         let Some(dock) = self.harbor.docks.get(self.selected) else {
             self.inspect_target = InspectTarget::Dock;
@@ -261,6 +388,33 @@ impl App {
                 InspectTarget::Change(selected.min(vessel.cargo.len() - 1))
             };
         }
+        match self.inspect_target {
+            InspectTarget::PullRequest(selected) => {
+                self.inspect_target = if dock.clearances.is_empty() {
+                    InspectTarget::Dock
+                } else {
+                    InspectTarget::PullRequest(selected.min(dock.clearances.len() - 1))
+                };
+            }
+            InspectTarget::Check {
+                pull_request,
+                check,
+            } => {
+                let Some(clearance) = dock.clearances.get(pull_request) else {
+                    self.inspect_target = InspectTarget::Dock;
+                    return;
+                };
+                self.inspect_target = if clearance.inspections.is_empty() {
+                    InspectTarget::PullRequest(pull_request)
+                } else {
+                    InspectTarget::Check {
+                        pull_request,
+                        check: check.min(clearance.inspections.len() - 1),
+                    }
+                };
+            }
+            _ => {}
+        }
     }
 
     fn clamp_selection(&mut self) {
@@ -273,6 +427,99 @@ impl App {
         }
         self.clamp_inspect_target();
     }
+}
+
+fn apply_hosting(harbor: &mut Harbor, snapshot: &HostingSnapshot) {
+    harbor
+        .docks
+        .retain(|dock| dock.kind != DockKind::RemoteBranch);
+    for dock in &mut harbor.docks {
+        dock.clearances.clear();
+        dock.detail.retain(|(label, _)| *label != "pull requests");
+    }
+
+    for pull_request in &snapshot.pull_requests {
+        let clearance = Clearance {
+            number: pull_request.number,
+            title: pull_request.title.clone(),
+            url: pull_request.url.clone(),
+            is_draft: pull_request.is_draft,
+            review: match pull_request.review {
+                ReviewState::Approved => ReviewStatus::Approved,
+                ReviewState::ChangesRequested => ReviewStatus::ChangesRequested,
+                ReviewState::Required => ReviewStatus::Required,
+                ReviewState::None => ReviewStatus::None,
+            },
+            landing: match pull_request.merge {
+                MergeState::Ready => LandingStatus::Ready,
+                MergeState::Blocked => LandingStatus::Blocked,
+                MergeState::Unknown => LandingStatus::Unknown,
+            },
+            inspections: pull_request
+                .checks
+                .iter()
+                .map(|check| Inspection {
+                    name: check.name.clone(),
+                    status: match check.state {
+                        CheckState::Passing => InspectionStatus::Passing,
+                        CheckState::Failing => InspectionStatus::Failing,
+                        CheckState::Pending => InspectionStatus::Pending,
+                        CheckState::Unknown => InspectionStatus::Unknown,
+                    },
+                    url: check.url.clone(),
+                })
+                .collect(),
+        };
+        if let Some(dock) = harbor
+            .docks
+            .iter_mut()
+            .find(|dock| dock.name == pull_request.head_branch)
+        {
+            dock.clearances.push(clearance);
+        } else {
+            harbor.docks.push(Dock {
+                name: pull_request.head_branch.clone(),
+                kind: DockKind::RemoteBranch,
+                condition: Condition::Awaiting,
+                vessel: None,
+                sync: None,
+                detail: vec![
+                    ("branch", pull_request.head_branch.clone()),
+                    ("workspace", "remote only".to_string()),
+                ],
+                events: Vec::new(),
+                clearances: vec![clearance],
+            });
+        }
+    }
+
+    for dock in &mut harbor.docks {
+        dock.clearances.sort_by_key(|clearance| clearance.number);
+        if !dock.clearances.is_empty() {
+            dock.detail
+                .push(("pull requests", dock.clearances.len().to_string()));
+        }
+    }
+    harbor.docks.sort_by(|a, b| {
+        let rank = |dock: &Dock| match dock.kind {
+            DockKind::MainTerminal => 0,
+            DockKind::RemoteBranch => 3,
+            _ if dock.vessel.is_some() => 1,
+            _ => 2,
+        };
+        rank(a).cmp(&rank(b)).then_with(|| a.name.cmp(&b.name))
+    });
+    harbor.convoys = snapshot
+        .releases
+        .iter()
+        .map(|release| Convoy {
+            tag: release.tag.clone(),
+            name: release.name.clone(),
+            is_latest: release.is_latest,
+            is_prerelease: release.is_prerelease,
+            published_at: release.published_at.clone(),
+        })
+        .collect();
 }
 
 #[derive(Debug, Default)]
@@ -429,6 +676,7 @@ mod tests {
         BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, RepoSnapshot, SyncState,
         TipInfo, Workspace,
     };
+    use crate::hosting::{Check, PullRequest, Release};
 
     use super::*;
 
@@ -527,6 +775,44 @@ mod tests {
         });
     }
 
+    fn hosting_snapshot() -> HostingSnapshot {
+        HostingSnapshot {
+            pull_requests: vec![
+                PullRequest {
+                    number: 7,
+                    title: "Local clearance".to_string(),
+                    head_branch: "topic".to_string(),
+                    url: "https://example/pr/7".to_string(),
+                    is_draft: false,
+                    review: ReviewState::Approved,
+                    merge: MergeState::Ready,
+                    checks: vec![Check {
+                        name: "test".to_string(),
+                        state: CheckState::Passing,
+                        url: Some("https://example/check".to_string()),
+                    }],
+                },
+                PullRequest {
+                    number: 8,
+                    title: "Remote clearance".to_string(),
+                    head_branch: "remote-topic".to_string(),
+                    url: "https://example/pr/8".to_string(),
+                    is_draft: true,
+                    review: ReviewState::Required,
+                    merge: MergeState::Blocked,
+                    checks: Vec::new(),
+                },
+            ],
+            releases: vec![Release {
+                tag: "v1.0.0".to_string(),
+                name: "One".to_string(),
+                is_latest: true,
+                is_prerelease: false,
+                published_at: Some("2026-07-13T00:00:00Z".to_string()),
+            }],
+        }
+    }
+
     #[test]
     fn tick_is_ignored_under_reduced_motion() {
         let mut app = App::new("test".to_string(), true);
@@ -571,6 +857,10 @@ mod tests {
 
         app.update(key(KeyCode::Char('l')));
         assert!(app.show_legend);
+        app.update(key(KeyCode::Char('j')));
+        assert_eq!(app.legend_scroll, 1);
+        app.update(key(KeyCode::Char('k')));
+        assert_eq!(app.legend_scroll, 0);
         // Escape dismisses the legend without leaving inspect mode.
         app.update(key(KeyCode::Esc));
         assert!(!app.show_legend);
@@ -683,6 +973,43 @@ mod tests {
         assert_eq!(
             app.harbor.docks[0].events[0].summary,
             "2 commits sent upstream"
+        );
+    }
+
+    #[test]
+    fn hosting_data_attaches_prs_creates_remote_docks_and_supports_check_inspection() {
+        let mut app = App::new("test".to_string(), false);
+        app.update(snapshot_msg(Ok(snapshot_with_branches(&["topic"]))));
+        app.update(Msg::Hosting(Ok(hosting_snapshot())));
+
+        let local = app
+            .harbor
+            .docks
+            .iter()
+            .position(|dock| dock.name == "topic")
+            .unwrap();
+        let remote = app
+            .harbor
+            .docks
+            .iter()
+            .find(|dock| dock.name == "remote-topic")
+            .unwrap();
+        assert_eq!(app.harbor.docks[local].clearances[0].number, 7);
+        assert_eq!(remote.kind, DockKind::RemoteBranch);
+        assert_eq!(remote.condition, Condition::Awaiting);
+        assert_eq!(app.harbor.convoys[0].tag, "v1.0.0");
+
+        app.selected = local;
+        app.update(key(KeyCode::Char('i')));
+        app.update(key(KeyCode::Char('p')));
+        assert_eq!(app.inspect_target, InspectTarget::PullRequest(0));
+        app.update(key(KeyCode::Enter));
+        assert_eq!(
+            app.inspect_target,
+            InspectTarget::Check {
+                pull_request: 0,
+                check: 0
+            }
         );
     }
 }

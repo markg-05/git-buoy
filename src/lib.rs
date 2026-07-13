@@ -12,4 +12,5 @@
 pub mod app;
 pub mod git;
 pub mod harbor;
+pub mod hosting;
 pub mod ui;

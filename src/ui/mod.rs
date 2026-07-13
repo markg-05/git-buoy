@@ -37,7 +37,7 @@ pub fn draw(frame: &mut Frame, app: &App, theme: &Theme) {
     // The legend floats above everything else so it can be summoned in either
     // mode without disturbing the scene underneath.
     if app.show_legend {
-        legend::draw_legend(frame, frame.area(), theme);
+        legend::draw_legend(frame, frame.area(), theme, app.legend_scroll);
     }
 }
 
@@ -96,15 +96,35 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         frame.render_widget(warning, area);
         return;
     }
+    if let Some(error) = &app.hosting_error {
+        let warning = Paragraph::new(Span::styled(
+            format!(" github survey failed: {error}"),
+            Style::new().fg(theme.condition(crate::harbor::Condition::Blocked)),
+        ));
+        frame.render_widget(warning, area);
+        return;
+    }
     let hints = if app.show_legend {
-        " l/esc close legend"
+        " j/k scroll · l/esc close legend"
     } else {
         match app.mode {
             Mode::Ambient => " i inspect · l legend · m motion · q quit",
             Mode::Inspect => match app.inspect_target {
-                InspectTarget::Dock => " tab dock · enter vessel · l legend · esc back · q quit",
-                InspectTarget::Vessel => " tab dock · enter files · l legend · esc back · q quit",
-                InspectTarget::Change(_) => " j/k file · tab dock · l legend · esc back · q quit",
+                InspectTarget::Dock => {
+                    " tab dock · enter vessel · p pull request · l legend · esc back · q quit"
+                }
+                InspectTarget::Vessel => {
+                    " tab dock · enter files · p pull request · l legend · esc back · q quit"
+                }
+                InspectTarget::Change(_) => {
+                    " j/k file · p pull request · tab dock · esc back · q quit"
+                }
+                InspectTarget::PullRequest(_) => {
+                    " j/k PR · enter checks · tab dock · esc back · q quit"
+                }
+                InspectTarget::Check { .. } => {
+                    " j/k check · p pull request · tab dock · esc back · q quit"
+                }
             },
         }
     };
@@ -132,6 +152,7 @@ mod tests {
         let mut app = App::new("test".to_string(), true);
         app.harbor = Harbor {
             name: "test".to_string(),
+            convoys: Vec::new(),
             docks: vec![Dock {
                 name: "feature/cargo".to_string(),
                 kind: DockKind::Branch,
@@ -146,6 +167,7 @@ mod tests {
                 sync: None,
                 detail,
                 events: Vec::new(),
+                clearances: Vec::new(),
             }],
         };
         app.mode = Mode::Inspect;

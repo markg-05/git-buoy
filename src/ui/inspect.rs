@@ -5,7 +5,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Paragraph, Wrap};
 
 use crate::app::{App, InspectTarget};
-use crate::harbor::{Dock, Vessel};
+use crate::harbor::{Clearance, Dock, Vessel};
 
 use super::Theme;
 
@@ -30,7 +30,56 @@ fn detail_lines(dock: &Dock, target: InspectTarget, theme: Option<&Theme>) -> Ve
             .vessel
             .as_ref()
             .map_or_else(Vec::new, |vessel| change_lines(vessel, selected, theme)),
+        InspectTarget::PullRequest(selected) => dock
+            .clearances
+            .get(selected)
+            .map_or_else(Vec::new, |clearance| pull_request_lines(clearance, theme)),
+        InspectTarget::Check {
+            pull_request,
+            check,
+        } => dock
+            .clearances
+            .get(pull_request)
+            .and_then(|clearance| {
+                clearance
+                    .inspections
+                    .get(check)
+                    .map(|inspection| (clearance, inspection))
+            })
+            .map_or_else(Vec::new, |(clearance, inspection)| {
+                labeled_lines(
+                    &[
+                        ("pull request", format!("#{}", clearance.number)),
+                        ("check", inspection.name.clone()),
+                        ("status", inspection.status.label().to_string()),
+                        (
+                            "url",
+                            inspection.url.clone().unwrap_or_else(|| "none".to_string()),
+                        ),
+                    ],
+                    theme,
+                )
+            }),
     }
+}
+
+fn pull_request_lines(clearance: &Clearance, theme: Option<&Theme>) -> Vec<Line<'static>> {
+    labeled_lines(
+        &[
+            ("pull request", format!("#{}", clearance.number)),
+            ("title", clearance.title.clone()),
+            ("url", clearance.url.clone()),
+            (
+                "draft",
+                if clearance.is_draft { "yes" } else { "no" }.to_string(),
+            ),
+            ("review", clearance.review.label().to_string()),
+            ("checks", clearance.inspection_status().label().to_string()),
+            ("check count", clearance.inspections.len().to_string()),
+            ("merge", clearance.landing.label().to_string()),
+        ],
+        theme,
+    )
 }
 
 fn labeled_lines(detail: &[(&'static str, String)], theme: Option<&Theme>) -> Vec<Line<'static>> {
@@ -101,6 +150,25 @@ fn title(dock: &Dock, target: InspectTarget) -> String {
         InspectTarget::Dock => dock.name.clone(),
         InspectTarget::Vessel => format!("{} / vessel", dock.name),
         InspectTarget::Change(_) => format!("{} / changed files", dock.name),
+        InspectTarget::PullRequest(selected) => dock.clearances.get(selected).map_or_else(
+            || format!("{} / pull request", dock.name),
+            |clearance| format!("{} / PR #{}", dock.name, clearance.number),
+        ),
+        InspectTarget::Check {
+            pull_request,
+            check,
+        } => dock.clearances.get(pull_request).map_or_else(
+            || format!("{} / check", dock.name),
+            |clearance| {
+                format!(
+                    "{} / PR #{} / check {}/{}",
+                    dock.name,
+                    clearance.number,
+                    check + 1,
+                    clearance.inspections.len()
+                )
+            },
+        ),
     }
 }
 
@@ -133,7 +201,10 @@ pub fn draw_inspect(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
 mod tests {
     use std::path::PathBuf;
 
-    use crate::harbor::{CargoItem, CargoKind, Condition, DockKind, VesselActivity};
+    use crate::harbor::{
+        CargoItem, CargoKind, Clearance, Condition, DockKind, Inspection, InspectionStatus,
+        LandingStatus, ReviewStatus, VesselActivity,
+    };
 
     use super::*;
 
@@ -157,6 +228,7 @@ mod tests {
                 ("last commit", "ready".to_string()),
             ],
             events: Vec::new(),
+            clearances: Vec::new(),
         }
     }
 
@@ -181,5 +253,39 @@ mod tests {
 
         assert!(rendered.contains("unstaged"));
         assert!(rendered.contains("src/航道.rs"));
+    }
+
+    #[test]
+    fn check_view_contains_exact_name_status_and_url() {
+        let mut dock = dock();
+        dock.clearances.push(Clearance {
+            number: 42,
+            title: "Ship".to_string(),
+            url: "https://example/pr/42".to_string(),
+            is_draft: false,
+            review: ReviewStatus::Approved,
+            landing: LandingStatus::Ready,
+            inspections: vec![Inspection {
+                name: "linux / test".to_string(),
+                status: InspectionStatus::Passing,
+                url: Some("https://example/check/1".to_string()),
+            }],
+        });
+        let rendered = detail_lines(
+            &dock,
+            InspectTarget::Check {
+                pull_request: 0,
+                check: 0,
+            },
+            None,
+        )
+        .into_iter()
+        .flat_map(|line| line.spans)
+        .map(|span| span.content.into_owned())
+        .collect::<String>();
+
+        assert!(rendered.contains("linux / test"));
+        assert!(rendered.contains("passing"));
+        assert!(rendered.contains("https://example/check/1"));
     }
 }

@@ -12,7 +12,7 @@ The goal is not to disguise Git. It is to make a busy repository feel legible, e
 
 ## Status
 
-Git Buoy is in early development. The stack is Rust with [ratatui](https://ratatui.rs), chosen and recorded in [docs/adr/0001-implementation-stack.md](docs/adr/0001-implementation-stack.md). The current build covers the first milestone scope: it discovers branches and linked worktrees in one local repository, watches their state, and renders them as an animated harbor with keyboard inspection.
+Git Buoy is in early development. The stack is Rust with [ratatui](https://ratatui.rs), chosen and recorded in [docs/adr/0001-implementation-stack.md](docs/adr/0001-implementation-stack.md). The current build discovers branches and linked worktrees in one local repository, watches their state, and renders them as an animated harbor with keyboard inspection. An opt-in GitHub observer adds pull requests, reviews, checks, and releases without making them a core requirement.
 
 ## Getting started
 
@@ -26,19 +26,29 @@ cargo run --release -- path/to/some/repository
 
 With no path argument, Git Buoy observes the repository containing the current directory.
 
+To include GitHub state, install and authenticate [GitHub CLI](https://cli.github.com/), then add `--github`:
+
+```sh
+gh auth login
+cargo run --release -- --github path/to/some/repository
+```
+
+GitHub failures are shown in the footer and do not stop local repository observation.
+
 | Key | Action |
 | --- | --- |
 | `i` or `Enter` | Enter inspect mode on the current dock |
 | `Enter` / right arrow | Drill from dock to vessel to changed files |
 | `Esc` / `h` / left arrow | Step back one inspection level |
 | `Tab` / `Shift-Tab` | Select a dock |
-| `j` / `k` / up/down arrows | Select a dock or, when drilled in, a changed file |
+| `j` / `k` / up/down arrows | Select a dock or drilled-in item; scroll the legend while it is open |
+| `p` | Inspect a pull request on the selected dock |
 | `l` or `?` | Toggle the legend overlay |
 | `Esc` | Close the legend, then leave inspect mode, then quit |
 | `m` | Toggle reduced motion |
 | `q` | Quit |
 
-Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, `--poll-interval` sets how often the repository is re-read, and `--idle-after` controls when an unchanged workspace is labeled idle.
+Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, `--poll-interval` sets how often the repository is re-read, and `--idle-after` controls when an unchanged workspace is labeled idle. `--github` enables optional hosting data; `--github-poll-interval` controls its independent refresh rate.
 
 ## Product intent
 
@@ -88,6 +98,7 @@ Every dock resolves to a single **condition**, shown by color and by a word on i
 | 🟦 | **outbound** | Commits are ahead of the upstream, ready to push. |
 | 🔵 | **incoming** | Commits are behind the upstream, ready to pull. |
 | 🟧 | **diverged** | Local and upstream histories both contain unique commits. |
+| 🟦 | **awaiting** | A remote-only pull-request branch is awaiting clearance. |
 | 🟥 | **blocked** | A merge conflict or an in-progress operation is stopping work from landing. |
 | ⬜ | **moored** | A branch with no worktree checked out. |
 
@@ -106,6 +117,8 @@ A vessel's hull carries **cargo** that counts the pending change categories, and
 | `▣ committed` | A commit observed while Git Buoy is running |
 | `▙▄▄▟→ pushed` | Ahead commits sent upstream |
 | `←▣ merged` | A merge commit arriving at a dock |
+| `PR#42 ✓!` | Pull request 42: review approved, at least one check failing |
+| `▙▄▄▟ ▙▄▄▟→` | Latest published release convoy |
 
 An occupied dock is initially labeled `observing`. After Git Buoy sees its repository state change, it is `recent` until the idle threshold passes; an unchanged workspace is then `idle`. This describes observable repository activity, not whether a particular process or person is present.
 
@@ -139,8 +152,9 @@ The first useful version focuses on one local repository and establishes the cor
 - Represent concurrent work without requiring any particular coding agent.
 - Provide keyboard inspection of the real Git data behind each visual object.
 - Degrade gracefully across terminal sizes and color capabilities.
+- Optionally attach GitHub pull requests, review decisions, individual checks, and releases to the local harbor.
 
-Remote hosting data, including pull requests, reviews, CI, and releases, belongs in a later milestone after the local experience is convincing.
+Remote hosting is an opt-in layer implemented through the authenticated `gh` executable. It is surveyed independently, failures are non-fatal, and the default local workflow performs no network access. Pull requests whose head branch is not available locally appear as remote docks awaiting clearance.
 
 ## Non-goals
 

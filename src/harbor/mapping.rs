@@ -63,6 +63,7 @@ pub(crate) fn to_harbor_with_activity(
     Harbor {
         name: snapshot.name.clone(),
         docks,
+        convoys: Vec::new(),
     }
 }
 
@@ -105,6 +106,7 @@ fn branch_dock(
         sync,
         detail,
         events: Vec::new(),
+        clearances: Vec::new(),
     }
 }
 
@@ -127,6 +129,7 @@ fn headless_dock(
         sync: None,
         detail,
         events: Vec::new(),
+        clearances: Vec::new(),
     }
 }
 

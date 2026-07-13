@@ -36,7 +36,8 @@ Rust, with:
 - `ratatui` + `crossterm` for rendering and input.
 - `git2` with default features disabled (no network transports; the core
   product is local-first and only ever reads local repositories).
-- `clap` for the CLI, `anyhow`/`thiserror` for errors.
+- `clap` for the CLI, `anyhow`/`thiserror` for errors, and `serde`/`serde_json`
+  for parsing optional hosting-provider responses.
 
 Supporting decisions made at the same time:
 
@@ -59,8 +60,10 @@ Supporting decisions made at the same time:
   check commands are recorded in `AGENTS.md`.
 - `git2` builds libgit2 from source via `cc`, which slows the first build but
   keeps runtime dependencies at zero.
-- Remote-hosting features in later milestones (pull requests, CI checks) must
-  arrive as a separate layer, since the core intentionally has no network
-  transport compiled in.
+- Remote-hosting features live in a separate opt-in `src/hosting/` layer. The
+  first adapter invokes an authenticated GitHub CLI process and parses its JSON
+  output; the core still compiles git2 without network transports and performs
+  no hosting survey unless `--github` is supplied. Adapter failures are data
+  shown by the application and never stop local observation.
 - Reverting the pure-Rust alternative `gix` remains possible behind the
   `src/git/` boundary if libgit2 becomes a limitation.
