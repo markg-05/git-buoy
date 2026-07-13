@@ -8,7 +8,29 @@ The goal is not to disguise Git. It is to make a busy repository feel legible, e
 
 ## Status
 
-Git Buoy is currently at the product-definition stage. This repository intentionally contains no implementation yet. The first milestone is to validate the information model and visual metaphor before choosing a rendering approach or application stack.
+Git Buoy is in early development. The stack is Rust with [ratatui](https://ratatui.rs), chosen and recorded in [docs/adr/0001-implementation-stack.md](docs/adr/0001-implementation-stack.md). The current build covers the first milestone scope: it discovers branches and linked worktrees in one local repository, watches their state, and renders them as an animated harbor with keyboard inspection.
+
+## Getting started
+
+Requires a stable [Rust toolchain](https://rustup.rs) and Git.
+
+```sh
+git clone https://github.com/markg-05/git-buoy.git
+cd git-buoy
+cargo run --release -- path/to/some/repository
+```
+
+With no path argument, Git Buoy observes the repository containing the current directory.
+
+| Key | Action |
+| --- | --- |
+| `i` or `Enter` | Enter inspect mode on the current dock |
+| `Tab` / `j` / `k` / arrows | Select a dock |
+| `Esc` | Leave inspect mode, then quit |
+| `m` | Toggle reduced motion |
+| `q` | Quit |
+
+Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, and `--poll-interval` sets how often the repository is re-read.
 
 ## Product intent
 
@@ -56,7 +78,7 @@ The visual style should feel cozy, precise, and restrained. Animation should car
 
 ## Initial scope
 
-The first useful version should focus on one local repository and establish the core model:
+The first useful version focuses on one local repository and establishes the core model:
 
 - Discover branches and linked worktrees.
 - Observe clean, modified, staged, ahead, behind, and conflicted states.
@@ -89,9 +111,9 @@ Git Buoy is not intended to be:
 
 ## Contributing
 
-The project is not yet accepting implementation contributions because foundational product and architecture decisions have not been made. Discussion, prior-art references, accessibility concerns, and critiques of the information model are welcome once issue tracking is opened.
+The project is young and the information model is still settling, so expect churn. Discussion, prior-art references, accessibility concerns, and critiques of the information model are especially welcome.
 
-Before making changes, read [AGENTS.md](AGENTS.md).
+Before making changes, read [AGENTS.md](AGENTS.md). It records the working expectations, the module layering, and the exact commands CI runs.
 
 ## License
 

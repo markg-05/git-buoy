@@ -6,7 +6,7 @@ This file defines the working expectations for humans and coding agents contribu
 
 Read `README.md` before proposing or implementing changes. The README is the current source of truth for the product intent, scope, metaphor, and non-goals.
 
-Git Buoy is currently documentation-only. Do not introduce an application scaffold, dependency manifest, build system, CI workflow, generated asset, or implementation language unless the task explicitly calls for it.
+Git Buoy is a Rust application built with ratatui. The stack decision and its rationale are recorded in [docs/adr/0001-implementation-stack.md](docs/adr/0001-implementation-stack.md). Do not add new dependencies, services, or generated assets unless the task calls for them.
 
 ## Product guardrails
 
@@ -47,7 +47,16 @@ These mappings are hypotheses, not immutable branding. When the metaphor conflic
 
 ## Architecture decisions
 
-No implementation stack has been chosen. When that decision is requested, proposals should evaluate at least:
+The implementation stack is Rust with ratatui, crossterm, and git2; see [docs/adr/0001-implementation-stack.md](docs/adr/0001-implementation-stack.md). The code is layered so each concern can change alone:
+
+- `src/git/` collects repository state into a plain `RepoSnapshot`.
+- `src/harbor/` maps snapshots to the pure scene model (`Harbor`, `Dock`, `Vessel`) and owns the deterministic animation clock.
+- `src/ui/` renders the scene with ratatui and owns all terminal specifics.
+- `src/app.rs` is the state machine (mode, selection, message handling) between them.
+
+Keep new work within this layering: git2 types must not leak past `src/git/`, and rendering types must not leak below `src/ui/`.
+
+Proposals for consequential architecture changes should evaluate at least:
 
 - Terminal rendering quality and Unicode support.
 - Animation timing and performance.
@@ -61,8 +70,6 @@ Record consequential, difficult-to-reverse decisions in a short architecture dec
 
 ## Quality expectations
 
-Once implementation exists:
-
 - Separate repository-state collection from the harbor scene model and rendering.
 - Treat Git data as untrusted input: unusual paths, large repositories, detached HEADs, missing remotes, and incomplete operations are normal cases.
 - Keep animation deterministic under test by abstracting time and randomness.
@@ -71,7 +78,17 @@ Once implementation exists:
 - Test state transitions, not just static snapshots.
 - Measure idle CPU and memory use; ambient software should be quiet.
 
-Add exact build, formatting, linting, and test commands to this file when a toolchain is selected. Do not invent commands before then.
+## Toolchain commands
+
+Requires a stable Rust toolchain via `rustup` (pinned by `rust-toolchain.toml`). CI runs exactly these on Linux, macOS, and Windows:
+
+```sh
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test
+```
+
+Run the application with `cargo run -- [path-to-repo]`. Integration tests use the `git` CLI to build fixture repositories, so `git` must be on the PATH when testing.
 
 ## Git hygiene
 
@@ -88,9 +105,9 @@ README changes should describe the product for potential users and contributors.
 
 ## Current validation
 
-While the repository contains only Markdown, validate changes by checking:
+Before finishing a change:
 
-- Both documents render as valid, readable Markdown.
-- Links and filenames resolve with the repository's exact casing.
-- Product terminology agrees across `README.md` and `AGENTS.md`.
-- No implementation, generated content, or tooling was added unintentionally.
+- Run the toolchain commands above; all three must pass.
+- For behavior changes, run the application against a real repository and confirm the scene reflects its state.
+- Documentation renders as valid, readable Markdown; links and filenames resolve with the repository's exact casing.
+- Product terminology agrees across `README.md`, `AGENTS.md`, and `docs/`.
