@@ -6,8 +6,8 @@ use ratatui::widgets::Paragraph;
 
 use crate::app::{App, Mode};
 use crate::harbor::{
-    Clearance, Condition, Dock, DockEvent, DockKind, EventKind, InspectionStatus, ReviewStatus,
-    Vessel, VesselActivity,
+    CargoCounts, Clearance, Condition, Dock, DockEvent, DockKind, DockTransition,
+    DockTransitionKind, EventKind, InspectionStatus, ReviewStatus, Vessel, VesselActivity,
 };
 
 use super::theme::Theme;
@@ -94,9 +94,9 @@ pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         .map(|(index, dock)| {
             let selected = inspecting && index == app.selected;
             if compact {
-                vec![compact_line(dock, selected, theme)]
+                vec![compact_line(dock, selected, frame_number, theme)]
             } else {
-                let mut block = vec![pier_line(dock, width, selected, theme)];
+                let mut block = vec![pier_line(dock, width, selected, frame_number, theme)];
                 block.extend(water_lines(dock, width, index, frame_number, theme));
                 block.push(Line::default());
                 block
@@ -266,7 +266,13 @@ fn scroll_top(heights: &[usize], avail: usize, selected: Option<usize>) -> usize
 /// The pier: a horizontal walkway carrying the dock's name and condition.
 ///
 /// `──┬─ main · main terminal ────────────── ↑2 sealed ──`
-fn pier_line(dock: &Dock, width: usize, selected: bool, theme: &Theme) -> Line<'static> {
+fn pier_line(
+    dock: &Dock,
+    width: usize,
+    selected: bool,
+    frame: u64,
+    theme: &Theme,
+) -> Line<'static> {
     let post = if selected {
         "─▶┬─"
     } else {
@@ -283,11 +289,15 @@ fn pier_line(dock: &Dock, width: usize, selected: bool, theme: &Theme) -> Line<'
     } else {
         Style::new().fg(theme.text).add_modifier(Modifier::BOLD)
     };
+    let mut status_style = Style::new().fg(theme.condition(dock.condition));
+    if lane_transition_is_emphasized(dock, frame) {
+        status_style = status_style.add_modifier(Modifier::BOLD | Modifier::REVERSED);
+    }
     Line::from(vec![
         Span::styled(post.to_string(), Style::new().fg(theme.pier)),
         Span::styled(name, name_style),
         Span::styled("─".repeat(fill), Style::new().fg(theme.pier)),
-        Span::styled(status, Style::new().fg(theme.condition(dock.condition))),
+        Span::styled(status, status_style),
         Span::styled("──".to_string(), Style::new().fg(theme.pier)),
     ])
 }
@@ -324,9 +334,19 @@ fn water_lines(
 ) -> Vec<Line<'static>> {
     let water_width = width.saturating_sub(POST.chars().count()).max(1);
 
-    match &dock.vessel {
-        Some(vessel) => {
-            let vessel_x = vessel_x(dock, water_width, frame);
+    match rendered_vessel(dock, frame) {
+        Some((vessel, motion)) => {
+            let vessel_x = match motion {
+                VesselMotion::Steady => vessel_x(dock, water_width, frame),
+                VesselMotion::Arriving { elapsed, duration } => {
+                    let base = vessel_x_base(water_width);
+                    interpolate_position(vessel_x_furthest(water_width), base, elapsed, duration)
+                }
+                VesselMotion::Departing { elapsed, duration } => {
+                    let base = vessel_x_base(water_width);
+                    interpolate_position(base, vessel_x_furthest(water_width), elapsed, duration)
+                }
+            };
             // Open water leads to the vessel. A wake replaces its last cells
             // when motion is communicating recent or directional activity.
             let mut content: Vec<(char, Color)> = (0..vessel_x.min(water_width))
@@ -348,7 +368,7 @@ fn water_lines(
                 content.push((' ', theme.water));
             }
 
-            let mut cargo = cargo_cells(vessel, theme);
+            let mut cargo = cargo_cells(rendered_cargo_counts(dock, vessel, frame), theme);
 
             // Bound the very busy case: keep as much cargo as a few rows hold,
             // then note the remainder as "…N" rather than drawing thousands.
@@ -406,6 +426,81 @@ fn water_lines(
             flow_water(content, water_width, dock_index, frame, theme)
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum VesselMotion {
+    Steady,
+    Arriving { elapsed: u64, duration: u64 },
+    Departing { elapsed: u64, duration: u64 },
+}
+
+fn rendered_vessel(dock: &Dock, frame: u64) -> Option<(&Vessel, VesselMotion)> {
+    if let Some(transition) = dock.transition.as_ref()
+        && let Some((elapsed, duration)) = transition_progress(transition, frame)
+    {
+        match &transition.kind {
+            DockTransitionKind::VesselArriving => {
+                return dock
+                    .vessel
+                    .as_ref()
+                    .map(|vessel| (vessel, VesselMotion::Arriving { elapsed, duration }));
+            }
+            DockTransitionKind::VesselDeparting { vessel } => {
+                return Some((vessel, VesselMotion::Departing { elapsed, duration }));
+            }
+            _ => {}
+        }
+    }
+    dock.vessel
+        .as_ref()
+        .map(|vessel| (vessel, VesselMotion::Steady))
+}
+
+fn rendered_cargo_counts(dock: &Dock, vessel: &Vessel, frame: u64) -> CargoCounts {
+    let target = vessel.cargo_counts();
+    let Some(transition) = dock.transition.as_ref() else {
+        return target;
+    };
+    let Some((elapsed, duration)) = transition_progress(transition, frame) else {
+        return target;
+    };
+    let DockTransitionKind::Cargo { from } = transition.kind else {
+        return target;
+    };
+    CargoCounts {
+        staged: interpolate_count(from.staged, target.staged, elapsed, duration),
+        unstaged: interpolate_count(from.unstaged, target.unstaged, elapsed, duration),
+        untracked: interpolate_count(from.untracked, target.untracked, elapsed, duration),
+        conflicted: interpolate_count(from.conflicted, target.conflicted, elapsed, duration),
+    }
+}
+
+fn transition_progress(transition: &DockTransition, frame: u64) -> Option<(u64, u64)> {
+    let duration = transition.duration_frames.max(1);
+    let elapsed = frame.wrapping_sub(transition.started_frame);
+    (elapsed < duration).then_some((elapsed, duration))
+}
+
+fn interpolate_count(from: usize, to: usize, elapsed: u64, duration: u64) -> usize {
+    if from == to {
+        return to;
+    }
+    let distance = from.abs_diff(to) as u128;
+    let moved = distance
+        .saturating_mul(elapsed as u128)
+        .saturating_add((duration / 2) as u128)
+        / duration as u128;
+    let moved = usize::try_from(moved).unwrap_or(usize::MAX);
+    if to > from {
+        from.saturating_add(moved).min(to)
+    } else {
+        from.saturating_sub(moved).max(to)
+    }
+}
+
+fn interpolate_position(from: usize, to: usize, elapsed: u64, duration: u64) -> usize {
+    interpolate_count(from, to, elapsed, duration)
 }
 
 fn clearance_cells(clearance: &Clearance, theme: &Theme) -> Vec<(char, Color)> {
@@ -479,10 +574,8 @@ fn flow_water(
 }
 
 fn vessel_x(dock: &Dock, water_width: usize, frame: u64) -> usize {
-    let base = VESSEL_X.min(water_width.saturating_sub(1));
-    let furthest = water_width
-        .saturating_sub(VESSEL_HULL.chars().count() + 1)
-        .min(base.saturating_add(12));
+    let base = vessel_x_base(water_width);
+    let furthest = vessel_x_furthest(water_width);
     let distance = furthest.saturating_sub(base);
     if distance == 0 {
         return base;
@@ -494,6 +587,17 @@ fn vessel_x(dock: &Dock, water_width: usize, frame: u64) -> usize {
         Condition::Diverged => base + ((frame / 6) as usize % 2).min(distance),
         _ => base,
     }
+}
+
+fn vessel_x_base(water_width: usize) -> usize {
+    VESSEL_X.min(water_width.saturating_sub(1))
+}
+
+fn vessel_x_furthest(water_width: usize) -> usize {
+    let base = vessel_x_base(water_width);
+    water_width
+        .saturating_sub(VESSEL_HULL.chars().count() + 1)
+        .min(base.saturating_add(12))
 }
 
 fn shows_left_wake(dock: &Dock, vessel: &Vessel) -> bool {
@@ -520,24 +624,24 @@ fn vessel_hull(vessel: &Vessel, frame: u64) -> &'static str {
     }
 }
 
-fn cargo_cells(vessel: &Vessel, theme: &Theme) -> Vec<(char, Color)> {
+fn cargo_cells(counts: CargoCounts, theme: &Theme) -> Vec<(char, Color)> {
     let mut cargo = Vec::new();
     push_cargo_group(
         &mut cargo,
-        vessel.staged,
+        counts.staged,
         CARGO_STAGED,
         theme.condition(Condition::Sealed),
     );
     push_cargo_group(
         &mut cargo,
-        vessel.unstaged,
+        counts.unstaged,
         CARGO_UNSTAGED,
         theme.condition(Condition::Loading),
     );
-    push_cargo_group(&mut cargo, vessel.untracked, CARGO_UNTRACKED, theme.text);
+    push_cargo_group(&mut cargo, counts.untracked, CARGO_UNTRACKED, theme.text);
     push_cargo_group(
         &mut cargo,
-        vessel.conflicted,
+        counts.conflicted,
         CARGO_CONFLICT,
         theme.condition(Condition::Blocked),
     );
@@ -579,22 +683,48 @@ fn cells_to_line(cells: Vec<(char, Color)>, theme: &Theme) -> Line<'static> {
 }
 
 /// Narrow-terminal fallback: one accurate line per dock, no art.
-fn compact_line(dock: &Dock, selected: bool, theme: &Theme) -> Line<'static> {
+fn compact_line(dock: &Dock, selected: bool, frame: u64, theme: &Theme) -> Line<'static> {
     let marker = if selected { "▶" } else { " " };
     let name_style = if selected {
         Style::new().fg(theme.text).add_modifier(Modifier::REVERSED)
     } else {
         Style::new().fg(theme.text)
     };
+    let mut status_style = Style::new().fg(theme.condition(dock.condition));
+    let mut detail_style = Style::new().fg(theme.dim);
+    if transition_is_emphasized(dock, frame) {
+        let emphasis = Modifier::BOLD | Modifier::REVERSED;
+        status_style = status_style.add_modifier(emphasis);
+        detail_style = detail_style.add_modifier(emphasis);
+    }
     Line::from(vec![
         Span::styled(format!("{marker} "), Style::new().fg(theme.pier)),
-        Span::styled("● ", Style::new().fg(theme.condition(dock.condition))),
+        Span::styled("● ", status_style),
         Span::styled(dock.name.clone(), name_style),
-        Span::styled(
-            format!(" {}", status_text(dock)),
-            Style::new().fg(theme.dim),
-        ),
+        Span::styled(format!(" {}", status_text(dock)), detail_style),
     ])
+}
+
+fn lane_transition_is_emphasized(dock: &Dock, frame: u64) -> bool {
+    dock.transition.as_ref().is_some_and(|transition| {
+        matches!(
+            transition.kind,
+            DockTransitionKind::BecameBlocked | DockTransitionKind::BecameUnblocked
+        ) && transition_emphasis(transition, frame)
+    })
+}
+
+fn transition_is_emphasized(dock: &Dock, frame: u64) -> bool {
+    dock.transition
+        .as_ref()
+        .is_some_and(|transition| transition_emphasis(transition, frame))
+}
+
+fn transition_emphasis(transition: &DockTransition, frame: u64) -> bool {
+    let Some((elapsed, duration)) = transition_progress(transition, frame) else {
+        return false;
+    };
+    ((elapsed.saturating_mul(4) / duration).min(3)).is_multiple_of(2)
 }
 
 fn kind_note(kind: DockKind) -> &'static str {
@@ -678,6 +808,7 @@ mod tests {
             sync: None,
             detail: Vec::new(),
             events: Vec::new(),
+            transition: None,
             clearances: Vec::new(),
         }
     }
@@ -708,6 +839,7 @@ mod tests {
                     sync: None,
                     detail: Vec::new(),
                     events: Vec::new(),
+                    transition: None,
                     clearances: Vec::new(),
                 })
                 .collect(),
@@ -763,6 +895,131 @@ mod tests {
         overlay_left_wake(&mut water, 0, Color::Blue);
         assert_eq!(water[3].0, '≈');
         assert_eq!(water[4].0, '~');
+    }
+
+    #[test]
+    fn cargo_transition_interpolates_monotonically_to_current_counts() {
+        let mut dock = vessel_dock(Vessel {
+            staged: 10,
+            unstaged: 1,
+            ..Vessel::default()
+        });
+        dock.transition = Some(DockTransition {
+            kind: DockTransitionKind::Cargo {
+                from: CargoCounts {
+                    staged: 2,
+                    unstaged: 5,
+                    ..CargoCounts::default()
+                },
+            },
+            started_frame: 0,
+            duration_frames: 8,
+        });
+        let vessel = dock.vessel.as_ref().unwrap();
+
+        let start = rendered_cargo_counts(&dock, vessel, 0);
+        let middle = rendered_cargo_counts(&dock, vessel, 4);
+        let end = rendered_cargo_counts(&dock, vessel, 8);
+        assert_eq!((start.staged, start.unstaged), (2, 5));
+        assert_eq!((middle.staged, middle.unstaged), (6, 3));
+        assert_eq!((end.staged, end.unstaged), (10, 1));
+        assert!(start.staged <= middle.staged && middle.staged <= end.staged);
+        assert!(start.unstaged >= middle.unstaged && middle.unstaged >= end.unstaged);
+    }
+
+    #[test]
+    fn vessel_arrives_toward_pier_and_departure_resolves_to_buoy() {
+        let mut arriving = vessel_dock(Vessel::default());
+        arriving.condition = Condition::Local;
+        arriving.transition = Some(DockTransition {
+            kind: DockTransitionKind::VesselArriving,
+            started_frame: 0,
+            duration_frames: 8,
+        });
+        let position = |dock: &Dock, frame| {
+            let (_, motion) = rendered_vessel(dock, frame).unwrap();
+            match motion {
+                VesselMotion::Arriving { elapsed, duration } => interpolate_position(
+                    vessel_x_furthest(40),
+                    vessel_x_base(40),
+                    elapsed,
+                    duration,
+                ),
+                VesselMotion::Steady => vessel_x(dock, 40, frame),
+                VesselMotion::Departing { .. } => unreachable!(),
+            }
+        };
+        assert!(position(&arriving, 0) > position(&arriving, 4));
+        assert!(position(&arriving, 4) > position(&arriving, 8));
+
+        let mut departing = vessel_dock(Vessel::default());
+        departing.condition = Condition::Moored;
+        departing.vessel = None;
+        departing.transition = Some(DockTransition {
+            kind: DockTransitionKind::VesselDeparting {
+                vessel: Vessel::default(),
+            },
+            started_frame: 0,
+            duration_frames: 8,
+        });
+        assert!(matches!(
+            rendered_vessel(&departing, 0),
+            Some((_, VesselMotion::Departing { .. }))
+        ));
+        assert!(rendered_vessel(&departing, 8).is_none());
+        let settled: String = water_lines(&departing, 40, 0, 8, &Theme::detect())
+            .into_iter()
+            .flat_map(|line| line.spans)
+            .map(|span| span.content.into_owned())
+            .collect();
+        assert!(settled.contains(MOORING_BUOY));
+        assert!(!settled.contains(VESSEL_HULL));
+    }
+
+    #[test]
+    fn lane_and_compact_cues_pulse_twice_then_settle() {
+        let transition = DockTransition {
+            kind: DockTransitionKind::BecameBlocked,
+            started_frame: 0,
+            duration_frames: 8,
+        };
+        assert!(transition_emphasis(&transition, 0));
+        assert!(!transition_emphasis(&transition, 2));
+        assert!(transition_emphasis(&transition, 4));
+        assert!(!transition_emphasis(&transition, 6));
+        assert!(!transition_emphasis(&transition, 8));
+
+        let mut compact = vessel_dock(Vessel::default());
+        compact.transition = Some(DockTransition {
+            kind: DockTransitionKind::Cargo {
+                from: CargoCounts::default(),
+            },
+            ..transition
+        });
+        let emphasized = compact_line(&compact, false, 0, &Theme::detect());
+        assert!(
+            emphasized.spans[1]
+                .style
+                .add_modifier
+                .contains(Modifier::REVERSED)
+        );
+        let settled = compact_line(&compact, false, 8, &Theme::detect());
+        assert!(
+            !settled.spans[1]
+                .style
+                .add_modifier
+                .contains(Modifier::REVERSED)
+        );
+    }
+
+    #[test]
+    fn transition_progress_handles_wrapping_frame_counter() {
+        let transition = DockTransition {
+            kind: DockTransitionKind::VesselArriving,
+            started_frame: u64::MAX - 2,
+            duration_frames: 8,
+        };
+        assert_eq!(transition_progress(&transition, 1), Some((4, 8)));
     }
 
     #[test]
@@ -911,7 +1168,7 @@ mod tests {
             conflicted: 1,
             ..Vessel::default()
         };
-        let cargo = cargo_cells(&vessel, &theme);
+        let cargo = cargo_cells(vessel.cargo_counts(), &theme);
         let glyphs: String = cargo.iter().map(|(glyph, _)| glyph).collect();
 
         assert_eq!(glyphs, "▣ ▢▢ +++ ✕");

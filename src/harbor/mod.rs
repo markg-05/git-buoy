@@ -12,6 +12,7 @@ pub use animation::Animation;
 pub use mapping::to_harbor;
 pub(crate) use mapping::to_harbor_with_activity;
 pub use model::{
-    CargoItem, CargoKind, Clearance, Condition, Convoy, Dock, DockEvent, DockKind, EventKind,
-    Harbor, Inspection, InspectionStatus, LandingStatus, ReviewStatus, Vessel, VesselActivity,
+    CargoCounts, CargoItem, CargoKind, Clearance, Condition, Convoy, Dock, DockEvent, DockKind,
+    DockTransition, DockTransitionKind, EventKind, Harbor, Inspection, InspectionStatus,
+    LandingStatus, ReviewStatus, Vessel, VesselActivity,
 };

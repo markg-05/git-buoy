@@ -106,6 +106,7 @@ fn branch_dock(
         sync,
         detail,
         events: Vec::new(),
+        transition: None,
         clearances: Vec::new(),
     }
 }
@@ -129,6 +130,7 @@ fn headless_dock(
         sync: None,
         detail,
         events: Vec::new(),
+        transition: None,
         clearances: Vec::new(),
     }
 }

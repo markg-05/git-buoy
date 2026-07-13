@@ -6,8 +6,9 @@ use crossterm::event::{KeyCode, KeyEvent};
 
 use crate::git::{RepoSnapshot, TipAction};
 use crate::harbor::{
-    self, Animation, Clearance, Condition, Convoy, Dock, DockEvent, DockKind, EventKind, Harbor,
-    Inspection, InspectionStatus, LandingStatus, ReviewStatus, VesselActivity,
+    self, Animation, Clearance, Condition, Convoy, Dock, DockEvent, DockKind, DockTransition,
+    DockTransitionKind, EventKind, Harbor, Inspection, InspectionStatus, LandingStatus,
+    ReviewStatus, Vessel, VesselActivity,
 };
 use crate::hosting::{CheckState, HostingSnapshot, MergeState, ReviewState};
 
@@ -17,6 +18,7 @@ const DEFAULT_GITHUB_POLL_INTERVAL: Duration = Duration::from_secs(30);
 const DEFAULT_CYCLE_INTERVAL: Duration = Duration::from_secs(10);
 const DEFAULT_FRAMES_PER_SECOND: u8 = 12;
 const EVENT_LIFETIME: Duration = Duration::from_secs(12);
+const VISUAL_TRANSITION_DURATION: Duration = Duration::from_millis(750);
 
 const CYCLE_INTERVALS: [Duration; 4] = [
     Duration::from_secs(5),
@@ -213,6 +215,12 @@ fn duration_label(duration: Duration, prefix: &str) -> String {
     }
 }
 
+fn transition_duration_frames(frames_per_second: u8) -> u64 {
+    let frame_millis =
+        u64::from(frames_per_second).saturating_mul(VISUAL_TRANSITION_DURATION.as_millis() as u64);
+    frame_millis.div_ceil(1_000).max(1)
+}
+
 /// Everything that can happen to the application.
 #[derive(Debug)]
 pub enum Msg {
@@ -252,7 +260,8 @@ pub struct App {
     /// Most recent optional hosting failure, independent from local Git.
     pub hosting_error: Option<String>,
     activity: ActivityTracker,
-    transitions: TransitionTracker,
+    repository_events: RepositoryEventTracker,
+    visual_transitions: VisualTransitionTracker,
     hosting: Option<HostingSnapshot>,
     cycle_origin_frame: u64,
 }
@@ -283,7 +292,8 @@ impl App {
             settings_selected: 0,
             hosting_error: None,
             activity: ActivityTracker::new(DEFAULT_IDLE_AFTER),
-            transitions: TransitionTracker::default(),
+            repository_events: RepositoryEventTracker::default(),
+            visual_transitions: VisualTransitionTracker::default(),
             hosting: None,
             cycle_origin_frame: 0,
         }
@@ -320,6 +330,8 @@ impl App {
             Msg::Tick => {
                 if !self.settings.reduced_motion {
                     self.animation.tick();
+                    self.visual_transitions
+                        .expire(&mut self.harbor, self.animation.frame());
                 }
             }
             Msg::Snapshot {
@@ -327,13 +339,19 @@ impl App {
                 observed_at,
             } => {
                 let activities = self.activity.observe(&snapshot, observed_at);
-                let events = self.transitions.observe(&snapshot, observed_at);
+                let events = self.repository_events.observe(&snapshot, observed_at);
                 let mut harbor = harbor::to_harbor_with_activity(&snapshot, |workspace| {
                     activities
                         .get(&workspace.path)
                         .copied()
                         .unwrap_or(VesselActivity::Observing)
                 });
+                self.visual_transitions.observe(
+                    &mut harbor,
+                    self.animation.frame(),
+                    transition_duration_frames(self.settings.frames_per_second),
+                    self.settings.reduced_motion,
+                );
                 for active in events {
                     if let Some(dock) = harbor
                         .docks
@@ -483,7 +501,9 @@ impl App {
 
     fn toggle_motion(&mut self) {
         self.settings.reduced_motion = !self.settings.reduced_motion;
-        if !self.settings.reduced_motion {
+        if self.settings.reduced_motion {
+            self.visual_transitions.clear(&mut self.harbor);
+        } else {
             self.reset_page_cycle();
         }
     }
@@ -808,6 +828,7 @@ fn apply_hosting(harbor: &mut Harbor, snapshot: &HostingSnapshot) {
                     ("workspace", "remote only".to_string()),
                 ],
                 events: Vec::new(),
+                transition: None,
                 clearances: vec![clearance],
             });
         }
@@ -842,8 +863,172 @@ fn apply_hosting(harbor: &mut Harbor, snapshot: &HostingSnapshot) {
         .collect();
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+enum DockIdentity {
+    Branch(String),
+    Workspace(PathBuf),
+}
+
+#[derive(Debug, Clone)]
+struct DockVisualState {
+    condition: Condition,
+    vessel: Option<Vessel>,
+}
+
+impl From<&Dock> for DockVisualState {
+    fn from(dock: &Dock) -> Self {
+        Self {
+            condition: dock.condition,
+            // Visual diffs need counts and a departure hull, not a second copy
+            // of every changed path retained by the inspect model.
+            vessel: dock.vessel.as_ref().map(|vessel| Vessel {
+                cargo: Vec::new(),
+                ..vessel.clone()
+            }),
+        }
+    }
+}
+
 #[derive(Debug, Default)]
-struct TransitionTracker {
+struct VisualTransitionTracker {
+    initialized: bool,
+    previous: HashMap<DockIdentity, DockVisualState>,
+    active: HashMap<DockIdentity, DockTransition>,
+}
+
+impl VisualTransitionTracker {
+    fn observe(
+        &mut self,
+        harbor: &mut Harbor,
+        frame: u64,
+        duration_frames: u64,
+        reduced_motion: bool,
+    ) {
+        let current: HashMap<_, _> = harbor
+            .docks
+            .iter()
+            .filter_map(|dock| dock_identity(dock).map(|key| (key, DockVisualState::from(dock))))
+            .collect();
+
+        self.active.retain(|key, transition| {
+            current.contains_key(key) && transition_is_active(transition, frame)
+        });
+
+        if reduced_motion {
+            self.active.clear();
+        } else if self.initialized {
+            for dock in &harbor.docks {
+                let Some(key) = dock_identity(dock) else {
+                    continue;
+                };
+                let Some(next) = current.get(&key) else {
+                    continue;
+                };
+                let previous = self.previous.get(&key).or_else(|| {
+                    next.vessel.as_ref().and_then(|vessel| {
+                        self.previous
+                            .get(&DockIdentity::Workspace(vessel.workspace.clone()))
+                    })
+                });
+                let kind = match previous {
+                    Some(previous) => transition_kind(previous, next),
+                    None => next
+                        .vessel
+                        .as_ref()
+                        .map(|_| DockTransitionKind::VesselArriving),
+                };
+                if let Some(kind) = kind {
+                    self.active.insert(
+                        key,
+                        DockTransition {
+                            kind,
+                            started_frame: frame,
+                            duration_frames,
+                        },
+                    );
+                }
+            }
+        }
+
+        for dock in &mut harbor.docks {
+            dock.transition = dock_identity(dock)
+                .and_then(|key| self.active.get(&key))
+                .cloned();
+        }
+        self.previous = current;
+        self.initialized = true;
+    }
+
+    fn expire(&mut self, harbor: &mut Harbor, frame: u64) {
+        self.active
+            .retain(|_, transition| transition_is_active(transition, frame));
+        for dock in &mut harbor.docks {
+            if dock
+                .transition
+                .as_ref()
+                .is_some_and(|transition| !transition_is_active(transition, frame))
+            {
+                dock.transition = None;
+            }
+        }
+    }
+
+    fn clear(&mut self, harbor: &mut Harbor) {
+        self.active.clear();
+        for dock in &mut harbor.docks {
+            dock.transition = None;
+        }
+    }
+}
+
+fn dock_identity(dock: &Dock) -> Option<DockIdentity> {
+    match dock.kind {
+        DockKind::RemoteBranch => None,
+        DockKind::DetachedWorktree => dock
+            .vessel
+            .as_ref()
+            .map(|vessel| DockIdentity::Workspace(vessel.workspace.clone())),
+        DockKind::Branch if dock.name == "(no commits yet)" => dock
+            .vessel
+            .as_ref()
+            .map(|vessel| DockIdentity::Workspace(vessel.workspace.clone())),
+        DockKind::MainTerminal | DockKind::Branch => Some(DockIdentity::Branch(dock.name.clone())),
+    }
+}
+
+fn transition_kind(
+    previous: &DockVisualState,
+    next: &DockVisualState,
+) -> Option<DockTransitionKind> {
+    let was_blocked = previous.condition == Condition::Blocked;
+    let is_blocked = next.condition == Condition::Blocked;
+    if was_blocked != is_blocked {
+        return Some(if is_blocked {
+            DockTransitionKind::BecameBlocked
+        } else {
+            DockTransitionKind::BecameUnblocked
+        });
+    }
+
+    match (&previous.vessel, &next.vessel) {
+        (None, Some(_)) => Some(DockTransitionKind::VesselArriving),
+        (Some(vessel), None) => Some(DockTransitionKind::VesselDeparting {
+            vessel: vessel.clone(),
+        }),
+        (Some(previous), Some(next)) => {
+            let from = previous.cargo_counts();
+            (from != next.cargo_counts()).then_some(DockTransitionKind::Cargo { from })
+        }
+        (None, None) => None,
+    }
+}
+
+fn transition_is_active(transition: &DockTransition, frame: u64) -> bool {
+    frame.wrapping_sub(transition.started_frame) < transition.duration_frames
+}
+
+#[derive(Debug, Default)]
+struct RepositoryEventTracker {
     branches: HashMap<String, BranchObservation>,
     active: Vec<ActiveDockEvent>,
 }
@@ -861,7 +1046,7 @@ struct ActiveDockEvent {
     expires_at: Instant,
 }
 
-impl TransitionTracker {
+impl RepositoryEventTracker {
     fn observe(&mut self, snapshot: &RepoSnapshot, observed_at: Instant) -> Vec<ActiveDockEvent> {
         self.active.retain(|event| event.expires_at > observed_at);
         self.branches
@@ -993,8 +1178,8 @@ mod tests {
     use std::path::PathBuf;
 
     use crate::git::{
-        BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, RepoSnapshot, SyncState,
-        TipInfo, Workspace,
+        BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, Operation, RepoSnapshot,
+        SyncState, TipInfo, Workspace,
     };
     use crate::hosting::{Check, PullRequest, Release};
 
@@ -1054,6 +1239,40 @@ mod tests {
                 operation: None,
             }],
         }
+    }
+
+    fn workspace_snapshot(
+        changes: ChangeCounts,
+        operation: Option<Operation>,
+        occupied: bool,
+        token: u64,
+    ) -> RepoSnapshot {
+        RepoSnapshot {
+            name: "test".to_string(),
+            default_branch: None,
+            branches: vec![BranchInfo {
+                name: "topic".to_string(),
+                sync: None,
+                last_commit: None,
+                tip: None,
+            }],
+            workspaces: occupied
+                .then(|| Workspace {
+                    path: PathBuf::from("/tmp/transition-test"),
+                    is_main: true,
+                    head: HeadState::Branch("topic".to_string()),
+                    changes,
+                    change_files: Vec::new(),
+                    activity_token: token,
+                    operation,
+                })
+                .into_iter()
+                .collect(),
+        }
+    }
+
+    fn visual_transition(app: &App) -> Option<&DockTransition> {
+        app.harbor.docks[0].transition.as_ref()
     }
 
     fn activity(app: &App) -> VesselActivity {
@@ -1285,6 +1504,302 @@ mod tests {
             observed_at: start + Duration::from_secs(36),
         });
         assert_eq!(activity(&app), VesselActivity::Idle);
+    }
+
+    #[test]
+    fn visual_transition_duration_tracks_configured_frame_rate() {
+        assert_eq!(transition_duration_frames(1), 1);
+        assert_eq!(transition_duration_frames(12), 9);
+        assert_eq!(transition_duration_frames(30), 23);
+    }
+
+    #[test]
+    fn initial_survey_is_quiet_then_cargo_changes_animate() {
+        let start = Instant::now();
+        let mut app = App::new("test".to_string(), false);
+        observe(
+            &mut app,
+            workspace_snapshot(
+                ChangeCounts {
+                    unstaged: 1,
+                    ..ChangeCounts::default()
+                },
+                None,
+                true,
+                1,
+            ),
+            start,
+        );
+        assert!(visual_transition(&app).is_none());
+
+        observe(
+            &mut app,
+            workspace_snapshot(
+                ChangeCounts {
+                    staged: 1,
+                    ..ChangeCounts::default()
+                },
+                None,
+                true,
+                2,
+            ),
+            start + Duration::from_secs(1),
+        );
+        assert!(matches!(
+            visual_transition(&app).map(|transition| &transition.kind),
+            Some(DockTransitionKind::Cargo {
+                from: crate::harbor::CargoCounts { unstaged: 1, .. }
+            })
+        ));
+    }
+
+    #[test]
+    fn blocked_change_outranks_cargo_and_vessel_outranks_cargo() {
+        let start = Instant::now();
+        let mut app = App::new("test".to_string(), false);
+        observe(
+            &mut app,
+            workspace_snapshot(ChangeCounts::default(), None, true, 1),
+            start,
+        );
+        observe(
+            &mut app,
+            workspace_snapshot(
+                ChangeCounts {
+                    unstaged: 2,
+                    conflicted: 1,
+                    ..ChangeCounts::default()
+                },
+                Some(Operation::Merge),
+                true,
+                2,
+            ),
+            start + Duration::from_secs(1),
+        );
+        assert!(matches!(
+            visual_transition(&app).map(|transition| &transition.kind),
+            Some(DockTransitionKind::BecameBlocked)
+        ));
+
+        let mut arrival = App::new("test".to_string(), false);
+        observe(
+            &mut arrival,
+            workspace_snapshot(ChangeCounts::default(), None, false, 1),
+            start,
+        );
+        observe(
+            &mut arrival,
+            workspace_snapshot(
+                ChangeCounts {
+                    unstaged: 3,
+                    ..ChangeCounts::default()
+                },
+                None,
+                true,
+                2,
+            ),
+            start + Duration::from_secs(1),
+        );
+        assert!(matches!(
+            visual_transition(&arrival).map(|transition| &transition.kind),
+            Some(DockTransitionKind::VesselArriving)
+        ));
+    }
+
+    #[test]
+    fn vessel_departure_keeps_source_vessel_until_cue_finishes() {
+        let start = Instant::now();
+        let mut app = App::new("test".to_string(), false);
+        observe(
+            &mut app,
+            workspace_snapshot(
+                ChangeCounts {
+                    staged: 2,
+                    ..ChangeCounts::default()
+                },
+                None,
+                true,
+                1,
+            ),
+            start,
+        );
+        observe(
+            &mut app,
+            workspace_snapshot(ChangeCounts::default(), None, false, 2),
+            start + Duration::from_secs(1),
+        );
+        assert!(app.harbor.docks[0].vessel.is_none());
+        assert!(matches!(
+            visual_transition(&app).map(|transition| &transition.kind),
+            Some(DockTransitionKind::VesselDeparting { vessel }) if vessel.staged == 2
+        ));
+
+        for _ in 0..transition_duration_frames(DEFAULT_FRAMES_PER_SECOND) {
+            app.update(Msg::Tick);
+        }
+        assert!(visual_transition(&app).is_none());
+    }
+
+    #[test]
+    fn detached_and_unborn_workspace_identity_does_not_create_false_arrival() {
+        let start = Instant::now();
+        let headless = |head| RepoSnapshot {
+            name: "test".to_string(),
+            default_branch: None,
+            branches: Vec::new(),
+            workspaces: vec![Workspace {
+                path: PathBuf::from("/tmp/transition-test"),
+                is_main: true,
+                head,
+                changes: ChangeCounts::default(),
+                change_files: Vec::new(),
+                activity_token: 1,
+                operation: None,
+            }],
+        };
+
+        let mut detached = App::new("test".to_string(), false);
+        observe(
+            &mut detached,
+            headless(HeadState::Detached("aaaaaaa".to_string())),
+            start,
+        );
+        observe(
+            &mut detached,
+            headless(HeadState::Detached("bbbbbbb".to_string())),
+            start + Duration::from_secs(1),
+        );
+        assert!(visual_transition(&detached).is_none());
+
+        let mut unborn = App::new("test".to_string(), false);
+        observe(&mut unborn, headless(HeadState::Unborn), start);
+        observe(
+            &mut unborn,
+            workspace_snapshot(ChangeCounts::default(), None, true, 2),
+            start + Duration::from_secs(1),
+        );
+        assert!(visual_transition(&unborn).is_none());
+    }
+
+    #[test]
+    fn deleted_dock_disappears_without_a_ghost_transition() {
+        let start = Instant::now();
+        let mut app = App::new("test".to_string(), false);
+        observe(
+            &mut app,
+            workspace_snapshot(ChangeCounts::default(), None, true, 1),
+            start,
+        );
+        observe(
+            &mut app,
+            RepoSnapshot {
+                name: "test".to_string(),
+                default_branch: None,
+                branches: Vec::new(),
+                workspaces: Vec::new(),
+            },
+            start + Duration::from_secs(1),
+        );
+        assert!(app.harbor.docks.is_empty());
+        assert!(app.visual_transitions.active.is_empty());
+    }
+
+    #[test]
+    fn active_cue_survives_fast_poll_and_new_change_replaces_it() {
+        let start = Instant::now();
+        let mut app = App::new("test".to_string(), false);
+        let changes = |unstaged| ChangeCounts {
+            unstaged,
+            ..ChangeCounts::default()
+        };
+        observe(
+            &mut app,
+            workspace_snapshot(changes(1), None, true, 1),
+            start,
+        );
+        observe(
+            &mut app,
+            workspace_snapshot(changes(2), None, true, 2),
+            start + Duration::from_millis(100),
+        );
+        let original_start = visual_transition(&app).unwrap().started_frame;
+        app.update(Msg::Tick);
+        observe(
+            &mut app,
+            workspace_snapshot(changes(2), None, true, 2),
+            start + Duration::from_millis(200),
+        );
+        assert_eq!(
+            visual_transition(&app).unwrap().started_frame,
+            original_start
+        );
+
+        observe(
+            &mut app,
+            workspace_snapshot(changes(3), None, true, 3),
+            start + Duration::from_millis(300),
+        );
+        let replacement = visual_transition(&app).unwrap();
+        assert_eq!(replacement.started_frame, app.animation.frame());
+        assert!(matches!(
+            replacement.kind,
+            DockTransitionKind::Cargo {
+                from: crate::harbor::CargoCounts { unstaged: 2, .. }
+            }
+        ));
+    }
+
+    #[test]
+    fn reduced_motion_clears_cues_and_does_not_replay_them() {
+        let start = Instant::now();
+        let mut app = App::new("test".to_string(), false);
+        observe(
+            &mut app,
+            workspace_snapshot(ChangeCounts::default(), None, true, 1),
+            start,
+        );
+        observe(
+            &mut app,
+            workspace_snapshot(
+                ChangeCounts {
+                    unstaged: 1,
+                    ..ChangeCounts::default()
+                },
+                None,
+                true,
+                2,
+            ),
+            start + Duration::from_secs(1),
+        );
+        assert!(visual_transition(&app).is_some());
+
+        app.update(key(KeyCode::Char('m')));
+        assert!(app.settings.reduced_motion);
+        assert!(visual_transition(&app).is_none());
+        app.update(key(KeyCode::Char('m')));
+        assert!(!app.settings.reduced_motion);
+        assert!(visual_transition(&app).is_none());
+
+        let mut reduced = App::new("test".to_string(), true);
+        observe(
+            &mut reduced,
+            workspace_snapshot(ChangeCounts::default(), None, true, 1),
+            start,
+        );
+        observe(
+            &mut reduced,
+            workspace_snapshot(
+                ChangeCounts {
+                    unstaged: 1,
+                    ..ChangeCounts::default()
+                },
+                None,
+                true,
+                2,
+            ),
+            start + Duration::from_secs(1),
+        );
+        assert!(visual_transition(&reduced).is_none());
     }
 
     #[test]

@@ -228,6 +228,7 @@ mod tests {
                 ("last commit", "ready".to_string()),
             ],
             events: Vec::new(),
+            transition: None,
             clearances: Vec::new(),
         }
     }

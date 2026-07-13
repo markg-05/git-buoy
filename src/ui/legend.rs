@@ -147,6 +147,10 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
         theme.condition(Condition::Calm),
         theme,
     ));
+    lines.push(Line::from(Span::styled(
+        "  Cargo, vessel, and lane changes animate once, then settle.",
+        Style::new().fg(theme.dim),
+    )));
 
     lines
 }

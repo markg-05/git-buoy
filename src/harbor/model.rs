@@ -23,8 +23,27 @@ pub struct Dock {
     pub detail: Vec<(&'static str, String)>,
     /// Short-lived transitions observed while Git Buoy is running.
     pub events: Vec<DockEvent>,
+    /// One bounded visual cue explaining the latest observed state change.
+    /// The rest of this dock always describes the current repository state.
+    pub transition: Option<DockTransition>,
     /// Pull requests associated with this branch.
     pub clearances: Vec<Clearance>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DockTransition {
+    pub kind: DockTransitionKind,
+    pub started_frame: u64,
+    pub duration_frames: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DockTransitionKind {
+    Cargo { from: CargoCounts },
+    VesselArriving,
+    VesselDeparting { vessel: Vessel },
+    BecameBlocked,
+    BecameUnblocked,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -256,6 +275,25 @@ pub struct Vessel {
     pub conflicted: usize,
     pub activity: VesselActivity,
     pub cargo: Vec<CargoItem>,
+}
+
+impl Vessel {
+    pub fn cargo_counts(&self) -> CargoCounts {
+        CargoCounts {
+            staged: self.staged,
+            unstaged: self.unstaged,
+            untracked: self.untracked,
+            conflicted: self.conflicted,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct CargoCounts {
+    pub staged: usize,
+    pub unstaged: usize,
+    pub untracked: usize,
+    pub conflicted: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

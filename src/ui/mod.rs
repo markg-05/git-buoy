@@ -174,6 +174,7 @@ mod tests {
                 sync: None,
                 detail,
                 events: Vec::new(),
+                transition: None,
                 clearances: Vec::new(),
             }],
         };

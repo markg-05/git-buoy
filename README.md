@@ -138,7 +138,9 @@ A vessel's hull carries **cargo** that counts the pending change categories, and
 
 An occupied dock is initially labeled `observing`. After Git Buoy sees its repository state change, it is `recent` until the idle threshold passes; an unchanged workspace is then `idle`. This describes observable repository activity, not whether a particular process or person is present.
 
-Motion reinforces those facts: recent vessels work against a wake, outbound vessels travel away from the pier, incoming vessels travel toward it, and diverged vessels shift without making progress. With reduced motion, the same conditions, arrows, activity words, and cargo remain visible in a fixed frame.
+Motion reinforces those facts: recent vessels work against a wake, outbound vessels travel away from the pier, incoming vessels travel toward it, and diverged vessels shift without making progress. Newly observed cargo changes load or unload over one short transition, vessels slide in or out when a workspace arrives at or leaves a dock, and a changed lane condition briefly signals from the pier. Each dock shows at most one of these cues at a time, with blocked or cleared lanes taking priority over vessel and cargo motion.
+
+With reduced motion, transitions collapse immediately to the current state. The same conditions, arrows, activity words, and cargo remain visible in a fixed frame.
 
 Commits, pushes, and successful merges appear as short-lived transitions only when Git Buoy observes them happen. The initial survey does not replay existing history. Commit and merge events come from branch reflogs; a push is reported only when the same local tip becomes less far ahead of its upstream, avoiding guesses from unrelated branch movement.
 
