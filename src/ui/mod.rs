@@ -2,6 +2,7 @@
 //! ratatui specifics so nothing above this layer touches the terminal.
 
 mod inspect;
+mod legend;
 mod scene;
 mod theme;
 
@@ -31,6 +32,12 @@ pub fn draw(frame: &mut Frame, app: &App, theme: &Theme) {
     draw_header(frame, header, app, theme);
     draw_body(frame, body, app, theme);
     draw_footer(frame, footer, app, theme);
+
+    // The legend floats above everything else so it can be summoned in either
+    // mode without disturbing the scene underneath.
+    if app.show_legend {
+        legend::draw_legend(frame, frame.area(), theme);
+    }
 }
 
 fn draw_body(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
@@ -73,9 +80,13 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         frame.render_widget(warning, area);
         return;
     }
-    let hints = match app.mode {
-        Mode::Ambient => " i inspect · m motion · q quit",
-        Mode::Inspect => " tab/j/k select · esc back · m motion · q quit",
+    let hints = if app.show_legend {
+        " l/esc close legend"
+    } else {
+        match app.mode {
+            Mode::Ambient => " i inspect · l legend · m motion · q quit",
+            Mode::Inspect => " tab/j/k select · l legend · esc back · q quit",
+        }
     };
     frame.render_widget(
         Paragraph::new(Span::styled(hints, Style::new().fg(theme.dim))),

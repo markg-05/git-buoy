@@ -26,7 +26,8 @@ With no path argument, Git Buoy observes the repository containing the current d
 | --- | --- |
 | `i` or `Enter` | Enter inspect mode on the current dock |
 | `Tab` / `j` / `k` / arrows | Select a dock |
-| `Esc` | Leave inspect mode, then quit |
+| `l` or `?` | Toggle the legend overlay |
+| `Esc` | Close the legend, then leave inspect mode, then quit |
 | `m` | Toggle reduced motion |
 | `q` | Quit |
 
@@ -66,6 +67,31 @@ The metaphor is functional, not decorative. Every object in the scene should com
 | Release | Convoy departing the harbor |
 
 The mapping will evolve as the product is prototyped. Clarity takes precedence over completing the metaphor.
+
+## Reading the harbor
+
+Every dock resolves to a single **condition**, shown by color and by a word on its pier. The same legend is available inside the application at any time by pressing `l`.
+
+| | Condition | What it means |
+| --- | --- | --- |
+| 🟩 | **calm** | Checked out, committed, and in sync with the upstream. |
+| 🟨 | **loading** | Uncommitted changes are still being loaded (modified or new files). |
+| 🟪 | **sealed** | Changes are staged, ready to become a commit. |
+| 🟦 | **outbound** | Commits are ahead of the upstream, ready to push. |
+| 🟥 | **blocked** | A merge conflict or an in-progress operation is stopping work from landing. |
+| ⬜ | **moored** | A branch with no worktree checked out. |
+
+A vessel's hull carries **cargo** that counts the pending change categories, and a few **symbols** stand in for the rest:
+
+| Symbol | Meaning |
+| --- | --- |
+| `▣` | Staged files |
+| `▢` | Unstaged (modified) files |
+| `·` | Untracked files |
+| `✕` | Conflicted files |
+| `▙▄▄▟` | A vessel: work is checked out at this dock |
+| `◍` | A mooring buoy: a branch with no worktree |
+| `↑` / `↓` | Commits ahead of / behind the upstream |
 
 ## Intended experience
 

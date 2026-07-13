@@ -16,6 +16,15 @@ const ROWS_PER_DOCK: usize = 3;
 /// Column where a vessel's hull begins on its water line.
 const VESSEL_X: usize = 5;
 
+// Glyphs shared with the legend, kept here as the single source so the two
+// never disagree about what the harbor draws.
+pub(super) const VESSEL_HULL: &str = "▙▄▄▟";
+pub(super) const MOORING_BUOY: char = '◍';
+pub(super) const CARGO_STAGED: char = '▣';
+pub(super) const CARGO_UNSTAGED: char = '▢';
+pub(super) const CARGO_UNTRACKED: char = '·';
+pub(super) const CARGO_CONFLICT: char = '✕';
+
 pub fn draw_scene(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     if area.height == 0 || area.width == 0 {
         return;
@@ -111,14 +120,14 @@ fn water_line(
 
     let (craft, craft_color) = match &dock.vessel {
         Some(vessel) => {
-            let mut hull = String::from("▙▄▄▟ ");
-            hull.push_str(&cargo_glyphs(vessel.staged, '▣'));
-            hull.push_str(&cargo_glyphs(vessel.unstaged, '▢'));
-            hull.push_str(&cargo_glyphs(vessel.untracked, '·'));
-            hull.push_str(&cargo_glyphs(vessel.conflicted, '✕'));
+            let mut hull = format!("{VESSEL_HULL} ");
+            hull.push_str(&cargo_glyphs(vessel.staged, CARGO_STAGED));
+            hull.push_str(&cargo_glyphs(vessel.unstaged, CARGO_UNSTAGED));
+            hull.push_str(&cargo_glyphs(vessel.untracked, CARGO_UNTRACKED));
+            hull.push_str(&cargo_glyphs(vessel.conflicted, CARGO_CONFLICT));
             (hull.trim_end().to_string(), theme.condition(dock.condition))
         }
-        None => ("◍".to_string(), theme.condition(Condition::Moored)),
+        None => (MOORING_BUOY.to_string(), theme.condition(Condition::Moored)),
     };
 
     let craft_len = craft.chars().count();

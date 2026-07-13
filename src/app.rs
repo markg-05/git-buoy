@@ -35,6 +35,8 @@ pub struct App {
     pub error: Option<String>,
     /// False until the first snapshot arrives.
     pub loaded: bool,
+    /// Whether the legend overlay is currently shown.
+    pub show_legend: bool,
 }
 
 impl App {
@@ -51,6 +53,7 @@ impl App {
             should_quit: false,
             error: None,
             loaded: false,
+            show_legend: false,
         }
     }
 
@@ -77,6 +80,10 @@ impl App {
     fn handle_key(&mut self, key: KeyEvent) {
         match key.code {
             KeyCode::Char('q') => self.should_quit = true,
+            KeyCode::Char('l') | KeyCode::Char('?') => self.show_legend = !self.show_legend,
+            // Escape peels back one layer at a time: legend, then inspect,
+            // then quit.
+            KeyCode::Esc if self.show_legend => self.show_legend = false,
             KeyCode::Esc => match self.mode {
                 Mode::Inspect => self.mode = Mode::Ambient,
                 Mode::Ambient => self.should_quit = true,
@@ -186,5 +193,26 @@ mod tests {
         assert!(!app.should_quit);
         app.update(key(KeyCode::Esc));
         assert!(app.should_quit);
+    }
+
+    #[test]
+    fn legend_toggles_and_escape_closes_it_first() {
+        let mut app = App::new("test".to_string(), false);
+        app.update(Msg::Snapshot(Ok(snapshot_with_branches(&["a"]))));
+        app.update(key(KeyCode::Char('i')));
+
+        app.update(key(KeyCode::Char('l')));
+        assert!(app.show_legend);
+        // Escape dismisses the legend without leaving inspect mode.
+        app.update(key(KeyCode::Esc));
+        assert!(!app.show_legend);
+        assert_eq!(app.mode, Mode::Inspect);
+        assert!(!app.should_quit);
+
+        // '?' is an alias for the same toggle.
+        app.update(key(KeyCode::Char('?')));
+        assert!(app.show_legend);
+        app.update(key(KeyCode::Char('l')));
+        assert!(!app.show_legend);
     }
 }

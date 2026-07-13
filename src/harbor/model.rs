@@ -50,6 +50,18 @@ pub enum Condition {
 }
 
 impl Condition {
+    /// Every condition in a natural reading order, from settled work through
+    /// to problems and empty docks. The in-app legend and the README table
+    /// both follow this order so the two never drift apart.
+    pub const ALL: [Condition; 6] = [
+        Condition::Calm,
+        Condition::Loading,
+        Condition::Sealed,
+        Condition::Outbound,
+        Condition::Blocked,
+        Condition::Moored,
+    ];
+
     pub fn label(&self) -> &'static str {
         match self {
             Condition::Blocked => "blocked",
@@ -58,6 +70,18 @@ impl Condition {
             Condition::Outbound => "outbound",
             Condition::Calm => "calm",
             Condition::Moored => "moored",
+        }
+    }
+
+    /// One-line explanation shown in the legend and mirrored in the README.
+    pub fn description(&self) -> &'static str {
+        match self {
+            Condition::Calm => "checked out, committed, and in sync",
+            Condition::Loading => "uncommitted changes still being loaded",
+            Condition::Sealed => "changes staged, ready to become a commit",
+            Condition::Outbound => "commits ahead of upstream, ready to push",
+            Condition::Blocked => "a conflict or in-progress operation stops work",
+            Condition::Moored => "a branch with no worktree checked out",
         }
     }
 }
