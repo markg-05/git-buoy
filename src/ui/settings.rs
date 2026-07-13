@@ -12,8 +12,8 @@ const LABEL_WIDTH: usize = 20;
 const PANEL_WIDTH: u16 = 68;
 const HELP_PANEL_HEIGHT: u16 = 19;
 
-/// Draw session-local behavior as a harbor control logbook over the scene.
-/// Values adjust in place, preserving the ambient context underneath.
+/// Draw persistent behavior as a harbor control logbook over the scene.
+/// Values adjust and save in place, preserving the ambient context underneath.
 pub fn draw_settings(frame: &mut Frame, screen: Rect, app: &App, theme: &Theme) {
     let width = PANEL_WIDTH.min(screen.width);
     let help_width = width.saturating_sub(6) as usize;
@@ -83,7 +83,7 @@ fn settings_lines(
         lines.push(Line::default());
     }
     lines.push(Line::from(Span::styled(
-        "  Session only · CLI flags set starting values",
+        "  Saved globally · CLI flags override this run",
         Style::new().fg(theme.dim),
     )));
     lines

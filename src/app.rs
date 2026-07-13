@@ -272,6 +272,11 @@ impl App {
             reduced_motion,
             ..AppSettings::default()
         };
+        Self::with_settings(name, settings)
+    }
+
+    pub fn with_settings(name: String, settings: AppSettings) -> Self {
+        let idle_after = settings.idle_after;
         Self {
             harbor: Harbor {
                 name,
@@ -291,7 +296,7 @@ impl App {
             show_settings: false,
             settings_selected: 0,
             hosting_error: None,
-            activity: ActivityTracker::new(DEFAULT_IDLE_AFTER),
+            activity: ActivityTracker::new(idle_after),
             repository_events: RepositoryEventTracker::default(),
             visual_transitions: VisualTransitionTracker::default(),
             hosting: None,

@@ -49,9 +49,9 @@ GitHub observation can also be enabled during a session from Harbor Controls. Gi
 | `m` | Toggle reduced motion |
 | `q` | Quit |
 
-Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, `--poll-interval` sets how often the repository is re-read, and `--idle-after` controls when an unchanged workspace is labeled idle. `--github` starts with optional hosting data enabled; `--github-poll-interval` sets its initial independent refresh rate.
+Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, `--poll-interval` sets how often the repository is re-read, and `--idle-after` controls when an unchanged workspace is labeled idle. `--github` starts with optional hosting data enabled; `--github-poll-interval` sets its initial independent refresh rate. Explicit flags override saved preferences for that run.
 
-Press `s` to open the session-local Harbor Controls panel. Use `j`/`k` to select a row, left/right or `h`/`l` to adjust it, and `s` or `Esc` to close the panel. CLI flags provide starting values; changes made in the panel last for the current run only.
+Press `s` to open Harbor Controls. Use `j`/`k` to select a row, left/right or `h`/`l` to adjust it, and `s` or `Esc` to close the panel. Changes save immediately as global viewing preferences and apply the next time Git Buoy starts. The `m` reduced-motion shortcut saves the same preference. Explicit CLI flags take precedence without changing the saved value.
 
 | Harbor control | Behavior |
 | --- | --- |
@@ -65,6 +65,8 @@ Press `s` to open the session-local Harbor Controls panel. Use `j`/`k` to select
 | GitHub survey | Change the GitHub polling interval. |
 
 Setting help is on by default. Its fixed logbook-note region updates immediately as selection moves and is omitted when terminal height is too constrained. Reduced motion pauses overflow cycling without changing its setting. If motion is restored, cycling resumes only when **Overflow pages** is still set to cycle.
+
+On macOS and other Unix-like systems, preferences are stored at `$XDG_CONFIG_HOME/git-buoy/settings.json`, falling back to `$HOME/.config/git-buoy/settings.json`. On Windows they are stored at `%APPDATA%\git-buoy\settings.json`. Set `GIT_BUOY_CONFIG` to use a specific file instead. The file contains viewing preferences only—never repository data or GitHub credentials. Enabling the GitHub observer is itself a saved preference, so later sessions will resume remote surveys until it is disabled.
 
 ## Product intent
 

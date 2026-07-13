@@ -7,8 +7,9 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use crossterm::event::{self, Event, KeyEventKind};
 
-use git_buoy::app::{App, Msg};
-use git_buoy::{git, hosting, ui};
+use git_buoy::app::{App, AppSettings, Msg};
+use git_buoy::config::SettingsConfig;
+use git_buoy::{config, git, hosting, ui};
 
 /// A living terminal harbor for understanding parallel software work at a
 /// glance.
@@ -27,21 +28,21 @@ struct Args {
     #[arg(long, default_value_t = 12)]
     fps: u8,
 
-    /// Seconds between repository surveys.
-    #[arg(long, default_value_t = 2.0)]
-    poll_interval: f64,
+    /// Override the saved seconds between repository surveys.
+    #[arg(long)]
+    poll_interval: Option<f64>,
 
-    /// Seconds without observable repository changes before a vessel is idle.
-    #[arg(long, default_value_t = 30.0)]
-    idle_after: f64,
+    /// Override the saved seconds before an unchanged vessel is idle.
+    #[arg(long)]
+    idle_after: Option<f64>,
 
     /// Start with pull requests, reviews, checks, and releases enabled.
     #[arg(long)]
     github: bool,
 
-    /// Seconds between optional GitHub surveys.
-    #[arg(long, default_value_t = 30.0)]
-    github_poll_interval: f64,
+    /// Override the saved seconds between optional GitHub surveys.
+    #[arg(long)]
+    github_poll_interval: Option<f64>,
 }
 
 fn main() -> Result<()> {
@@ -54,17 +55,13 @@ fn main() -> Result<()> {
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_else(|| "repository".to_string());
 
+    let mut persistence = SettingsPersistence::load();
+    let settings = initial_settings(&args, &persistence.saved);
+
     let mut collector = spawn_collector(root.clone());
     let mut hosting_collector = spawn_hosting_collector(root);
 
-    let mut app = App::new(name, args.reduced_motion)
-        .with_frames_per_second(args.fps)
-        .with_poll_interval(Duration::from_secs_f64(args.poll_interval.max(0.2)))
-        .with_idle_after(Duration::from_secs_f64(args.idle_after.max(1.0)))
-        .with_github(
-            args.github,
-            Duration::from_secs_f64(args.github_poll_interval.max(5.0)),
-        );
+    let mut app = App::with_settings(name, settings).with_frames_per_second(args.fps);
     let theme = ui::Theme::detect();
     let tick = Duration::from_millis(1000 / u64::from(args.fps.clamp(1, 30)));
 
@@ -76,9 +73,78 @@ fn main() -> Result<()> {
         &mut collector,
         &mut hosting_collector,
         tick,
+        &mut persistence,
     );
     ratatui::restore();
+    if let Some(error) = persistence.last_error {
+        eprintln!("warning: settings were not saved: {error}");
+    }
     result
+}
+
+fn initial_settings(args: &Args, saved: &SettingsConfig) -> AppSettings {
+    let mut settings = AppSettings::default();
+    saved.apply_to(&mut settings);
+    if args.reduced_motion {
+        settings.reduced_motion = true;
+    }
+    if let Some(seconds) = args.poll_interval {
+        settings.poll_interval = Duration::from_secs_f64(seconds.max(0.2));
+    }
+    if let Some(seconds) = args.idle_after {
+        settings.idle_after = Duration::from_secs_f64(seconds.max(1.0));
+    }
+    if args.github {
+        settings.github_enabled = true;
+    }
+    if let Some(seconds) = args.github_poll_interval {
+        settings.github_poll_interval = Duration::from_secs_f64(seconds.max(5.0));
+    }
+    settings
+}
+
+struct SettingsPersistence {
+    path: Option<PathBuf>,
+    saved: SettingsConfig,
+    last_error: Option<String>,
+}
+
+impl SettingsPersistence {
+    fn load() -> Self {
+        let path = config::default_path();
+        let saved = path
+            .as_deref()
+            .map(config::load)
+            .transpose()
+            .unwrap_or_else(|error| {
+                eprintln!("warning: saved settings were ignored: {error}");
+                Some(SettingsConfig::default())
+            })
+            .unwrap_or_default();
+        Self {
+            path,
+            saved,
+            last_error: None,
+        }
+    }
+
+    fn record_changes(&mut self, before: &AppSettings, after: &AppSettings) {
+        if before == after {
+            return;
+        }
+        self.saved.record_changes(before, after);
+        let Some(path) = &self.path else {
+            self.last_error = Some(
+                "no configuration directory is available; set GIT_BUOY_CONFIG to a file path"
+                    .to_string(),
+            );
+            return;
+        };
+        match config::save(path, &self.saved) {
+            Ok(()) => self.last_error = None,
+            Err(error) => self.last_error = Some(error.to_string()),
+        }
+    }
 }
 
 fn spawn_hosting_collector(root: PathBuf) -> Collector<Result<hosting::HostingSnapshot, String>> {
@@ -156,6 +222,7 @@ fn run(
     collector: &mut Collector<(Result<git::RepoSnapshot, String>, Instant)>,
     hosting_collector: &mut Collector<Result<hosting::HostingSnapshot, String>>,
     tick: Duration,
+    persistence: &mut SettingsPersistence,
 ) -> Result<()> {
     let mut last_tick = Instant::now();
     let mut github_was_enabled = false;
@@ -198,7 +265,9 @@ fn run(
             match event::read().context("failed to read terminal event")? {
                 // Windows delivers key release events too; act on presses only.
                 Event::Key(key) if key.kind == KeyEventKind::Press => {
+                    let previous_settings = app.settings.clone();
                     app.update(Msg::Key(key));
+                    persistence.record_changes(&previous_settings, &app.settings);
                 }
                 _ => {}
             }
@@ -207,5 +276,73 @@ fn run(
             app.update(Msg::Tick);
             last_tick = Instant::now();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn saved_preferences_supply_values_when_flags_are_absent() {
+        let mut saved_settings = AppSettings::default();
+        saved_settings.reduced_motion = true;
+        saved_settings.poll_interval = Duration::from_secs(5);
+        saved_settings.github_enabled = true;
+        let saved = SettingsConfig::from_settings(&saved_settings);
+        let args = Args::try_parse_from(["git-buoy"]).unwrap();
+
+        let settings = initial_settings(&args, &saved);
+
+        assert!(settings.reduced_motion);
+        assert_eq!(settings.poll_interval, Duration::from_secs(5));
+        assert!(settings.github_enabled);
+    }
+
+    #[test]
+    fn explicit_flags_override_saved_preferences_for_the_run() {
+        let saved = SettingsConfig::default();
+        let args = Args::try_parse_from([
+            "git-buoy",
+            "--reduced-motion",
+            "--poll-interval",
+            "1",
+            "--idle-after",
+            "60",
+            "--github",
+            "--github-poll-interval",
+            "120",
+        ])
+        .unwrap();
+
+        let settings = initial_settings(&args, &saved);
+
+        assert!(settings.reduced_motion);
+        assert_eq!(settings.poll_interval, Duration::from_secs(1));
+        assert_eq!(settings.idle_after, Duration::from_secs(60));
+        assert!(settings.github_enabled);
+        assert_eq!(settings.github_poll_interval, Duration::from_secs(120));
+    }
+
+    #[test]
+    fn changed_runtime_preferences_are_saved_immediately() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("settings.json");
+        let mut persistence = SettingsPersistence {
+            path: Some(path.clone()),
+            saved: SettingsConfig::default(),
+            last_error: None,
+        };
+        let before = AppSettings::default();
+        let mut after = before.clone();
+        after.reduced_motion = true;
+
+        persistence.record_changes(&before, &after);
+
+        assert!(persistence.last_error.is_none());
+        let saved = config::load(&path).unwrap();
+        let mut restored = AppSettings::default();
+        saved.apply_to(&mut restored);
+        assert!(restored.reduced_motion);
     }
 }

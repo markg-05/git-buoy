@@ -267,7 +267,7 @@ mod tests {
                 .any(|line| line.contains("Logbook note · Overflow pages"))
         );
         assert!(lines.iter().any(|line| line.contains("Advances only")));
-        assert!(lines.iter().any(|line| line.contains("Session only")));
+        assert!(lines.iter().any(|line| line.contains("Saved globally")));
         assert!(lines[0].ends_with("settings "));
     }
 
