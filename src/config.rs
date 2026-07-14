@@ -106,25 +106,28 @@ pub fn default_path() -> Option<PathBuf> {
         return Some(PathBuf::from(path));
     }
 
-    #[cfg(windows)]
-    {
-        return nonempty_env("APPDATA")
-            .map(PathBuf::from)
-            .map(|base| base.join("git-buoy").join("settings.json"));
+    if cfg!(windows) {
+        windows_default_path(nonempty_env("APPDATA"))
+    } else {
+        unix_default_path(nonempty_env("XDG_CONFIG_HOME"), nonempty_env("HOME"))
     }
+}
 
-    #[cfg(not(windows))]
+fn windows_default_path(appdata: Option<String>) -> Option<PathBuf> {
+    appdata
+        .map(PathBuf::from)
+        .map(|base| base.join("git-buoy").join("settings.json"))
+}
+
+fn unix_default_path(xdg_config_home: Option<String>, home: Option<String>) -> Option<PathBuf> {
+    if let Some(base) = xdg_config_home
+        .map(PathBuf::from)
+        .filter(|path| path.is_absolute())
     {
-        if let Some(base) = nonempty_env("XDG_CONFIG_HOME")
-            .map(PathBuf::from)
-            .filter(|path| path.is_absolute())
-        {
-            return Some(base.join("git-buoy").join("settings.json"));
-        }
-        nonempty_env("HOME")
-            .map(PathBuf::from)
-            .map(|home| home.join(".config").join("git-buoy").join("settings.json"))
+        return Some(base.join("git-buoy").join("settings.json"));
     }
+    home.map(PathBuf::from)
+        .map(|home| home.join(".config").join("git-buoy").join("settings.json"))
 }
 
 pub fn load(path: &Path) -> Result<SettingsConfig> {
@@ -243,5 +246,40 @@ mod tests {
         assert!(restored.reduced_motion);
         assert!(restored.auto_cycle);
         assert_eq!(restored.idle_after, Duration::from_secs(30));
+    }
+
+    #[test]
+    fn windows_default_path_uses_appdata() {
+        let appdata = PathBuf::from("profile").join("AppData").join("Roaming");
+
+        assert_eq!(
+            windows_default_path(Some(appdata.to_string_lossy().into_owned())),
+            Some(appdata.join("git-buoy").join("settings.json"))
+        );
+        assert_eq!(windows_default_path(None), None);
+    }
+
+    #[test]
+    fn unix_default_path_prefers_absolute_xdg_then_falls_back_to_home() {
+        let xdg = std::env::temp_dir().join("xdg");
+        let home = PathBuf::from("home");
+
+        assert_eq!(
+            unix_default_path(
+                Some(xdg.to_string_lossy().into_owned()),
+                Some(home.to_string_lossy().into_owned())
+            ),
+            Some(xdg.join("git-buoy").join("settings.json"))
+        );
+        assert_eq!(
+            unix_default_path(Some("relative".into()), Some("home".into())),
+            Some(
+                PathBuf::from("home")
+                    .join(".config")
+                    .join("git-buoy")
+                    .join("settings.json")
+            )
+        );
+        assert_eq!(unix_default_path(None, None), None);
     }
 }
