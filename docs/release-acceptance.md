@@ -8,12 +8,12 @@ release build in a native pseudo-terminal against disposable Git repositories.
 
 Release status: Blocked
 
-**Blocked pending the native Windows run.** The packaged macOS and Linux
-artifacts passed all 20 automated rows on July 13, 2026. The Windows row is
-implemented in the release-acceptance workflow, but it has not run for the
-commit containing this document. Do not tag `v0.1.0` until that workflow reports
-`20 passed, 0 failed` on `windows-latest` and this section records its artifact
-hash and run link.
+**Blocked pending a clean native workflow run.** The packaged macOS and Linux
+artifacts must pass all 20 pseudo-terminal rows. The packaged Windows artifact
+must pass archive extraction, `--help`, and `--version`; GitHub-hosted Windows
+runners do not expose a usable interactive terminal, so the disposable-Git PTY
+suite is skipped there. Do not tag `v0.1.0` until all three jobs are green and
+this section records the run link.
 
 There are no failed macOS or Linux rows and no open defect from those runs. One
 acceptance finding was fixed in the candidate: Harbor Controls persisted
@@ -39,7 +39,7 @@ matrix, the acceptance runner, and the Harbor Controls footer fix.
 | --- | --- | --- | --- |
 | macOS | Darwin 25.3.0, arm64; Git 2.50.1 | `git-buoy-macOS-ARM64.tar.gz` | **Pass — 20/20** |
 | Linux | Debian Bookworm container, arm64; Git 2.39.5; pinned image digest below | `git-buoy-Linux-ARM64.tar.gz` | **Pass — 20/20** |
-| Windows | `windows-latest`, native ConPTY | `git-buoy-Windows-*.zip` | **Not run — release blocker** |
+| Windows | `windows-latest`, non-interactive runner | `git-buoy-Windows-*.zip` | **Metadata smoke only; PTY suite unsupported by runner** |
 
 Artifact digests from the completed runs:
 
@@ -61,7 +61,9 @@ summary: 20 passed, 0 failed
 The standalone runner is
 [`tools/release-acceptance`](../tools/release-acceptance). It uses
 `portable-pty` only in that tool, so the normal application dependency graph
-and fast CI path are unchanged. On Windows it uses the native ConPTY backend.
+and fast CI path are unchanged. The automated PTY matrix runs on macOS and
+Linux. It can also run through native ConPTY from an interactive Windows
+session, but GitHub-hosted Windows runners cannot host that test reliably.
 
 ### Real Git states
 

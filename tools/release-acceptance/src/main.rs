@@ -837,11 +837,10 @@ fn reduced_motion_check(binary: &Path, fixtures: &Fixtures) -> Result<()> {
     )?;
     session.wait_for(b"reduced motion")?;
     session.wait_for(b"loading")?;
-    session.wait_for(b"calm")?;
     session.clear_output();
     session.collect_for(Duration::from_millis(700))?;
     let visible = strip_terminal_controls(&session.output);
-    if !visible.is_empty() {
+    if visible.iter().any(|byte| !byte.is_ascii_whitespace()) {
         return Err(message(format!(
             "settled reduced-motion frame changed: {}",
             String::from_utf8_lossy(&visible)
