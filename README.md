@@ -37,6 +37,21 @@ Each call adds or removes twelve untracked paths in `demo/live-loading`; the nex
 
 ## Installation
 
+After installing Git Buoy by any method below, open a terminal inside a Git
+repository and run:
+
+```sh
+git buoy
+```
+
+This works on macOS, Linux, and Windows. Git resolves `git buoy` to the
+`git-buoy` executable on your `PATH` (`git-buoy.exe` on Windows). To observe a
+different repository, pass its path:
+
+```sh
+git buoy path/to/repository
+```
+
 ### Install with Homebrew
 
 On an Apple Silicon Mac:
