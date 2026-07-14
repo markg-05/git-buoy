@@ -201,6 +201,8 @@ Git Buoy is not intended to be:
 The project is young and the information model is still settling, so expect churn. Discussion, prior-art references, accessibility concerns, and critiques of the information model are especially welcome.
 
 Before making changes, read [AGENTS.md](AGENTS.md). It records the working expectations, the module layering, and the exact commands CI runs.
+The repeatable idle-resource release gate and recorded platform baselines are in
+[docs/profiling.md](docs/profiling.md).
 
 ## License
 

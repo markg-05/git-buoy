@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-14T03:01:31.593884+00:00",
+  "source": {
+    "revision": "3ed939e7e65c9c4d5b9bd59fa10c973c8b7ed686",
+    "dirty": true,
+    "binary_sha256": "6ca9e5a466b23f143d3d58d7da3341ab8641798a8058686e53043e8fee3da535"
+  },
+  "system": {
+    "os": "Darwin",
+    "os_release": "25.3.0",
+    "architecture": "arm64",
+    "cpu": "Apple M5 Pro",
+    "logical_cpus": 18,
+    "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+    "git": "git version 2.50.1 (Apple Git-155)"
+  },
+  "parameters": {
+    "warmup_seconds": 5.0,
+    "measurement_seconds": 20.0,
+    "terminal_columns": 120,
+    "terminal_rows": 40,
+    "fps": 12,
+    "poll_interval_seconds": 2.0,
+    "rss_sample_seconds": 0.25,
+    "active_change_seconds": 0.5,
+    "github_observer": false
+  },
+  "budgets": {
+    "cpu_percent_one_core_mean_max": 8.0,
+    "rss_mib_p95_max": 64.0,
+    "survey_ms_p95_max": 250.0
+  },
+  "fixtures": [
+    {
+      "name": "small",
+      "repo": "/Users/markgeorge/Documents/GitHub/git-buoy/target/profile-fixtures/small/repo",
+      "tracked_files": 51,
+      "local_branches": 6,
+      "linked_worktrees": 0
+    },
+    {
+      "name": "large",
+      "repo": "/Users/markgeorge/Documents/GitHub/git-buoy/target/profile-fixtures/large/repo",
+      "tracked_files": 10001,
+      "local_branches": 200,
+      "linked_worktrees": 0
+    },
+    {
+      "name": "worktrees",
+      "repo": "/Users/markgeorge/Documents/GitHub/git-buoy/target/profile-fixtures/worktrees/repo",
+      "tracked_files": 1001,
+      "local_branches": 24,
+      "linked_worktrees": 8
+    }
+  ],
+  "runs": [
+    {
+      "fixture": "small",
+      "motion": "full",
+      "state": "unchanged",
+      "cpu_percent_one_core": 0.81,
+      "rss_mib": {
+        "mean": 8.82,
+        "p95": 8.92,
+        "max": 8.94
+      },
+      "survey_ms": {
+        "mean": 3.38,
+        "p95": 4.15,
+        "max": 4.15
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "small",
+      "motion": "full",
+      "state": "active",
+      "cpu_percent_one_core": 0.83,
+      "rss_mib": {
+        "mean": 8.85,
+        "p95": 8.91,
+        "max": 8.94
+      },
+      "survey_ms": {
+        "mean": 2.91,
+        "p95": 3.96,
+        "max": 3.96
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "small",
+      "motion": "reduced",
+      "state": "unchanged",
+      "cpu_percent_one_core": 0.87,
+      "rss_mib": {
+        "mean": 8.83,
+        "p95": 8.92,
+        "max": 8.95
+      },
+      "survey_ms": {
+        "mean": 3.46,
+        "p95": 4.1,
+        "max": 4.1
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "small",
+      "motion": "reduced",
+      "state": "active",
+      "cpu_percent_one_core": 0.81,
+      "rss_mib": {
+        "mean": 8.9,
+        "p95": 8.95,
+        "max": 8.95
+      },
+      "survey_ms": {
+        "mean": 2.89,
+        "p95": 4.08,
+        "max": 4.08
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "large",
+      "motion": "full",
+      "state": "unchanged",
+      "cpu_percent_one_core": 4.6,
+      "rss_mib": {
+        "mean": 11.92,
+        "p95": 11.98,
+        "max": 11.98
+      },
+      "survey_ms": {
+        "mean": 56.6,
+        "p95": 59.51,
+        "max": 59.51
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "large",
+      "motion": "full",
+      "state": "active",
+      "cpu_percent_one_core": 4.29,
+      "rss_mib": {
+        "mean": 11.86,
+        "p95": 11.92,
+        "max": 11.94
+      },
+      "survey_ms": {
+        "mean": 51.94,
+        "p95": 59.49,
+        "max": 59.49
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "large",
+      "motion": "reduced",
+      "state": "unchanged",
+      "cpu_percent_one_core": 4.69,
+      "rss_mib": {
+        "mean": 11.92,
+        "p95": 12.0,
+        "max": 12.0
+      },
+      "survey_ms": {
+        "mean": 56.25,
+        "p95": 60.57,
+        "max": 60.57
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "large",
+      "motion": "reduced",
+      "state": "active",
+      "cpu_percent_one_core": 4.53,
+      "rss_mib": {
+        "mean": 11.96,
+        "p95": 12.05,
+        "max": 12.59
+      },
+      "survey_ms": {
+        "mean": 57.75,
+        "p95": 65.5,
+        "max": 65.5
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "worktrees",
+      "motion": "full",
+      "state": "unchanged",
+      "cpu_percent_one_core": 3.56,
+      "rss_mib": {
+        "mean": 9.64,
+        "p95": 9.66,
+        "max": 9.66
+      },
+      "survey_ms": {
+        "mean": 52.0,
+        "p95": 56.03,
+        "max": 56.03
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "worktrees",
+      "motion": "full",
+      "state": "active",
+      "cpu_percent_one_core": 3.34,
+      "rss_mib": {
+        "mean": 9.68,
+        "p95": 9.7,
+        "max": 9.72
+      },
+      "survey_ms": {
+        "mean": 49.77,
+        "p95": 55.11,
+        "max": 55.11
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "worktrees",
+      "motion": "reduced",
+      "state": "unchanged",
+      "cpu_percent_one_core": 3.5,
+      "rss_mib": {
+        "mean": 9.55,
+        "p95": 9.59,
+        "max": 9.59
+      },
+      "survey_ms": {
+        "mean": 51.38,
+        "p95": 55.08,
+        "max": 55.08
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "worktrees",
+      "motion": "reduced",
+      "state": "active",
+      "cpu_percent_one_core": 3.49,
+      "rss_mib": {
+        "mean": 9.73,
+        "p95": 9.84,
+        "max": 9.84
+      },
+      "survey_ms": {
+        "mean": 52.49,
+        "p95": 55.34,
+        "max": 55.34
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    }
+  ]
+}

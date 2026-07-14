@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::PathBuf;
 use std::sync::mpsc;
 use std::thread;
@@ -6,6 +7,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result};
 use clap::Parser;
 use crossterm::event::{self, Event, KeyEventKind};
+use serde::Serialize;
 
 use git_buoy::app::{App, AppSettings, Msg};
 use git_buoy::config::SettingsConfig;
@@ -43,6 +45,10 @@ struct Args {
     /// Override the saved seconds between optional GitHub surveys.
     #[arg(long)]
     github_poll_interval: Option<f64>,
+
+    /// Write repository survey timings for the profiling script.
+    #[arg(long, value_name = "FILE", hide = true)]
+    profile_output: Option<PathBuf>,
 }
 
 fn main() -> Result<()> {
@@ -64,8 +70,13 @@ fn main() -> Result<()> {
     let mut app = App::with_settings(name, settings).with_frames_per_second(args.fps);
     let theme = ui::Theme::detect();
     let tick = Duration::from_millis(1000 / u64::from(args.fps.clamp(1, 30)));
+    let mut profile = ProfileRecorder::new(args.profile_output);
 
     let terminal = ratatui::init();
+    let mut support = RunSupport {
+        persistence: &mut persistence,
+        profile: &mut profile,
+    };
     let result = run(
         terminal,
         &mut app,
@@ -73,13 +84,14 @@ fn main() -> Result<()> {
         &mut collector,
         &mut hosting_collector,
         tick,
-        &mut persistence,
+        &mut support,
     );
     ratatui::restore();
     if let Some(error) = persistence.last_error {
         eprintln!("warning: settings were not saved: {error}");
     }
-    result
+    result?;
+    profile.write()
 }
 
 fn initial_settings(args: &Args, saved: &SettingsConfig) -> AppSettings {
@@ -151,11 +163,77 @@ fn spawn_hosting_collector(root: PathBuf) -> Collector<Result<hosting::HostingSn
     spawn_worker(move || hosting::collect_github(&root).map_err(|error| error.to_string()))
 }
 
-fn spawn_collector(root: PathBuf) -> Collector<(Result<git::RepoSnapshot, String>, Instant)> {
+struct RepositorySurvey {
+    result: Result<git::RepoSnapshot, String>,
+    observed_at: Instant,
+    elapsed: Duration,
+}
+
+fn spawn_collector(root: PathBuf) -> Collector<RepositorySurvey> {
     spawn_worker(move || {
-        let snapshot = git::collect(&root).map_err(|error| error.to_string());
-        (snapshot, Instant::now())
+        let started = Instant::now();
+        let result = git::collect(&root).map_err(|error| error.to_string());
+        RepositorySurvey {
+            result,
+            observed_at: Instant::now(),
+            elapsed: started.elapsed(),
+        }
     })
+}
+
+#[derive(Serialize)]
+struct ProfileReport<'a> {
+    schema_version: u8,
+    survey_samples: &'a [SurveyTiming],
+}
+
+#[derive(Serialize)]
+struct SurveyTiming {
+    completed_ms: u128,
+    duration_us: u128,
+}
+
+struct ProfileRecorder {
+    path: Option<PathBuf>,
+    started: Instant,
+    survey_samples: Vec<SurveyTiming>,
+}
+
+struct RunSupport<'a> {
+    persistence: &'a mut SettingsPersistence,
+    profile: &'a mut ProfileRecorder,
+}
+
+impl ProfileRecorder {
+    fn new(path: Option<PathBuf>) -> Self {
+        Self {
+            path,
+            started: Instant::now(),
+            survey_samples: Vec::new(),
+        }
+    }
+
+    fn record_survey(&mut self, elapsed: Duration) {
+        if self.path.is_some() {
+            self.survey_samples.push(SurveyTiming {
+                completed_ms: self.started.elapsed().as_millis(),
+                duration_us: elapsed.as_micros(),
+            });
+        }
+    }
+
+    fn write(&self) -> Result<()> {
+        let Some(path) = &self.path else {
+            return Ok(());
+        };
+        let report = ProfileReport {
+            schema_version: 1,
+            survey_samples: &self.survey_samples,
+        };
+        let json = serde_json::to_vec_pretty(&report).context("failed to encode profile data")?;
+        fs::write(path, json)
+            .with_context(|| format!("failed to write profile data to {}", path.display()))
+    }
 }
 
 /// A request-driven worker keeps repository and hosting reads off the render
@@ -219,19 +297,20 @@ fn run(
     mut terminal: ratatui::DefaultTerminal,
     app: &mut App,
     theme: &ui::Theme,
-    collector: &mut Collector<(Result<git::RepoSnapshot, String>, Instant)>,
+    collector: &mut Collector<RepositorySurvey>,
     hosting_collector: &mut Collector<Result<hosting::HostingSnapshot, String>>,
     tick: Duration,
-    persistence: &mut SettingsPersistence,
+    support: &mut RunSupport<'_>,
 ) -> Result<()> {
     let mut last_tick = Instant::now();
     let mut github_was_enabled = false;
     loop {
         collector.request_if_due(app.settings.poll_interval);
-        while let Some((result, observed_at)) = collector.try_recv() {
+        while let Some(survey) = collector.try_recv() {
+            support.profile.record_survey(survey.elapsed);
             app.update(Msg::Snapshot {
-                result,
-                observed_at,
+                result: survey.result,
+                observed_at: survey.observed_at,
             });
         }
 
@@ -267,7 +346,9 @@ fn run(
                 Event::Key(key) if key.kind == KeyEventKind::Press => {
                     let previous_settings = app.settings.clone();
                     app.update(Msg::Key(key));
-                    persistence.record_changes(&previous_settings, &app.settings);
+                    support
+                        .persistence
+                        .record_changes(&previous_settings, &app.settings);
                 }
                 _ => {}
             }
@@ -344,5 +425,19 @@ mod tests {
         let mut restored = AppSettings::default();
         saved.apply_to(&mut restored);
         assert!(restored.reduced_motion);
+    }
+
+    #[test]
+    fn profile_recorder_writes_versioned_survey_timings() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("profile.json");
+        let mut recorder = ProfileRecorder::new(Some(path.clone()));
+
+        recorder.record_survey(Duration::from_micros(2_500));
+        recorder.write().unwrap();
+
+        let report: serde_json::Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+        assert_eq!(report["schema_version"], 1);
+        assert_eq!(report["survey_samples"][0]["duration_us"], 2_500);
     }
 }

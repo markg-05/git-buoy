@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-14T03:11:43.224150+00:00",
+  "source": {
+    "revision": "3ed939e7e65c9c4d5b9bd59fa10c973c8b7ed686",
+    "dirty": true,
+    "binary_sha256": "c3912dea7a1b4e526419c4f3cee05ff063d224558e4ce6dc3b51c079c0df1178"
+  },
+  "system": {
+    "os": "Linux",
+    "os_release": "6.12.76-linuxkit",
+    "architecture": "aarch64",
+    "cpu": "unknown",
+    "logical_cpus": 18,
+    "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+    "git": "git version 2.39.5"
+  },
+  "parameters": {
+    "warmup_seconds": 5.0,
+    "measurement_seconds": 20.0,
+    "terminal_columns": 120,
+    "terminal_rows": 40,
+    "fps": 12,
+    "poll_interval_seconds": 2.0,
+    "rss_sample_seconds": 0.25,
+    "active_change_seconds": 0.5,
+    "github_observer": false
+  },
+  "budgets": {
+    "cpu_percent_one_core_mean_max": 8.0,
+    "rss_mib_p95_max": 64.0,
+    "survey_ms_p95_max": 250.0
+  },
+  "fixtures": [
+    {
+      "name": "small",
+      "repo": "/tmp/git-buoy-fixtures/small/repo",
+      "tracked_files": 51,
+      "local_branches": 6,
+      "linked_worktrees": 0
+    },
+    {
+      "name": "large",
+      "repo": "/tmp/git-buoy-fixtures/large/repo",
+      "tracked_files": 10001,
+      "local_branches": 200,
+      "linked_worktrees": 0
+    },
+    {
+      "name": "worktrees",
+      "repo": "/tmp/git-buoy-fixtures/worktrees/repo",
+      "tracked_files": 1001,
+      "local_branches": 24,
+      "linked_worktrees": 8
+    }
+  ],
+  "runs": [
+    {
+      "fixture": "small",
+      "motion": "full",
+      "state": "unchanged",
+      "cpu_percent_one_core": 0.65,
+      "rss_mib": {
+        "mean": 3.99,
+        "p95": 4.0,
+        "max": 4.0
+      },
+      "survey_ms": {
+        "mean": 1.44,
+        "p95": 1.75,
+        "max": 1.75
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "small",
+      "motion": "full",
+      "state": "active",
+      "cpu_percent_one_core": 0.65,
+      "rss_mib": {
+        "mean": 3.99,
+        "p95": 4.01,
+        "max": 4.01
+      },
+      "survey_ms": {
+        "mean": 1.34,
+        "p95": 1.8,
+        "max": 1.8
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "small",
+      "motion": "reduced",
+      "state": "unchanged",
+      "cpu_percent_one_core": 0.7,
+      "rss_mib": {
+        "mean": 3.99,
+        "p95": 4.01,
+        "max": 4.01
+      },
+      "survey_ms": {
+        "mean": 1.52,
+        "p95": 1.82,
+        "max": 1.82
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "small",
+      "motion": "reduced",
+      "state": "active",
+      "cpu_percent_one_core": 0.7,
+      "rss_mib": {
+        "mean": 3.98,
+        "p95": 4.0,
+        "max": 4.0
+      },
+      "survey_ms": {
+        "mean": 1.22,
+        "p95": 1.63,
+        "max": 1.63
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "large",
+      "motion": "full",
+      "state": "unchanged",
+      "cpu_percent_one_core": 3.25,
+      "rss_mib": {
+        "mean": 7.59,
+        "p95": 7.65,
+        "max": 8.25
+      },
+      "survey_ms": {
+        "mean": 31.42,
+        "p95": 37.05,
+        "max": 37.05
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "large",
+      "motion": "full",
+      "state": "active",
+      "cpu_percent_one_core": 3.2,
+      "rss_mib": {
+        "mean": 7.56,
+        "p95": 7.66,
+        "max": 8.11
+      },
+      "survey_ms": {
+        "mean": 28.91,
+        "p95": 36.61,
+        "max": 36.61
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "large",
+      "motion": "reduced",
+      "state": "unchanged",
+      "cpu_percent_one_core": 3.25,
+      "rss_mib": {
+        "mean": 7.53,
+        "p95": 7.61,
+        "max": 7.62
+      },
+      "survey_ms": {
+        "mean": 32.86,
+        "p95": 36.68,
+        "max": 36.68
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "large",
+      "motion": "reduced",
+      "state": "active",
+      "cpu_percent_one_core": 3.25,
+      "rss_mib": {
+        "mean": 7.49,
+        "p95": 7.56,
+        "max": 7.63
+      },
+      "survey_ms": {
+        "mean": 31.84,
+        "p95": 36.61,
+        "max": 36.61
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "worktrees",
+      "motion": "full",
+      "state": "unchanged",
+      "cpu_percent_one_core": 2.6,
+      "rss_mib": {
+        "mean": 4.73,
+        "p95": 4.79,
+        "max": 4.79
+      },
+      "survey_ms": {
+        "mean": 34.43,
+        "p95": 37.13,
+        "max": 37.13
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "worktrees",
+      "motion": "full",
+      "state": "active",
+      "cpu_percent_one_core": 2.45,
+      "rss_mib": {
+        "mean": 4.69,
+        "p95": 4.77,
+        "max": 4.78
+      },
+      "survey_ms": {
+        "mean": 32.32,
+        "p95": 34.25,
+        "max": 34.25
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "worktrees",
+      "motion": "reduced",
+      "state": "unchanged",
+      "cpu_percent_one_core": 2.45,
+      "rss_mib": {
+        "mean": 4.72,
+        "p95": 4.77,
+        "max": 4.77
+      },
+      "survey_ms": {
+        "mean": 32.05,
+        "p95": 33.79,
+        "max": 33.79
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    },
+    {
+      "fixture": "worktrees",
+      "motion": "reduced",
+      "state": "active",
+      "cpu_percent_one_core": 2.5,
+      "rss_mib": {
+        "mean": 4.69,
+        "p95": 4.73,
+        "max": 4.73
+      },
+      "survey_ms": {
+        "mean": 32.77,
+        "p95": 33.69,
+        "max": 33.69
+      },
+      "rss_samples": 80,
+      "survey_samples": 10
+    }
+  ]
+}
