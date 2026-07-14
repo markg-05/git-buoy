@@ -650,9 +650,32 @@ impl Session {
                 Ok(bytes) => self.output.extend(bytes),
                 Err(RecvTimeoutError::Timeout) => {}
                 Err(RecvTimeoutError::Disconnected) => {
-                    return Err(message("terminal output closed before expected text"));
+                    return self.closed_before(needle);
                 }
             }
+        }
+    }
+
+    fn closed_before(&mut self, needle: &[u8]) -> Result<()> {
+        let deadline = Instant::now() + Duration::from_secs(1);
+        loop {
+            self.drain_available();
+            if let Some(status) = self.child.try_wait()? {
+                return Err(message(format!(
+                    "terminal output closed after process exited with {status}; wanted {:?}; output: {}",
+                    String::from_utf8_lossy(needle),
+                    visible_excerpt(&self.output)
+                )));
+            }
+            if Instant::now() >= deadline {
+                self.child.kill()?;
+                return Err(message(format!(
+                    "terminal output closed while process was still running; wanted {:?}; output: {}",
+                    String::from_utf8_lossy(needle),
+                    visible_excerpt(&self.output)
+                )));
+            }
+            thread::sleep(Duration::from_millis(20));
         }
     }
 
