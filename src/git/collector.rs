@@ -3,11 +3,11 @@ use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
 
 use anyhow::{Context, Result};
-use git2::{Branch, BranchType, Repository, RepositoryState, Status, StatusOptions, Statuses};
+use git2::{Branch, BranchType, Oid, Repository, RepositoryState, Status, StatusOptions, Statuses};
 
 use super::snapshot::{
     BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, Operation, RepoSnapshot,
-    SyncState, TipAction, TipInfo, Workspace,
+    SyncState, TipAction, TipInfo, UpstreamAction, Workspace,
 };
 
 /// Locate the repository containing `path` and return its root directory.
@@ -83,7 +83,7 @@ fn collect_branches(repo: &Repository) -> Vec<BranchInfo> {
                     id: commit.id().to_string(),
                     summary,
                     parent_count: commit.parent_count(),
-                    action: tip_action(repo, &name),
+                    action: tip_action(repo, &name, commit.id()),
                 }
             });
             Some(BranchInfo {
@@ -98,19 +98,41 @@ fn collect_branches(repo: &Repository) -> Vec<BranchInfo> {
     out
 }
 
-fn tip_action(repo: &Repository, branch_name: &str) -> TipAction {
+fn tip_action(repo: &Repository, branch_name: &str, tip_id: Oid) -> TipAction {
     let reference = format!("refs/heads/{branch_name}");
     let message = repo.reflog(&reference).ok().and_then(|reflog| {
         reflog
             .get(0)
+            .filter(|entry| entry.id_new() == tip_id)
             .and_then(|entry| entry.message().ok().flatten().map(str::to_string))
     });
     match message.as_deref() {
-        Some(message) if message.starts_with("commit") => TipAction::Commit,
-        Some(message) if message.starts_with("merge ") || message.starts_with("pull ") => {
+        Some(message) if has_reflog_action(message, "commit") => TipAction::Commit,
+        Some(message)
+            if has_reflog_action(message, "merge") || has_reflog_action(message, "pull") =>
+        {
             TipAction::Merge
         }
         _ => TipAction::Other,
+    }
+}
+
+fn has_reflog_action(message: &str, action: &str) -> bool {
+    message.strip_prefix(action).is_some_and(|suffix| {
+        suffix.is_empty() || matches!(suffix.chars().next(), Some(' ' | ':' | '('))
+    })
+}
+
+fn upstream_action(repo: &Repository, reference: &str, tip_id: Oid) -> UpstreamAction {
+    let message = repo.reflog(reference).ok().and_then(|reflog| {
+        reflog
+            .get(0)
+            .filter(|entry| entry.id_new() == tip_id)
+            .and_then(|entry| entry.message().ok().flatten().map(str::to_string))
+    });
+    match message.as_deref() {
+        Some(message) if message.starts_with("update by push") => UpstreamAction::Push,
+        _ => UpstreamAction::Other,
     }
 }
 
@@ -119,6 +141,7 @@ fn branch_sync(repo: &Repository, branch: &Branch) -> Option<SyncState> {
     let local = branch.get().target()?;
     let remote = upstream.get().target()?;
     let (ahead, behind) = repo.graph_ahead_behind(local, remote).ok()?;
+    let reference = upstream.get().name().unwrap_or("upstream");
     Some(SyncState {
         upstream: upstream
             .name()
@@ -128,6 +151,8 @@ fn branch_sync(repo: &Repository, branch: &Branch) -> Option<SyncState> {
             .to_string(),
         ahead,
         behind,
+        tip_id: remote.to_string(),
+        action: upstream_action(repo, reference, remote),
     })
 }
 
@@ -367,7 +392,7 @@ fn operation(state: RepositoryState) -> Option<Operation> {
 
 #[cfg(test)]
 mod tests {
-    use super::default_branch;
+    use super::{default_branch, has_reflog_action};
     use crate::git::BranchInfo;
     use git2::Repository;
 
@@ -402,5 +427,13 @@ mod tests {
             default_branch(&repo, &branches(&["topic", "trunk"])),
             Some("trunk".to_string())
         );
+    }
+
+    #[test]
+    fn reflog_action_requires_a_git_action_boundary() {
+        assert!(has_reflog_action("pull: Fast-forward", "pull"));
+        assert!(has_reflog_action("pull --ff-only: Fast-forward", "pull"));
+        assert!(has_reflog_action("commit (merge): resolved", "commit"));
+        assert!(!has_reflog_action("pulley moved", "pull"));
     }
 }

@@ -135,6 +135,7 @@ A vessel's hull carries **cargo** that counts the pending change categories, and
 | `▣ committed` | A commit observed while Git Buoy is running |
 | `▙▄▄▟→ pushed` | Ahead commits sent upstream |
 | `←▣ merged` | A merge commit arriving at a dock |
+| `↔ updated` | A branch or upstream reference moved; the cause is not proven |
 | `PR#42 ✓!` | Pull request 42: review approved, at least one check failing |
 | `▙▄▄▟ ▙▄▄▟→` | Latest published release convoy |
 
@@ -144,7 +145,7 @@ Motion reinforces those facts: recent vessels work against a wake, outbound vess
 
 With reduced motion, transitions collapse immediately to the current state. The same conditions, arrows, activity words, and cargo remain visible in a fixed frame.
 
-Commits, pushes, and successful merges appear as short-lived transitions only when Git Buoy observes them happen. The initial survey does not replay existing history. Commit and merge events come from branch reflogs; a push is reported only when the same local tip becomes less far ahead of its upstream, avoiding guesses from unrelated branch movement.
+Commits, pushes, successful merges, and neutral updates appear as short-lived transitions only when Git Buoy observes them happen. The initial survey does not replay existing history. A branch is `merged` only when its reflog action and a new multi-parent tip both support that conclusion; fast-forward pulls and unclassified branch moves are `updated`, while squash merges appear as ordinary commits. A `pushed` event additionally requires the upstream reference reflog to say `update by push`, the local tip to stay unchanged, and the ahead count to fall. Other upstream movement is `updated`, even if the ahead count falls. The complete evidence table and polling limits are in [docs/live-events.md](docs/live-events.md).
 
 ## Intended experience
 

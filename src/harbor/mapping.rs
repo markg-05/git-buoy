@@ -343,6 +343,8 @@ mod tests {
             upstream: "origin/main".to_string(),
             ahead: 2,
             behind: 1,
+            tip_id: "upstream-tip".to_string(),
+            action: crate::git::UpstreamAction::Other,
         });
         let snap = snapshot(
             vec![with_upstream],

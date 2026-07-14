@@ -8,7 +8,7 @@ use crate::harbor::Condition;
 
 use super::scene::{
     ACTIVITY_WAKE, CARGO_CONFLICT, CARGO_STAGED, CARGO_UNSTAGED, CARGO_UNTRACKED, CLEARANCE_FLAG,
-    EVENT_COMMIT, EVENT_MERGE, EVENT_PUSH, MOORING_BUOY, RELEASE_CONVOY, VESSEL_HULL,
+    EVENT_COMMIT, EVENT_MERGE, EVENT_PUSH, EVENT_UPDATE, MOORING_BUOY, RELEASE_CONVOY, VESSEL_HULL,
 };
 use super::theme::Theme;
 
@@ -168,6 +168,12 @@ fn legend_lines(theme: &Theme) -> Vec<Line<'static>> {
         EVENT_MERGE.to_string(),
         "a merge commit arriving at a dock",
         theme.condition(Condition::Calm),
+        theme,
+    ));
+    lines.push(symbol_line(
+        EVENT_UPDATE.to_string(),
+        "a branch or upstream reference moved",
+        theme.text,
         theme,
     ));
     lines.push(Line::from(Span::styled(

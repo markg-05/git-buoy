@@ -36,6 +36,7 @@ pub(super) const ACTIVITY_WAKE: &str = "≈~";
 pub(super) const EVENT_COMMIT: &str = "▣ committed";
 pub(super) const EVENT_PUSH: &str = "▙▄▄▟→ pushed";
 pub(super) const EVENT_MERGE: &str = "←▣ merged";
+pub(super) const EVENT_UPDATE: &str = "↔ updated";
 pub(super) const CLEARANCE_FLAG: &str = "PR#";
 pub(super) const RELEASE_CONVOY: &str = "▙▄▄▟ ▙▄▄▟→";
 
@@ -544,6 +545,7 @@ fn event_cells(event: &DockEvent, frame: u64, theme: &Theme) -> Vec<(char, Color
             EVENT_MERGE,
             theme.condition(Condition::Calm),
         ),
+        EventKind::Update => (phase % 2, EVENT_UPDATE, theme.text),
     };
     std::iter::repeat_n((' ', theme.water), leading)
         .chain(marker.chars().map(|glyph| (glyph, color)))

@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::git::{RepoSnapshot, TipAction};
+use crate::git::{RepoSnapshot, TipAction, UpstreamAction};
 use crate::harbor::{
     self, Animation, Clearance, Condition, Convoy, Dock, DockEvent, DockKind, DockTransition,
     DockTransitionKind, EventKind, Harbor, Inspection, InspectionStatus, LandingStatus,
@@ -1041,7 +1041,14 @@ struct RepositoryEventTracker {
 #[derive(Debug)]
 struct BranchObservation {
     tip_id: Option<String>,
-    ahead: Option<usize>,
+    upstream: Option<UpstreamObservation>,
+}
+
+#[derive(Debug)]
+struct UpstreamObservation {
+    name: String,
+    tip_id: String,
+    ahead: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -1059,42 +1066,52 @@ impl RepositoryEventTracker {
 
         for branch in &snapshot.branches {
             let current_tip = branch.tip.as_ref().map(|tip| tip.id.clone());
-            let current_ahead = branch.sync.as_ref().map(|sync| sync.ahead);
+            let current_upstream = branch.sync.as_ref().map(|sync| UpstreamObservation {
+                name: sync.upstream.clone(),
+                tip_id: sync.tip_id.clone(),
+                ahead: sync.ahead,
+            });
             if let Some(previous) = self.branches.get(&branch.name) {
                 if previous.tip_id != current_tip
                     && let Some(tip) = &branch.tip
                 {
-                    let kind = if tip.parent_count > 1 || tip.action == TipAction::Merge {
-                        Some(EventKind::Merge)
+                    let kind = if tip.parent_count > 1 && tip.action != TipAction::Other {
+                        EventKind::Merge
                     } else if tip.action == TipAction::Commit {
-                        Some(EventKind::Commit)
+                        EventKind::Commit
                     } else {
-                        None
+                        EventKind::Update
                     };
-                    if let Some(kind) = kind {
-                        self.active.push(ActiveDockEvent {
-                            branch: branch.name.clone(),
-                            event: DockEvent {
-                                kind,
-                                summary: tip.summary.clone(),
-                            },
-                            expires_at: observed_at + EVENT_LIFETIME,
-                        });
-                    }
-                }
-
-                if previous.tip_id == current_tip
-                    && let (Some(before), Some(after)) = (previous.ahead, current_ahead)
-                    && before > after
-                {
-                    let count = before - after;
-                    let noun = if count == 1 { "commit" } else { "commits" };
                     self.active.push(ActiveDockEvent {
                         branch: branch.name.clone(),
                         event: DockEvent {
-                            kind: EventKind::Push,
-                            summary: format!("{count} {noun} sent upstream"),
+                            kind,
+                            summary: tip.summary.clone(),
                         },
+                        expires_at: observed_at + EVENT_LIFETIME,
+                    });
+                }
+
+                if previous.tip_id == current_tip
+                    && let (Some(before), Some(after), Some(sync)) = (
+                        previous.upstream.as_ref(),
+                        current_upstream.as_ref(),
+                        branch.sync.as_ref(),
+                    )
+                    && before.name == after.name
+                    && before.tip_id != after.tip_id
+                {
+                    let (kind, summary) =
+                        if sync.action == UpstreamAction::Push && before.ahead > after.ahead {
+                            let count = before.ahead - after.ahead;
+                            let noun = if count == 1 { "commit" } else { "commits" };
+                            (EventKind::Push, format!("{count} {noun} sent upstream"))
+                        } else {
+                            (EventKind::Update, format!("{} reference moved", after.name))
+                        };
+                    self.active.push(ActiveDockEvent {
+                        branch: branch.name.clone(),
+                        event: DockEvent { kind, summary },
                         expires_at: observed_at + EVENT_LIFETIME,
                     });
                 }
@@ -1104,7 +1121,7 @@ impl RepositoryEventTracker {
                 branch.name.clone(),
                 BranchObservation {
                     tip_id: current_tip,
-                    ahead: current_ahead,
+                    upstream: current_upstream,
                 },
             );
         }
@@ -1184,7 +1201,7 @@ mod tests {
 
     use crate::git::{
         BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, Operation, RepoSnapshot,
-        SyncState, TipInfo, Workspace,
+        SyncState, TipInfo, UpstreamAction, Workspace,
     };
     use crate::hosting::{Check, PullRequest, Release};
 
@@ -1290,6 +1307,24 @@ mod tests {
         parent_count: usize,
         ahead: usize,
     ) -> RepoSnapshot {
+        transition_snapshot_with_upstream(
+            id,
+            action,
+            parent_count,
+            ahead,
+            &format!("upstream-{ahead}"),
+            UpstreamAction::Other,
+        )
+    }
+
+    fn transition_snapshot_with_upstream(
+        id: &str,
+        action: TipAction,
+        parent_count: usize,
+        ahead: usize,
+        upstream_tip: &str,
+        upstream_action: UpstreamAction,
+    ) -> RepoSnapshot {
         RepoSnapshot {
             name: "test".to_string(),
             default_branch: Some("main".to_string()),
@@ -1299,6 +1334,8 @@ mod tests {
                     upstream: "origin/main".to_string(),
                     ahead,
                     behind: 0,
+                    tip_id: upstream_tip.to_string(),
+                    action: upstream_action,
                 }),
                 last_commit: Some(id.to_string()),
                 tip: Some(TipInfo {
@@ -1828,7 +1865,7 @@ mod tests {
     }
 
     #[test]
-    fn commit_and_merge_events_are_live_not_historical() {
+    fn commit_merge_and_update_events_are_live_not_historical() {
         let start = Instant::now();
         let mut app = App::new("test".to_string(), false);
         observe(
@@ -1857,24 +1894,64 @@ mod tests {
 
         observe(
             &mut app,
-            transition_snapshot("merge", TipAction::Merge, 2, 2),
-            start + Duration::from_secs(15),
+            transition_snapshot("fast-forward", TipAction::Merge, 1, 3),
+            start + Duration::from_secs(3),
+        );
+        assert_eq!(
+            app.harbor.docks[0].events.last().unwrap().kind,
+            EventKind::Update
+        );
+
+        observe(
+            &mut app,
+            transition_snapshot("fast-forward", TipAction::Merge, 1, 3),
+            start + Duration::from_secs(16),
         );
         assert!(app.harbor.docks[0].events.is_empty());
     }
 
     #[test]
-    fn unchanged_tip_with_lower_ahead_count_is_a_push() {
+    fn repeated_polling_does_not_replay_an_active_event() {
         let start = Instant::now();
         let mut app = App::new("test".to_string(), false);
         observe(
             &mut app,
-            transition_snapshot("same", TipAction::Commit, 1, 2),
+            transition_snapshot("one", TipAction::Other, 1, 0),
+            start,
+        );
+        let committed = transition_snapshot("two", TipAction::Commit, 1, 1);
+        observe(&mut app, committed.clone(), start + Duration::from_secs(1));
+        observe(&mut app, committed, start + Duration::from_secs(2));
+
+        assert_eq!(app.harbor.docks[0].events.len(), 1);
+    }
+
+    #[test]
+    fn push_requires_upstream_reflog_evidence() {
+        let start = Instant::now();
+        let mut app = App::new("test".to_string(), false);
+        observe(
+            &mut app,
+            transition_snapshot_with_upstream(
+                "same",
+                TipAction::Commit,
+                1,
+                2,
+                "before",
+                UpstreamAction::Other,
+            ),
             start,
         );
         observe(
             &mut app,
-            transition_snapshot("same", TipAction::Commit, 1, 0),
+            transition_snapshot_with_upstream(
+                "same",
+                TipAction::Commit,
+                1,
+                0,
+                "after",
+                UpstreamAction::Push,
+            ),
             start + Duration::from_secs(1),
         );
 
@@ -1882,6 +1959,43 @@ mod tests {
         assert_eq!(
             app.harbor.docks[0].events[0].summary,
             "2 commits sent upstream"
+        );
+    }
+
+    #[test]
+    fn ambiguous_upstream_movement_is_neutral_even_when_ahead_decreases() {
+        let start = Instant::now();
+        let mut app = App::new("test".to_string(), false);
+        observe(
+            &mut app,
+            transition_snapshot_with_upstream(
+                "same",
+                TipAction::Commit,
+                1,
+                2,
+                "before",
+                UpstreamAction::Other,
+            ),
+            start,
+        );
+        observe(
+            &mut app,
+            transition_snapshot_with_upstream(
+                "same",
+                TipAction::Commit,
+                1,
+                0,
+                "after",
+                UpstreamAction::Other,
+            ),
+            start + Duration::from_secs(1),
+        );
+
+        assert_eq!(app.harbor.docks[0].events.len(), 1);
+        assert_eq!(app.harbor.docks[0].events[0].kind, EventKind::Update);
+        assert_eq!(
+            app.harbor.docks[0].events[0].summary,
+            "origin/main reference moved"
         );
     }
 

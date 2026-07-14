@@ -38,6 +38,8 @@ pub struct TipInfo {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TipAction {
     Commit,
+    /// A merge or pull command moved the branch. Commit topology decides
+    /// whether that move actually created a merge commit.
     Merge,
     Other,
 }
@@ -117,6 +119,18 @@ pub struct SyncState {
     pub upstream: String,
     pub ahead: usize,
     pub behind: usize,
+    /// Current object id of the upstream reference.
+    pub tip_id: String,
+    /// Provenance recorded by the upstream reference's latest reflog entry.
+    pub action: UpstreamAction,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UpstreamAction {
+    /// Git recorded that the local remote-tracking reference moved because of
+    /// a push issued from this repository.
+    Push,
+    Other,
 }
 
 /// An in-progress Git operation that blocks normal work until resolved.

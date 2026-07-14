@@ -166,6 +166,7 @@ pub enum EventKind {
     Commit,
     Push,
     Merge,
+    Update,
 }
 
 impl EventKind {
@@ -174,6 +175,7 @@ impl EventKind {
             Self::Commit => "committed",
             Self::Push => "pushed",
             Self::Merge => "merged",
+            Self::Update => "updated",
         }
     }
 }

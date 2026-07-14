@@ -6,9 +6,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::time::{Duration, Instant};
 
+use git_buoy::app::{App, Msg};
 use git_buoy::git::{ChangeKind, HeadState, Operation, TipAction, collect};
-use git_buoy::harbor::{Condition, DockKind, to_harbor};
+use git_buoy::harbor::{Condition, DockKind, EventKind, to_harbor};
 
 fn git(dir: &Path, args: &[&str]) {
     let output = Command::new("git")
@@ -58,6 +60,45 @@ fn seeded_repo() -> (tempfile::TempDir, PathBuf) {
     git(&repo, &["init", "-b", "main"]);
     commit_file(&repo, "README.md", "# harbor\n", "initial commit");
     (temp, repo)
+}
+
+fn survey(app: &mut App, repo: &Path, observed_at: Instant) {
+    app.update(Msg::Snapshot {
+        result: collect(repo).map_err(|error| error.to_string()),
+        observed_at,
+    });
+}
+
+fn latest_event(app: &App, branch: &str) -> EventKind {
+    app.harbor
+        .docks
+        .iter()
+        .find(|dock| dock.name == branch)
+        .and_then(|dock| dock.events.last())
+        .map(|event| event.kind)
+        .expect("expected a live event on the branch")
+}
+
+fn seeded_remote_clone() -> (tempfile::TempDir, PathBuf, PathBuf) {
+    let temp = tempfile::tempdir().unwrap();
+    let remote = temp.path().join("remote.git");
+    git(
+        temp.path(),
+        &[
+            "init",
+            "--bare",
+            "--initial-branch=main",
+            remote.to_str().unwrap(),
+        ],
+    );
+    let clone = temp.path().join("clone");
+    git(
+        temp.path(),
+        &["clone", remote.to_str().unwrap(), clone.to_str().unwrap()],
+    );
+    commit_file(&clone, "README.md", "# harbor\n", "initial commit");
+    git(&clone, &["push", "-u", "origin", "main"]);
+    (temp, remote, clone)
 }
 
 #[test]
@@ -195,6 +236,141 @@ fn successful_merge_tip_records_merge_provenance() {
         .unwrap();
     assert_eq!(tip.parent_count, 2);
     assert_eq!(tip.action, TipAction::Merge);
+}
+
+#[test]
+fn real_repository_normal_commit_emits_committed() {
+    let (_temp, repo) = seeded_repo();
+    let start = Instant::now();
+    let mut app = App::new("repo".to_string(), false);
+    survey(&mut app, &repo, start);
+    assert!(app.harbor.docks[0].events.is_empty());
+
+    commit_file(&repo, "commit.txt", "cargo\n", "normal commit");
+    survey(&mut app, &repo, start + Duration::from_secs(1));
+
+    assert_eq!(latest_event(&app, "main"), EventKind::Commit);
+}
+
+#[test]
+fn real_repository_merge_commit_emits_merged() {
+    let (_temp, repo) = seeded_repo();
+    git(&repo, &["checkout", "-b", "feature"]);
+    commit_file(&repo, "feature.txt", "feature\n", "feature change");
+    git(&repo, &["checkout", "main"]);
+    commit_file(&repo, "main.txt", "main\n", "main change");
+
+    let start = Instant::now();
+    let mut app = App::new("repo".to_string(), false);
+    survey(&mut app, &repo, start);
+    git(
+        &repo,
+        &["merge", "--no-ff", "feature", "-m", "merge feature"],
+    );
+    survey(&mut app, &repo, start + Duration::from_secs(1));
+
+    assert_eq!(latest_event(&app, "main"), EventKind::Merge);
+}
+
+#[test]
+fn real_repository_fast_forward_emits_updated() {
+    let (_temp, repo) = seeded_repo();
+    git(&repo, &["checkout", "-b", "feature"]);
+    commit_file(&repo, "feature.txt", "feature\n", "feature change");
+    git(&repo, &["checkout", "main"]);
+
+    let start = Instant::now();
+    let mut app = App::new("repo".to_string(), false);
+    survey(&mut app, &repo, start);
+    git(&repo, &["merge", "--ff-only", "feature"]);
+    survey(&mut app, &repo, start + Duration::from_secs(1));
+
+    assert_eq!(latest_event(&app, "main"), EventKind::Update);
+}
+
+#[test]
+fn real_repository_fast_forward_pull_emits_updated() {
+    let (temp, remote, clone) = seeded_remote_clone();
+    let other = temp.path().join("other");
+    git(
+        temp.path(),
+        &["clone", remote.to_str().unwrap(), other.to_str().unwrap()],
+    );
+    commit_file(&other, "incoming.txt", "incoming\n", "incoming commit");
+    git(&other, &["push"]);
+
+    let start = Instant::now();
+    let mut app = App::new("clone".to_string(), false);
+    survey(&mut app, &clone, start);
+    git(&clone, &["pull", "--ff-only"]);
+    survey(&mut app, &clone, start + Duration::from_secs(1));
+
+    assert_eq!(latest_event(&app, "main"), EventKind::Update);
+}
+
+#[test]
+fn real_repository_squash_merge_emits_committed() {
+    let (_temp, repo) = seeded_repo();
+    git(&repo, &["checkout", "-b", "feature"]);
+    commit_file(&repo, "feature.txt", "feature\n", "feature change");
+    git(&repo, &["checkout", "main"]);
+
+    let start = Instant::now();
+    let mut app = App::new("repo".to_string(), false);
+    survey(&mut app, &repo, start);
+    git(&repo, &["merge", "--squash", "feature"]);
+    git(&repo, &["commit", "-m", "squash feature"]);
+    survey(&mut app, &repo, start + Duration::from_secs(1));
+
+    assert_eq!(latest_event(&app, "main"), EventKind::Commit);
+}
+
+#[test]
+fn real_repository_force_move_emits_updated() {
+    let (_temp, repo) = seeded_repo();
+    commit_file(&repo, "second.txt", "second\n", "second commit");
+
+    let start = Instant::now();
+    let mut app = App::new("repo".to_string(), false);
+    survey(&mut app, &repo, start);
+    git(&repo, &["reset", "--hard", "HEAD~1"]);
+    survey(&mut app, &repo, start + Duration::from_secs(1));
+
+    assert_eq!(latest_event(&app, "main"), EventKind::Update);
+}
+
+#[test]
+fn real_repository_push_requires_push_reflog_evidence() {
+    let (_temp, _remote, clone) = seeded_remote_clone();
+    commit_file(&clone, "outbound.txt", "outbound\n", "outbound commit");
+
+    let start = Instant::now();
+    let mut app = App::new("clone".to_string(), false);
+    survey(&mut app, &clone, start);
+    git(&clone, &["push"]);
+    survey(&mut app, &clone, start + Duration::from_secs(1));
+
+    assert_eq!(latest_event(&app, "main"), EventKind::Push);
+}
+
+#[test]
+fn real_repository_fetch_is_an_upstream_update_not_a_push() {
+    let (temp, remote, clone) = seeded_remote_clone();
+    let other = temp.path().join("other");
+    git(
+        temp.path(),
+        &["clone", remote.to_str().unwrap(), other.to_str().unwrap()],
+    );
+
+    let start = Instant::now();
+    let mut app = App::new("clone".to_string(), false);
+    survey(&mut app, &clone, start);
+    commit_file(&other, "incoming.txt", "incoming\n", "incoming commit");
+    git(&other, &["push"]);
+    git(&clone, &["fetch"]);
+    survey(&mut app, &clone, start + Duration::from_secs(1));
+
+    assert_eq!(latest_event(&app, "main"), EventKind::Update);
 }
 
 #[test]
