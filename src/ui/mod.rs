@@ -110,7 +110,7 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         return;
     }
     let hints = if app.show_settings {
-        " j/k select · h/l or ←/→ adjust · s/esc close · session only"
+        " j/k select · h/l or ←/→ adjust · s/esc close · saved globally"
     } else if app.show_legend {
         " j/k scroll · l/esc close legend"
     } else {
@@ -269,6 +269,7 @@ mod tests {
         assert!(lines.iter().any(|line| line.contains("Advances only")));
         assert!(lines.iter().any(|line| line.contains("Saved globally")));
         assert!(lines[0].ends_with("settings "));
+        assert!(lines.last().unwrap().contains("saved globally"));
     }
 
     #[test]

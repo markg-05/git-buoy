@@ -1,0 +1,90 @@
+name: Release acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  acceptance:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+            tools/release-acceptance -> target
+
+      - name: Build release artifact
+        run: cargo build --locked --release
+
+      - name: Package and extract release artifact (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist/stage dist/smoke
+          cp target/release/git-buoy dist/stage/git-buoy
+          tar -C dist/stage -czf "dist/git-buoy-${RUNNER_OS}-${RUNNER_ARCH}.tar.gz" git-buoy
+          tar -C dist/smoke -xzf "dist/git-buoy-${RUNNER_OS}-${RUNNER_ARCH}.tar.gz"
+
+      - name: Package and extract release artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist/stage, dist/smoke | Out-Null
+          Copy-Item target/release/git-buoy.exe dist/stage/git-buoy.exe
+          Compress-Archive `
+            -Path dist/stage/git-buoy.exe `
+            -DestinationPath "dist/git-buoy-$env:RUNNER_OS-$env:RUNNER_ARCH.zip"
+          Expand-Archive `
+            -Path "dist/git-buoy-$env:RUNNER_OS-$env:RUNNER_ARCH.zip" `
+            -DestinationPath dist/smoke
+
+      - name: Run release acceptance (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo run \
+            --locked \
+            --manifest-path tools/release-acceptance/Cargo.toml \
+            -- \
+            --binary dist/smoke/git-buoy | tee release-acceptance.log
+
+      - name: Run release acceptance (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cargo run `
+            --locked `
+            --manifest-path tools/release-acceptance/Cargo.toml `
+            -- `
+            --binary dist/smoke/git-buoy.exe |
+            Tee-Object -FilePath release-acceptance.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload acceptance log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-buoy-${{ runner.os }}-${{ runner.arch }}-acceptance-log
+          path: release-acceptance.log
+          if-no-files-found: warn
+
+      - name: Upload accepted release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-buoy-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+          if-no-files-found: error
