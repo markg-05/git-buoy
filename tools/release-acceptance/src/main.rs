@@ -46,12 +46,7 @@ fn run() -> Result<()> {
     }
 
     let binary = binary.ok_or_else(|| message("--binary is required"))?;
-    let binary = fs::canonicalize(&binary).map_err(|error| {
-        message(format!(
-            "cannot resolve release binary {}: {error}",
-            binary.display()
-        ))
-    })?;
+    let binary = absolute_path(&binary)?;
     let root = fixture_root.unwrap_or_else(|| {
         env::temp_dir().join(format!(
             "git-buoy-release-acceptance-{}",
@@ -842,6 +837,7 @@ fn reduced_motion_check(binary: &Path, fixtures: &Fixtures) -> Result<()> {
     )?;
     session.wait_for(b"reduced motion")?;
     session.wait_for(b"loading")?;
+    session.wait_for(b"calm")?;
     session.clear_output();
     session.collect_for(Duration::from_millis(700))?;
     let visible = strip_terminal_controls(&session.output);
@@ -853,6 +849,21 @@ fn reduced_motion_check(binary: &Path, fixtures: &Fixtures) -> Result<()> {
     }
     session.finish(b"q")?;
     Ok(())
+}
+
+fn absolute_path(path: &Path) -> Result<PathBuf> {
+    let path = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        env::current_dir()?.join(path)
+    };
+    fs::metadata(&path).map_err(|error| {
+        message(format!(
+            "cannot resolve release binary {}: {error}",
+            path.display()
+        ))
+    })?;
+    Ok(path)
 }
 
 fn overflow_check(binary: &Path, fixtures: &Fixtures) -> Result<()> {
