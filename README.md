@@ -37,10 +37,19 @@ Each call adds or removes twelve untracked paths in `demo/live-loading`; the nex
 
 ## Installation
 
+### Install with Cargo
+
+With a stable Rust toolchain and Git installed:
+
+```sh
+cargo install git-buoy --version 0.1.0
+git-buoy path/to/repository
+```
+
 ### Download a release
 
-After v0.1.0 passes its recorded native acceptance gate, download the archive
-for your platform from [GitHub Releases](https://github.com/markg-05/git-buoy/releases):
+Once v0.1.0 is published on GitHub, download the archive for your platform from
+[GitHub Releases](https://github.com/markg-05/git-buoy/releases):
 
 | Platform | Release asset |
 | --- | --- |
@@ -75,9 +84,8 @@ cargo run --release -- path/to/repository
 
 With no path argument, Git Buoy observes the repository containing the current directory.
 
-There is not yet a public release. v0.1 remains blocked on the recorded native
-Windows acceptance run; see [Releases and support](#releases-and-support) for
-the exact status rather than treating the crate version as a published release.
+The crate is published on crates.io. Versioned GitHub archives are published
+separately by the tagged release workflow.
 
 ### Optional GitHub state
 
@@ -181,7 +189,7 @@ The test suite covers collector edge cases, snapshot-to-harbor mapping, state tr
 
 Two slower gates support claims that ordinary unit tests cannot:
 
-- [Release acceptance](docs/release-acceptance.md) exercises packaged executables in native pseudo-terminals across real Git states, terminal sizes, color modes, reduced motion, keyboard navigation, saved settings, and optional-GitHub failure paths. macOS and Linux currently pass 20/20; the native Windows run is still the v0.1 blocker.
+- [Release acceptance](docs/release-acceptance.md) exercises packaged executables in native pseudo-terminals across real Git states, terminal sizes, color modes, reduced motion, keyboard navigation, saved settings, and optional-GitHub failure paths. macOS and Linux pass the full 20-row suite; the non-interactive hosted Windows runner verifies archive extraction, help, and version output.
 - [Idle resource profiling](docs/profiling.md) records the method, budgets, machine context, and raw JSON for CPU, resident memory, and repository-survey latency. All 24 recorded macOS and Debian Bookworm runs are within the published budgets; the document links the exact baseline files.
 
 These records are the compatibility and performance evidence. Git Buoy does not claim behavior on an unrecorded platform or terminal solely because it compiles there.
@@ -192,22 +200,23 @@ These records are the compatibility and performance evidence. Git Buoy does not 
 - Live events are inferred from consecutive surveys, topology, and local reflog evidence. The first survey never replays history, changes that begin and end between polls can be missed, squash merges look like commits, and some reference movement can only be called `updated`. The full evidence table is in [live-event semantics](docs/live-events.md).
 - GitHub is the only hosting adapter. It requires an authenticated `gh` executable and makes network requests only when the observer is enabled. Pull-request/check and release surveys can fail independently, and local observation continues.
 - A pull request attaches to a local dock only when GitHub reports that its head belongs to the same repository. Fork heads and other remote heads become separate awaiting docks; deleted fork metadata may fall back to pull-request identity.
-- The recorded native executable acceptance is complete on macOS and Linux, not Windows. Git Buoy has no installer, package-manager formula, or signed binary yet.
+- The hosted Windows runner cannot exercise the interactive terminal suite. Git Buoy has no installer, package-manager formula, or signed binary yet.
 - ANSI 16-color mode inherits the user's terminal palette, so exact contrast cannot be guaranteed. Condition words remain the authoritative non-color fallback.
 
 ## Releases and support
 
-There is no public GitHub release yet. The `0.1.0` crate version is a release
-candidate, not evidence that v0.1 has shipped. The
-[release-acceptance decision](docs/release-acceptance.md) blocks publication
-until all three native platform jobs pass and their evidence is recorded. A
-matching tag then runs the format, Clippy, test, packaging, terminal smoke, and
-checksum gates described in [Publishing a release](docs/releasing.md). When a
-release is published, the badge at the top of this README and the
+Version `0.1.0` is published on crates.io. There is no public GitHub release
+yet; a matching tag runs the format, Clippy, test, packaging, terminal smoke,
+and checksum gates described in [Publishing a release](docs/releasing.md). When
+the GitHub release is published, the badge at the top of this README and the
 [Releases page](https://github.com/markg-05/git-buoy/releases) update
 automatically.
 
-Until then, build from source at a reviewed commit. Report reproducible defects and accessibility or compatibility findings in [GitHub Issues](https://github.com/markg-05/git-buoy/issues). This is an early project maintained on a best-effort basis; there is no commercial support commitment or private security-response channel.
+Until then, install the published crate or build from source at a reviewed
+commit. Report reproducible defects and accessibility or compatibility findings
+in [GitHub Issues](https://github.com/markg-05/git-buoy/issues). This is an early
+project maintained on a best-effort basis; there is no commercial support
+commitment or private security-response channel.
 
 ## Contributing
 

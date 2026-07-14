@@ -1,11 +1,13 @@
 # Publishing a release
 
-Git Buoy publishes native archives through [the release workflow](../.github/workflows/release.yml). The v0.1 release is intentionally limited to GitHub release downloads; crates.io and package-manager distribution are follow-up work.
+Git Buoy publishes the Rust package to crates.io and native archives through
+[the release workflow](../.github/workflows/release.yml). Homebrew and other
+package-manager distribution remain follow-up work.
 
 ## Before creating the tag
 
 1. Confirm every v0.1 blocker other than the release-artifact issue itself is closed in the [release-readiness tracker](https://github.com/markg-05/git-buoy/issues/12).
-2. Run [release acceptance](release-acceptance.md) manually on the candidate commit. All three native jobs must report `20 passed, 0 failed`.
+2. Run [release acceptance](release-acceptance.md) manually on the candidate commit. macOS and Linux must report `20 passed, 0 failed`; Windows must pass archive extraction, `--help`, and `--version` on its non-interactive hosted runner.
 3. Record the workflow link and artifact hashes in `release-acceptance.md`, then change its machine-readable line to `Release status: Accepted`.
 4. Confirm `Cargo.toml` uses the intended version and that `docs/release-notes/v<version>.md` exists.
 5. Land the candidate on the default branch and confirm its normal CI run is green.
@@ -27,7 +29,7 @@ The tag starts the release workflow. Before publishing, it:
 - runs format, Clippy, and tests on Linux, macOS, and Windows;
 - builds archives whose names contain the version, platform, and architecture;
 - extracts each archive and checks `--help` and the displayed version;
-- runs the native disposable-repository terminal acceptance suite against each extracted executable;
+- runs the disposable-repository terminal acceptance suite on hosted runners that provide a usable terminal;
 - creates a SHA-256 file for each archive.
 
 Only the final job has `contents: write` permission. It receives the already accepted archives and checksums and creates the GitHub release using the matching notes file. A failed prerequisite leaves the tag without a published release.
