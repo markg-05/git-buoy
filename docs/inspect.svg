@@ -1,178 +1,109 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1129" height="509" viewBox="0 0 1129 509" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="15">
-<rect width="1129" height="509" rx="10" fill="#0f1622"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1094" height="490" viewBox="0 0 1094.4 490.5" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="15">
+<title>Git Buoy changed-path inspection</title>
+<rect width="100%" height="100%" rx="10" fill="#0f1622"/>
+<g>
 <text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
-<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">git-buoy</text>
-<text x="117.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
-<text x="1046.0" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">inspect</text>
-<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
-<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">main</text>
-<text x="100.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">·</text>
-<text x="117.2" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">main</text>
-<text x="160.2" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">terminal</text>
-<text x="237.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="240.8" lengthAdjust="spacingAndGlyphs">───────────────────────────┌</text>
-<text x="487.0" y="46.4" fill="#dcdfe4" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">demo/big-cargo</text>
-<text x="616.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="498.8" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────┐</text>
-<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="65.6" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="91.4" y="64.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
-<text x="134.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="177.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="263.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="306.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="375.2" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="461.2" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="469.8" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="487.0" y="64.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">branch</text>
-<text x="598.8" y="64.9" fill="#dcdfe4" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">demo/big-cargo</text>
-<text x="1106.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="469.8" y="83.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="487.0" y="83.4" fill="#78808c" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">upstream</text>
-<text x="598.8" y="83.4" fill="#dcdfe4" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">none</text>
-<text x="1106.2" y="83.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
-<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">@2ce99909</text>
-<text x="143.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">·</text>
-<text x="160.2" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">detached</text>
-<text x="237.6" y="101.9" fill="#9e8160" xml:space="preserve" textLength="240.8" lengthAdjust="spacingAndGlyphs">───────────────────────────│</text>
-<text x="487.0" y="101.9" fill="#78808c" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">workspace</text>
-<text x="598.8" y="101.9" fill="#dcdfe4" xml:space="preserve" textLength="507.4" lengthAdjust="spacingAndGlyphs">/Users/markgeorge/Documents/GitHub/git-buoy-demo/big-cargo/</text>
-<text x="1106.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="91.4" y="120.4" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
-<text x="134.4" y="120.4" fill="#e5c064" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">▢</text>
-<text x="220.4" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="263.4" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="332.2" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="418.2" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="461.2" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="469.8" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="487.0" y="120.4" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">staged</text>
-<text x="598.8" y="120.4" fill="#dcdfe4" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">45</text>
-<text x="1106.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="469.8" y="138.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="487.0" y="138.9" fill="#78808c" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">unstaged</text>
-<text x="598.8" y="138.9" fill="#dcdfe4" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">15</text>
-<text x="1106.2" y="138.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
-<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/api-refactor</text>
-<text x="211.8" y="157.4" fill="#9e8160" xml:space="preserve" textLength="266.6" lengthAdjust="spacingAndGlyphs">──────────────────────────────│</text>
-<text x="487.0" y="157.4" fill="#78808c" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">untracked</text>
-<text x="598.8" y="157.4" fill="#dcdfe4" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">80</text>
-<text x="1106.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="48.4" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="91.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
-<text x="134.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">▣▣</text>
-<text x="177.4" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="220.4" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="289.2" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="375.2" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="418.2" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="469.8" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="487.0" y="175.9" fill="#78808c" xml:space="preserve" textLength="86.0" lengthAdjust="spacingAndGlyphs">conflicted</text>
-<text x="598.8" y="175.9" fill="#dcdfe4" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">0</text>
-<text x="1106.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="469.8" y="194.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="487.0" y="194.4" fill="#78808c" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">last</text>
-<text x="530.0" y="194.4" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">commit</text>
-<text x="598.8" y="194.4" fill="#dcdfe4" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">Wrap</text>
-<text x="641.8" y="194.4" fill="#dcdfe4" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">overflowing</text>
-<text x="745.0" y="194.4" fill="#dcdfe4" xml:space="preserve" textLength="43.0" lengthAdjust="spacingAndGlyphs">cargo</text>
-<text x="796.6" y="194.4" fill="#dcdfe4" xml:space="preserve" textLength="25.8" lengthAdjust="spacingAndGlyphs">and</text>
-<text x="831.0" y="194.4" fill="#dcdfe4" xml:space="preserve" textLength="43.0" lengthAdjust="spacingAndGlyphs">float</text>
-<text x="882.6" y="194.4" fill="#dcdfe4" xml:space="preserve" textLength="25.8" lengthAdjust="spacingAndGlyphs">the</text>
-<text x="917.0" y="194.4" fill="#dcdfe4" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">inspect</text>
-<text x="985.8" y="194.4" fill="#dcdfe4" xml:space="preserve" textLength="43.0" lengthAdjust="spacingAndGlyphs">panel</text>
-<text x="1106.2" y="194.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">─▶┬─</text>
-<text x="57.0" y="212.9" fill="#dcdfe4" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">demo/big-cargo</text>
-<text x="186.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="292.4" lengthAdjust="spacingAndGlyphs">─────────────────────────────────│</text>
-<text x="1106.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="91.4" y="231.4" fill="#b898eb" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
-<text x="134.4" y="231.4" fill="#b898eb" xml:space="preserve" textLength="335.4" lengthAdjust="spacingAndGlyphs">▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
-<text x="469.8" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="1106.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="31.2" y="249.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="48.4" y="249.9" fill="#dcdfe4" xml:space="preserve" textLength="240.8" lengthAdjust="spacingAndGlyphs">++++++++++++++++++++++++++++</text>
-<text x="332.2" y="249.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="375.2" y="249.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="444.0" y="249.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="469.8" y="249.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="1106.2" y="249.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="469.8" y="268.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="1106.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="14.0" y="286.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
-<text x="57.0" y="286.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">demo/calm-sync</text>
-<text x="186.0" y="286.9" fill="#9e8160" xml:space="preserve" textLength="292.4" lengthAdjust="spacingAndGlyphs">─────────────────────────────────│</text>
-<text x="1106.2" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="31.2" y="305.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="48.4" y="305.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="91.4" y="305.4" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
-<text x="160.2" y="305.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="203.2" y="305.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="289.2" y="305.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="332.2" y="305.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="401.0" y="305.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="469.8" y="305.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="1106.2" y="305.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="469.8" y="323.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="1106.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="14.0" y="342.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
-<text x="57.0" y="342.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/ci-fixes</text>
-<text x="177.4" y="342.4" fill="#9e8160" xml:space="preserve" textLength="301.0" lengthAdjust="spacingAndGlyphs">──────────────────────────────────│</text>
-<text x="1106.2" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="31.2" y="360.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="48.4" y="360.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="91.4" y="360.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
-<text x="246.2" y="360.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="289.2" y="360.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="358.0" y="360.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="444.0" y="360.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="469.8" y="360.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="1106.2" y="360.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="469.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="1106.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="14.0" y="397.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
-<text x="57.0" y="397.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">demo/feature-waves</text>
-<text x="220.4" y="397.9" fill="#9e8160" xml:space="preserve" textLength="258.0" lengthAdjust="spacingAndGlyphs">─────────────────────────────│</text>
-<text x="1106.2" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="31.2" y="416.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="74.2" y="416.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="91.4" y="416.4" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
-<text x="134.4" y="416.4" fill="#e5c064" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">▢▢</text>
-<text x="160.2" y="416.4" fill="#dcdfe4" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">++</text>
-<text x="203.2" y="416.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="246.2" y="416.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="315.0" y="416.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="401.0" y="416.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="444.0" y="416.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="469.8" y="416.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="1106.2" y="416.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="469.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="1106.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="14.0" y="453.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
-<text x="57.0" y="453.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/hotfix</text>
-<text x="160.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="318.2" lengthAdjust="spacingAndGlyphs">────────────────────────────────────│</text>
-<text x="1106.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="31.2" y="471.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
-<text x="91.4" y="471.9" fill="#e97474" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
-<text x="134.4" y="471.9" fill="#e97474" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">✕</text>
-<text x="160.2" y="471.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="203.2" y="471.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="272.0" y="471.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="358.0" y="471.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
-<text x="401.0" y="471.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
-<text x="469.8" y="471.9" fill="#9e8160" xml:space="preserve" textLength="645.0" lengthAdjust="spacingAndGlyphs">└─────────────────────────────────────────────────────────────────────────┘</text>
-<text x="22.6" y="490.4" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">tab/j/k</text>
-<text x="91.4" y="490.4" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">select</text>
-<text x="151.6" y="490.4" fill="#78808c" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">·</text>
-<text x="168.8" y="490.4" fill="#78808c" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">l</text>
-<text x="186.0" y="490.4" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">legend</text>
-<text x="246.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">·</text>
-<text x="263.4" y="490.4" fill="#78808c" xml:space="preserve" textLength="25.8" lengthAdjust="spacingAndGlyphs">esc</text>
-<text x="297.8" y="490.4" fill="#78808c" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">back</text>
-<text x="340.8" y="490.4" fill="#78808c" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">·</text>
-<text x="358.0" y="490.4" fill="#78808c" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">q</text>
-<text x="375.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">quit</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">inspect</text>
+<text x="31.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="46.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="46.4" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="134.4" y="46.4" fill="#5694c3" xml:space="preserve" textLength="645.0" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈</text>
+<text x="788.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">┌</text>
+<text x="805.2" y="46.4" fill="#dcdfe4" xml:space="preserve" textLength="240.8" lengthAdjust="spacingAndGlyphs">demo/loading / changed files</text>
+<text x="1054.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="25.8" lengthAdjust="spacingAndGlyphs">──┐</text>
+<rect x="908.4" y="51.0" width="77.4" height="18.5" fill="#dcdfe4"/>
+<text x="788.0" y="64.9" fill="#9e8160" xml:space="preserve" textLength="25.8" lengthAdjust="spacingAndGlyphs">│ ▶</text>
+<text x="822.4" y="64.9" fill="#78808c" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">unstaged</text>
+<text x="908.4" y="64.9" fill="#0f1622" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">README.md</text>
+<text x="1071.8" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="14.0" y="83.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="83.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/blocked</text>
+<text x="168.8" y="83.4" fill="#9e8160" xml:space="preserve" textLength="627.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────│</text>
+<text x="822.4" y="83.4" fill="#78808c" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">unstaged</text>
+<text x="908.4" y="83.4" fill="#dcdfe4" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">notes/tide-plan.md</text>
+<text x="1071.8" y="83.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="31.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="101.9" fill="#e97474" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ✕</text>
+<text x="203.2" y="101.9" fill="#5694c3" xml:space="preserve" textLength="533.2" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈</text>
+<text x="788.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="822.4" y="101.9" fill="#78808c" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">unstaged</text>
+<text x="908.4" y="101.9" fill="#dcdfe4" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">src/navigation.rs</text>
+<text x="1071.8" y="101.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="788.0" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="14.0" y="138.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="138.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="163.4" lengthAdjust="spacingAndGlyphs">demo/cargo-overflow</text>
+<text x="229.0" y="138.9" fill="#9e8160" xml:space="preserve" textLength="567.6" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────│</text>
+<text x="1071.8" y="138.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="31.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="157.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="157.4" fill="#b898eb" xml:space="preserve" textLength="696.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
+<text x="788.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="157.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="788.0" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="14.0" y="194.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="194.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/diverged</text>
+<text x="177.4" y="194.4" fill="#9e8160" xml:space="preserve" textLength="619.2" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────│</text>
+<text x="1071.8" y="194.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="31.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="212.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="212.9" fill="#d6965b" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="203.2" y="212.9" fill="#5694c3" xml:space="preserve" textLength="516.0" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~</text>
+<text x="788.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="212.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="788.0" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="14.0" y="249.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="249.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">demo/idle</text>
+<text x="143.0" y="249.9" fill="#9e8160" xml:space="preserve" textLength="653.6" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────│</text>
+<text x="1071.8" y="249.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="31.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="268.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="268.4" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="160.2" y="268.4" fill="#5694c3" xml:space="preserve" textLength="602.0" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~</text>
+<text x="788.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="268.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="788.0" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="14.0" y="305.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="305.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/incoming</text>
+<text x="177.4" y="305.4" fill="#9e8160" xml:space="preserve" textLength="619.2" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────│</text>
+<text x="1071.8" y="305.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="31.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="117.2" y="323.9" fill="#5694c3" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">~    ≈</text>
+<text x="194.6" y="323.9" fill="#699dd8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="237.6" y="323.9" fill="#5694c3" xml:space="preserve" textLength="524.6" lengthAdjust="spacingAndGlyphs">≈~       ~    ≈       ~         ~    ≈       ~         ~    ≈</text>
+<text x="788.0" y="323.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="323.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="788.0" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="14.0" y="360.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="360.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/live-loading</text>
+<text x="211.8" y="360.9" fill="#9e8160" xml:space="preserve" textLength="584.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────│</text>
+<text x="1071.8" y="360.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="31.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="379.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="379.4" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="186.0" y="379.4" fill="#5694c3" xml:space="preserve" textLength="602.0" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~</text>
+<text x="788.0" y="379.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="788.0" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<rect x="48.4" y="402.5" width="120.4" height="18.5" fill="#dcdfe4"/>
+<text x="14.0" y="416.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">─▶┬─</text>
+<text x="57.0" y="416.4" fill="#0f1622" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/loading</text>
+<text x="168.8" y="416.4" fill="#9e8160" xml:space="preserve" textLength="627.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────│</text>
+<text x="1071.8" y="416.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="31.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="434.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="434.9" fill="#e5c064" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▢▢▢</text>
+<text x="229.0" y="434.9" fill="#5694c3" xml:space="preserve" textLength="516.0" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~</text>
+<text x="788.0" y="434.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="1071.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="788.0" y="453.4" fill="#9e8160" xml:space="preserve" textLength="292.4" lengthAdjust="spacingAndGlyphs">└────────────────────────────────┘</text>
+<text x="22.6" y="471.9" fill="#78808c" xml:space="preserve" textLength="481.6" lengthAdjust="spacingAndGlyphs">j/k file · p pull request · tab dock · esc back · q quit</text>
+</g>
 </svg>

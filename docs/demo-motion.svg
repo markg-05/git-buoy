@@ -1,0 +1,1000 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1094" height="564" viewBox="0 0 1094.4 564.5" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="15">
+<title>Git Buoy live cargo transition and ambient paging</title>
+<rect width="100%" height="100%" rx="10" fill="#0f1622"/>
+<style>
+.frame{opacity:0;animation:frame-cycle 2.000s linear infinite}
+@keyframes frame-cycle{0%,6.24999%{opacity:1}6.25000%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.frame{animation:none;opacity:0}.frame-0{opacity:1}}
+</style>
+<g class="frame frame-0" style="animation-delay:0.000s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">main · main terminal</text>
+<text x="237.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="46.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="64.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="134.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/blocked</text>
+<text x="168.8" y="101.9" fill="#9e8160" xml:space="preserve" textLength="731.0" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="908.4" y="101.9" fill="#e97474" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">↑1 blocked · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="120.4" fill="#e97474" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ✕</text>
+<text x="203.2" y="120.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="163.4" lengthAdjust="spacingAndGlyphs">demo/cargo-overflow</text>
+<text x="229.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="705.2" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="157.4" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="817.0" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
+<text x="917.0" y="175.9" fill="#dcdfe4" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">+</text>
+<text x="925.6" y="175.9" fill="#5694c3" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/diverged</text>
+<text x="177.4" y="212.9" fill="#9e8160" xml:space="preserve" textLength="688.0" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────</text>
+<text x="874.0" y="212.9" fill="#d6965b" xml:space="preserve" textLength="180.6" lengthAdjust="spacingAndGlyphs">↑1 ↓1 diverged · idle</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="231.4" fill="#d6965b" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="203.2" y="231.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="14.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="268.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">demo/idle</text>
+<text x="143.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="808.4" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="268.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="286.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="286.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="160.2" y="286.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="323.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="323.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/incoming</text>
+<text x="177.4" y="323.9" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="323.9" fill="#699dd8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↓1 incoming · idle</text>
+<text x="1063.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="117.2" y="342.4" fill="#5694c3" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">~    ≈</text>
+<text x="194.6" y="342.4" fill="#699dd8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="237.6" y="342.4" fill="#5694c3" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">≈~       ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="379.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="379.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/live-loading</text>
+<text x="211.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="696.6" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────</text>
+<text x="917.0" y="379.4" fill="#e5c064" xml:space="preserve" textLength="137.6" lengthAdjust="spacingAndGlyphs">loading · recent</text>
+<text x="1063.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="397.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">≈~</text>
+<text x="91.4" y="397.9" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▜▄▄▛</text>
+<text x="186.0" y="397.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="14.0" y="434.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="434.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/loading</text>
+<text x="168.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="934.2" y="434.9" fill="#e5c064" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">loading · idle</text>
+<text x="1063.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="453.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="453.4" fill="#e5c064" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▢▢▢</text>
+<text x="229.0" y="453.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="31.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">… 4 more docks below</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-1" style="animation-delay:0.125s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">main · main terminal</text>
+<text x="237.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="46.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="64.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="134.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/blocked</text>
+<text x="168.8" y="101.9" fill="#9e8160" xml:space="preserve" textLength="731.0" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="908.4" y="101.9" fill="#e97474" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">↑1 blocked · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="120.4" fill="#e97474" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ✕</text>
+<text x="203.2" y="120.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="163.4" lengthAdjust="spacingAndGlyphs">demo/cargo-overflow</text>
+<text x="229.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="705.2" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="157.4" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="817.0" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
+<text x="917.0" y="175.9" fill="#dcdfe4" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">+</text>
+<text x="925.6" y="175.9" fill="#5694c3" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/diverged</text>
+<text x="177.4" y="212.9" fill="#9e8160" xml:space="preserve" textLength="688.0" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────</text>
+<text x="874.0" y="212.9" fill="#d6965b" xml:space="preserve" textLength="180.6" lengthAdjust="spacingAndGlyphs">↑1 ↓1 diverged · idle</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="231.4" fill="#d6965b" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="203.2" y="231.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="14.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="268.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">demo/idle</text>
+<text x="143.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="808.4" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="268.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="286.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="286.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="160.2" y="286.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="323.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="323.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/incoming</text>
+<text x="177.4" y="323.9" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="323.9" fill="#699dd8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↓1 incoming · idle</text>
+<text x="1063.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="117.2" y="342.4" fill="#5694c3" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">~    ≈</text>
+<text x="194.6" y="342.4" fill="#699dd8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="237.6" y="342.4" fill="#5694c3" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">≈~       ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="379.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="379.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/live-loading</text>
+<text x="211.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="696.6" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────</text>
+<text x="917.0" y="379.4" fill="#e5c064" xml:space="preserve" textLength="137.6" lengthAdjust="spacingAndGlyphs">loading · recent</text>
+<text x="1063.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="397.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">≈~</text>
+<text x="91.4" y="397.9" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▜▄▄▛</text>
+<text x="134.4" y="397.9" fill="#dcdfe4" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">++</text>
+<text x="186.0" y="397.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="14.0" y="434.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="434.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/loading</text>
+<text x="168.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="934.2" y="434.9" fill="#e5c064" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">loading · idle</text>
+<text x="1063.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="453.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="453.4" fill="#e5c064" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▢▢▢</text>
+<text x="229.0" y="453.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="31.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">… 4 more docks below</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-2" style="animation-delay:0.250s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">main · main terminal</text>
+<text x="237.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="46.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="64.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="134.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/blocked</text>
+<text x="168.8" y="101.9" fill="#9e8160" xml:space="preserve" textLength="731.0" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="908.4" y="101.9" fill="#e97474" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">↑1 blocked · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="120.4" fill="#e97474" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ✕</text>
+<text x="203.2" y="120.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="163.4" lengthAdjust="spacingAndGlyphs">demo/cargo-overflow</text>
+<text x="229.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="705.2" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="157.4" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="817.0" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
+<text x="917.0" y="175.9" fill="#dcdfe4" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">+</text>
+<text x="925.6" y="175.9" fill="#5694c3" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/diverged</text>
+<text x="177.4" y="212.9" fill="#9e8160" xml:space="preserve" textLength="688.0" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────</text>
+<text x="874.0" y="212.9" fill="#d6965b" xml:space="preserve" textLength="180.6" lengthAdjust="spacingAndGlyphs">↑1 ↓1 diverged · idle</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="231.4" fill="#d6965b" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="203.2" y="231.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="14.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="268.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">demo/idle</text>
+<text x="143.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="808.4" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="268.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="286.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="286.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="160.2" y="286.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="323.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="323.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/incoming</text>
+<text x="177.4" y="323.9" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="323.9" fill="#699dd8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↓1 incoming · idle</text>
+<text x="1063.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="117.2" y="342.4" fill="#5694c3" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">~    ≈</text>
+<text x="194.6" y="342.4" fill="#699dd8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="237.6" y="342.4" fill="#5694c3" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">≈~       ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="379.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="379.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/live-loading</text>
+<text x="211.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="696.6" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────</text>
+<text x="917.0" y="379.4" fill="#e5c064" xml:space="preserve" textLength="137.6" lengthAdjust="spacingAndGlyphs">loading · recent</text>
+<text x="1063.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="397.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">≈~</text>
+<text x="91.4" y="397.9" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▜▄▄▛</text>
+<text x="134.4" y="397.9" fill="#dcdfe4" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">++++</text>
+<text x="186.0" y="397.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="14.0" y="434.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="434.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/loading</text>
+<text x="168.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="934.2" y="434.9" fill="#e5c064" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">loading · idle</text>
+<text x="1063.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="453.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="453.4" fill="#e5c064" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▢▢▢</text>
+<text x="229.0" y="453.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="31.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">… 4 more docks below</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-3" style="animation-delay:0.375s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">main · main terminal</text>
+<text x="237.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="46.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="64.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="143.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/blocked</text>
+<text x="168.8" y="101.9" fill="#9e8160" xml:space="preserve" textLength="731.0" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="908.4" y="101.9" fill="#e97474" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">↑1 blocked · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="120.4" fill="#e97474" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ✕</text>
+<text x="143.0" y="120.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="163.4" lengthAdjust="spacingAndGlyphs">demo/cargo-overflow</text>
+<text x="229.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="705.2" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="157.4" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="817.0" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
+<text x="917.0" y="175.9" fill="#dcdfe4" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">+</text>
+<text x="934.2" y="175.9" fill="#5694c3" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/diverged</text>
+<text x="177.4" y="212.9" fill="#9e8160" xml:space="preserve" textLength="688.0" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────</text>
+<text x="874.0" y="212.9" fill="#d6965b" xml:space="preserve" textLength="180.6" lengthAdjust="spacingAndGlyphs">↑1 ↓1 diverged · idle</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="231.4" fill="#d6965b" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="211.8" y="231.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="14.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="268.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">demo/idle</text>
+<text x="143.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="808.4" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="268.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="286.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="286.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="168.8" y="286.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="323.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="323.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/incoming</text>
+<text x="177.4" y="323.9" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="323.9" fill="#699dd8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↓1 incoming · idle</text>
+<text x="1063.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="125.8" y="342.4" fill="#5694c3" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">~    ≈</text>
+<text x="194.6" y="342.4" fill="#699dd8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="237.6" y="342.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">≈~        ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="379.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="379.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/live-loading</text>
+<text x="211.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="696.6" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────</text>
+<text x="917.0" y="379.4" fill="#e5c064" xml:space="preserve" textLength="137.6" lengthAdjust="spacingAndGlyphs">loading · recent</text>
+<text x="1063.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="397.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">~≈</text>
+<text x="91.4" y="397.9" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▜▄▄▛</text>
+<text x="134.4" y="397.9" fill="#dcdfe4" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">++++++</text>
+<text x="194.6" y="397.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="14.0" y="434.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="434.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/loading</text>
+<text x="168.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="934.2" y="434.9" fill="#e5c064" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">loading · idle</text>
+<text x="1063.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="453.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="453.4" fill="#e5c064" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▢▢▢</text>
+<text x="237.6" y="453.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="31.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">… 4 more docks below</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-4" style="animation-delay:0.500s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">main · main terminal</text>
+<text x="237.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="46.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="64.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="143.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/blocked</text>
+<text x="168.8" y="101.9" fill="#9e8160" xml:space="preserve" textLength="731.0" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="908.4" y="101.9" fill="#e97474" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">↑1 blocked · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="120.4" fill="#e97474" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ✕</text>
+<text x="143.0" y="120.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="163.4" lengthAdjust="spacingAndGlyphs">demo/cargo-overflow</text>
+<text x="229.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="705.2" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="157.4" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="817.0" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
+<text x="917.0" y="175.9" fill="#dcdfe4" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">+</text>
+<text x="934.2" y="175.9" fill="#5694c3" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/diverged</text>
+<text x="177.4" y="212.9" fill="#9e8160" xml:space="preserve" textLength="688.0" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────</text>
+<text x="874.0" y="212.9" fill="#d6965b" xml:space="preserve" textLength="180.6" lengthAdjust="spacingAndGlyphs">↑1 ↓1 diverged · idle</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="231.4" fill="#d6965b" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="211.8" y="231.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="14.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="268.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">demo/idle</text>
+<text x="143.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="808.4" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="268.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="286.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="286.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="168.8" y="286.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="323.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="323.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/incoming</text>
+<text x="177.4" y="323.9" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="323.9" fill="#699dd8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↓1 incoming · idle</text>
+<text x="1063.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="125.8" y="342.4" fill="#5694c3" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">~    ≈</text>
+<text x="186.0" y="342.4" fill="#699dd8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="229.0" y="342.4" fill="#5694c3" xml:space="preserve" textLength="851.4" lengthAdjust="spacingAndGlyphs">≈~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="379.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="379.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/live-loading</text>
+<text x="211.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="696.6" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────</text>
+<text x="917.0" y="379.4" fill="#e5c064" xml:space="preserve" textLength="137.6" lengthAdjust="spacingAndGlyphs">loading · recent</text>
+<text x="1063.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="397.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">~≈</text>
+<text x="91.4" y="397.9" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="134.4" y="397.9" fill="#dcdfe4" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">++++++++</text>
+<text x="280.6" y="397.9" fill="#5694c3" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="14.0" y="434.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="434.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/loading</text>
+<text x="168.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="934.2" y="434.9" fill="#e5c064" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">loading · idle</text>
+<text x="1063.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="453.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="453.4" fill="#e5c064" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▢▢▢</text>
+<text x="237.6" y="453.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="31.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">… 4 more docks below</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-5" style="animation-delay:0.625s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">main · main terminal</text>
+<text x="237.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="46.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="64.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="143.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/blocked</text>
+<text x="168.8" y="101.9" fill="#9e8160" xml:space="preserve" textLength="731.0" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="908.4" y="101.9" fill="#e97474" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">↑1 blocked · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="120.4" fill="#e97474" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ✕</text>
+<text x="143.0" y="120.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="163.4" lengthAdjust="spacingAndGlyphs">demo/cargo-overflow</text>
+<text x="229.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="705.2" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="157.4" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="817.0" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
+<text x="917.0" y="175.9" fill="#dcdfe4" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">+</text>
+<text x="934.2" y="175.9" fill="#5694c3" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/diverged</text>
+<text x="177.4" y="212.9" fill="#9e8160" xml:space="preserve" textLength="688.0" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────</text>
+<text x="874.0" y="212.9" fill="#d6965b" xml:space="preserve" textLength="180.6" lengthAdjust="spacingAndGlyphs">↑1 ↓1 diverged · idle</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="231.4" fill="#d6965b" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="211.8" y="231.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="14.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="268.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">demo/idle</text>
+<text x="143.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="808.4" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="268.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="286.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="286.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="168.8" y="286.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="323.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="323.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/incoming</text>
+<text x="177.4" y="323.9" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="323.9" fill="#699dd8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↓1 incoming · idle</text>
+<text x="1063.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="125.8" y="342.4" fill="#5694c3" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">~    ≈</text>
+<text x="186.0" y="342.4" fill="#699dd8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="229.0" y="342.4" fill="#5694c3" xml:space="preserve" textLength="851.4" lengthAdjust="spacingAndGlyphs">≈~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="379.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="379.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/live-loading</text>
+<text x="211.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="696.6" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────</text>
+<text x="917.0" y="379.4" fill="#e5c064" xml:space="preserve" textLength="137.6" lengthAdjust="spacingAndGlyphs">loading · recent</text>
+<text x="1063.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="397.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">~≈</text>
+<text x="91.4" y="397.9" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="134.4" y="397.9" fill="#dcdfe4" xml:space="preserve" textLength="86.0" lengthAdjust="spacingAndGlyphs">++++++++++</text>
+<text x="280.6" y="397.9" fill="#5694c3" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="14.0" y="434.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="434.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/loading</text>
+<text x="168.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="934.2" y="434.9" fill="#e5c064" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">loading · idle</text>
+<text x="1063.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="453.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="453.4" fill="#e5c064" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▢▢▢</text>
+<text x="237.6" y="453.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="31.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">… 4 more docks below</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-6" style="animation-delay:0.750s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">main · main terminal</text>
+<text x="237.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="46.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="65.6" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="64.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="151.6" y="64.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/blocked</text>
+<text x="168.8" y="101.9" fill="#9e8160" xml:space="preserve" textLength="731.0" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="908.4" y="101.9" fill="#e97474" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">↑1 blocked · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="120.4" fill="#e97474" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ✕</text>
+<text x="151.6" y="120.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="163.4" lengthAdjust="spacingAndGlyphs">demo/cargo-overflow</text>
+<text x="229.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="705.2" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="157.4" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="65.6" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="817.0" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
+<text x="917.0" y="175.9" fill="#dcdfe4" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">+</text>
+<text x="942.8" y="175.9" fill="#5694c3" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/diverged</text>
+<text x="177.4" y="212.9" fill="#9e8160" xml:space="preserve" textLength="688.0" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────</text>
+<text x="874.0" y="212.9" fill="#d6965b" xml:space="preserve" textLength="180.6" lengthAdjust="spacingAndGlyphs">↑1 ↓1 diverged · idle</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="65.6" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="100.0" y="231.4" fill="#d6965b" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="220.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="14.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="268.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">demo/idle</text>
+<text x="143.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="808.4" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="268.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="286.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="286.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="177.4" y="286.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="323.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="323.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/incoming</text>
+<text x="177.4" y="323.9" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="323.9" fill="#699dd8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↓1 incoming · idle</text>
+<text x="1063.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="134.4" y="342.4" fill="#5694c3" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">~    ≈</text>
+<text x="186.0" y="342.4" fill="#699dd8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="229.0" y="342.4" fill="#5694c3" xml:space="preserve" textLength="791.2" lengthAdjust="spacingAndGlyphs">≈~          ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈</text>
+<text x="14.0" y="379.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="379.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/live-loading</text>
+<text x="211.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="696.6" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────</text>
+<text x="917.0" y="379.4" fill="#e5c064" xml:space="preserve" textLength="137.6" lengthAdjust="spacingAndGlyphs">loading · recent</text>
+<text x="1063.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="397.9" fill="#5694c3" xml:space="preserve" textLength="43.0" lengthAdjust="spacingAndGlyphs">~  ≈~</text>
+<text x="91.4" y="397.9" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="134.4" y="397.9" fill="#dcdfe4" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">++++++++++++</text>
+<text x="289.2" y="397.9" fill="#5694c3" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="14.0" y="434.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="434.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/loading</text>
+<text x="168.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="934.2" y="434.9" fill="#e5c064" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">loading · idle</text>
+<text x="1063.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="453.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="453.4" fill="#e5c064" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▢▢▢</text>
+<text x="160.2" y="453.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~</text>
+<text x="31.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">… 4 more docks below</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-7" style="animation-delay:0.875s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">main · main terminal</text>
+<text x="237.6" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="46.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="65.6" y="64.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="64.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="151.6" y="64.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/blocked</text>
+<text x="168.8" y="101.9" fill="#9e8160" xml:space="preserve" textLength="731.0" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="908.4" y="101.9" fill="#e97474" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">↑1 blocked · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="120.4" fill="#e97474" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ✕</text>
+<text x="151.6" y="120.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="163.4" lengthAdjust="spacingAndGlyphs">demo/cargo-overflow</text>
+<text x="229.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="705.2" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="157.4" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="65.6" y="175.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="175.9" fill="#b898eb" xml:space="preserve" textLength="817.0" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣▣</text>
+<text x="917.0" y="175.9" fill="#dcdfe4" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">+</text>
+<text x="942.8" y="175.9" fill="#5694c3" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/diverged</text>
+<text x="177.4" y="212.9" fill="#9e8160" xml:space="preserve" textLength="688.0" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────</text>
+<text x="874.0" y="212.9" fill="#d6965b" xml:space="preserve" textLength="180.6" lengthAdjust="spacingAndGlyphs">↑1 ↓1 diverged · idle</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="65.6" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="100.0" y="231.4" fill="#d6965b" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="220.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~         ~</text>
+<text x="14.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="268.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="77.4" lengthAdjust="spacingAndGlyphs">demo/idle</text>
+<text x="143.0" y="268.4" fill="#9e8160" xml:space="preserve" textLength="808.4" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="960.0" y="268.4" fill="#7ec091" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">calm · idle</text>
+<text x="1063.2" y="268.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="286.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="286.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="286.9" fill="#7ec091" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="177.4" y="286.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="323.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="323.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/incoming</text>
+<text x="177.4" y="323.9" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="323.9" fill="#699dd8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↓1 incoming · idle</text>
+<text x="1063.2" y="323.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="342.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="134.4" y="342.4" fill="#5694c3" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">~    ≈</text>
+<text x="186.0" y="342.4" fill="#699dd8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="229.0" y="342.4" fill="#5694c3" xml:space="preserve" textLength="791.2" lengthAdjust="spacingAndGlyphs">≈~          ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈</text>
+<text x="14.0" y="379.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="379.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="146.2" lengthAdjust="spacingAndGlyphs">demo/live-loading</text>
+<text x="211.8" y="379.4" fill="#9e8160" xml:space="preserve" textLength="696.6" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────</text>
+<text x="917.0" y="379.4" fill="#e5c064" xml:space="preserve" textLength="137.6" lengthAdjust="spacingAndGlyphs">loading · recent</text>
+<text x="1063.2" y="379.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="397.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="397.9" fill="#5694c3" xml:space="preserve" textLength="43.0" lengthAdjust="spacingAndGlyphs">~  ≈~</text>
+<text x="91.4" y="397.9" fill="#e5c064" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="134.4" y="397.9" fill="#dcdfe4" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">++++++++++++</text>
+<text x="289.2" y="397.9" fill="#5694c3" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="14.0" y="434.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="434.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="103.2" lengthAdjust="spacingAndGlyphs">demo/loading</text>
+<text x="168.8" y="434.9" fill="#9e8160" xml:space="preserve" textLength="756.8" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="934.2" y="434.9" fill="#e5c064" xml:space="preserve" textLength="120.4" lengthAdjust="spacingAndGlyphs">loading · idle</text>
+<text x="1063.2" y="434.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="453.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="453.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≈</text>
+<text x="91.4" y="453.4" fill="#e5c064" xml:space="preserve" textLength="68.8" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▢▢▢</text>
+<text x="160.2" y="453.4" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈    ≈       ~</text>
+<text x="31.2" y="490.4" fill="#78808c" xml:space="preserve" textLength="172.0" lengthAdjust="spacingAndGlyphs">… 4 more docks below</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-8" style="animation-delay:1.000s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/outbound</text>
+<text x="177.4" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="46.4" fill="#66c7d8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↑1 outbound · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">≈~</text>
+<text x="108.6" y="64.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="203.2" y="64.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈            ~         ~</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/sealed</text>
+<text x="160.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="774.0" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="101.9" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="120.4" fill="#b898eb" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣</text>
+<text x="160.2" y="120.4" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/moored</text>
+<text x="160.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="157.4" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="175.9" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="117.2" y="175.9" fill="#5694c3" xml:space="preserve" textLength="954.6" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/parked</text>
+<text x="160.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="212.9" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="74.2" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="231.4" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="117.2" y="231.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="31.2" y="268.4" fill="#78808c" xml:space="preserve" textLength="129.0" lengthAdjust="spacingAndGlyphs">… 8 docks above</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-9" style="animation-delay:1.125s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/outbound</text>
+<text x="177.4" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="46.4" fill="#66c7d8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↑1 outbound · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">~≈</text>
+<text x="108.6" y="64.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="211.8" y="64.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈            ~         ~</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/sealed</text>
+<text x="160.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="774.0" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="101.9" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="120.4" fill="#b898eb" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣</text>
+<text x="168.8" y="120.4" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/moored</text>
+<text x="160.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="157.4" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="175.9" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="125.8" y="175.9" fill="#5694c3" xml:space="preserve" textLength="954.6" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/parked</text>
+<text x="160.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="212.9" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="231.4" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="125.8" y="231.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="31.2" y="268.4" fill="#78808c" xml:space="preserve" textLength="129.0" lengthAdjust="spacingAndGlyphs">… 8 docks above</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-10" style="animation-delay:1.250s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/outbound</text>
+<text x="177.4" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="46.4" fill="#66c7d8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↑1 outbound · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">~≈</text>
+<text x="108.6" y="64.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="211.8" y="64.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈            ~         ~</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/sealed</text>
+<text x="160.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="774.0" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="101.9" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="120.4" fill="#b898eb" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣</text>
+<text x="168.8" y="120.4" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/moored</text>
+<text x="160.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="157.4" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="175.9" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="125.8" y="175.9" fill="#5694c3" xml:space="preserve" textLength="954.6" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/parked</text>
+<text x="160.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="212.9" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="231.4" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="125.8" y="231.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="31.2" y="268.4" fill="#78808c" xml:space="preserve" textLength="129.0" lengthAdjust="spacingAndGlyphs">… 8 docks above</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-11" style="animation-delay:1.375s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/outbound</text>
+<text x="177.4" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="46.4" fill="#66c7d8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↑1 outbound · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">~≈</text>
+<text x="108.6" y="64.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="211.8" y="64.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈            ~         ~</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/sealed</text>
+<text x="160.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="774.0" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="101.9" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="120.4" fill="#b898eb" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣</text>
+<text x="168.8" y="120.4" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/moored</text>
+<text x="160.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="157.4" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="175.9" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="125.8" y="175.9" fill="#5694c3" xml:space="preserve" textLength="954.6" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈       ~</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/parked</text>
+<text x="160.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="212.9" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="82.8" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="231.4" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="125.8" y="231.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="31.2" y="268.4" fill="#78808c" xml:space="preserve" textLength="129.0" lengthAdjust="spacingAndGlyphs">… 8 docks above</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-12" style="animation-delay:1.500s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/outbound</text>
+<text x="177.4" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="46.4" fill="#66c7d8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↑1 outbound · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="100.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">≈~</text>
+<text x="117.2" y="64.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="220.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈            ~         ~</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/sealed</text>
+<text x="160.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="774.0" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="101.9" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="120.4" fill="#b898eb" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣</text>
+<text x="177.4" y="120.4" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/moored</text>
+<text x="160.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="157.4" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="175.9" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="134.4" y="175.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/parked</text>
+<text x="160.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="212.9" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="231.4" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="134.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="31.2" y="268.4" fill="#78808c" xml:space="preserve" textLength="129.0" lengthAdjust="spacingAndGlyphs">… 8 docks above</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-13" style="animation-delay:1.625s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/outbound</text>
+<text x="177.4" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="46.4" fill="#66c7d8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↑1 outbound · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="100.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">≈~</text>
+<text x="117.2" y="64.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="220.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈            ~         ~</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/sealed</text>
+<text x="160.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="774.0" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="101.9" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="120.4" fill="#b898eb" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣</text>
+<text x="177.4" y="120.4" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/moored</text>
+<text x="160.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="157.4" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="175.9" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="134.4" y="175.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/parked</text>
+<text x="160.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="212.9" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="231.4" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="134.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="31.2" y="268.4" fill="#78808c" xml:space="preserve" textLength="129.0" lengthAdjust="spacingAndGlyphs">… 8 docks above</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-14" style="animation-delay:1.750s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/outbound</text>
+<text x="177.4" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="46.4" fill="#66c7d8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↑1 outbound · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="100.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">≈~</text>
+<text x="117.2" y="64.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="220.4" y="64.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈            ~         ~</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/sealed</text>
+<text x="160.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="774.0" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="101.9" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="120.4" fill="#b898eb" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣</text>
+<text x="177.4" y="120.4" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/moored</text>
+<text x="160.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="157.4" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="175.9" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="134.4" y="175.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/parked</text>
+<text x="160.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="212.9" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="48.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="231.4" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="134.4" y="231.4" fill="#5694c3" xml:space="preserve" textLength="911.6" lengthAdjust="spacingAndGlyphs">≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="31.2" y="268.4" fill="#78808c" xml:space="preserve" textLength="129.0" lengthAdjust="spacingAndGlyphs">… 8 docks above</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+<g class="frame frame-15" style="animation-delay:1.875s">
+<text x="22.6" y="27.9" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">≋</text>
+<text x="39.8" y="27.9" fill="#dcdfe4" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">git-buoy-demo</text>
+<text x="160.2" y="27.9" fill="#78808c" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">harbor</text>
+<text x="1011.6" y="27.9" fill="#78808c" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">ambient</text>
+<text x="14.0" y="46.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="46.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">demo/outbound</text>
+<text x="177.4" y="46.4" fill="#9e8160" xml:space="preserve" textLength="713.8" lengthAdjust="spacingAndGlyphs">───────────────────────────────────────────────────────────────────────────────────</text>
+<text x="899.8" y="46.4" fill="#66c7d8" xml:space="preserve" textLength="154.8" lengthAdjust="spacingAndGlyphs">↑1 outbound · idle</text>
+<text x="1063.2" y="46.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="64.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="100.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">~≈</text>
+<text x="117.2" y="64.9" fill="#66c7d8" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">▙▄▄▟</text>
+<text x="229.0" y="64.9" fill="#5694c3" xml:space="preserve" textLength="842.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈            ~         ~</text>
+<text x="14.0" y="101.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="101.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/sealed</text>
+<text x="160.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="774.0" lengthAdjust="spacingAndGlyphs">──────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="942.8" y="101.9" fill="#b898eb" xml:space="preserve" textLength="111.8" lengthAdjust="spacingAndGlyphs">sealed · idle</text>
+<text x="1063.2" y="101.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="120.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="120.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="120.4" fill="#b898eb" xml:space="preserve" textLength="60.2" lengthAdjust="spacingAndGlyphs">▙▄▄▟ ▣▣</text>
+<text x="186.0" y="120.4" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~    ~         ~    ≈</text>
+<text x="14.0" y="157.4" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="157.4" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/moored</text>
+<text x="160.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="157.4" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="157.4" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="175.9" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="91.4" y="175.9" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="143.0" y="175.9" fill="#5694c3" xml:space="preserve" textLength="885.8" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~              ~    ≈</text>
+<text x="14.0" y="212.9" fill="#9e8160" xml:space="preserve" textLength="34.4" lengthAdjust="spacingAndGlyphs">──┬─</text>
+<text x="57.0" y="212.9" fill="#dcdfe4" font-weight="700" xml:space="preserve" textLength="94.6" lengthAdjust="spacingAndGlyphs">demo/parked</text>
+<text x="160.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="834.2" lengthAdjust="spacingAndGlyphs">─────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="1003.0" y="212.9" fill="#828a96" xml:space="preserve" textLength="51.6" lengthAdjust="spacingAndGlyphs">moored</text>
+<text x="1063.2" y="212.9" fill="#9e8160" xml:space="preserve" textLength="17.2" lengthAdjust="spacingAndGlyphs">──</text>
+<text x="31.2" y="231.4" fill="#9e8160" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="57.0" y="231.4" fill="#5694c3" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">~</text>
+<text x="91.4" y="231.4" fill="#828a96" xml:space="preserve" textLength="8.6" lengthAdjust="spacingAndGlyphs">◍</text>
+<text x="100.0" y="231.4" fill="#5694c3" xml:space="preserve" textLength="954.6" lengthAdjust="spacingAndGlyphs">~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ≈       ~         ~    ~    ≈       ~</text>
+<text x="31.2" y="268.4" fill="#78808c" xml:space="preserve" textLength="129.0" lengthAdjust="spacingAndGlyphs">… 8 docks above</text>
+<text x="22.6" y="545.9" fill="#78808c" xml:space="preserve" textLength="455.8" lengthAdjust="spacingAndGlyphs">i inspect · s settings · l legend · m motion · q quit</text>
+</g>
+</svg>

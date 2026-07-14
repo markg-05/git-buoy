@@ -2,9 +2,9 @@
 
 > A living terminal harbor for understanding parallel software work at a glance.
 
-![Git Buoy rendering a repository's branches and worktrees as an animated harbor](docs/demo.svg)
+![Git Buoy observing live cargo and paging through an overflowing harbor](docs/demo-motion.svg)
 
-<sup>Ambient mode against a demo repository with synthetic branches and worktrees, arranged to show every dock condition at once. `demo/big-cargo` has so many pending changes that its cargo wraps onto a second row.</sup>
+<sup>Captured from the current application against the local demo fixture. Twelve changed paths load onto `demo/live-loading`, directional vessels move, and the overflowing harbor advances to its next page. Prefer a still image? See the [static ambient capture](docs/demo.svg).</sup>
 
 Git Buoy is an experimental terminal application that turns the state of a Git repository into an animated seaport. Instead of presenting another commit graph or a wall of status text, it gives branches, worktrees, coding agents, pull requests, and CI activity a shared visual language.
 
@@ -13,6 +13,27 @@ The goal is not to disguise Git. It is to make a busy repository feel legible, e
 ## Status
 
 Git Buoy is in early development. The stack is Rust with [ratatui](https://ratatui.rs), chosen and recorded in [docs/adr/0001-implementation-stack.md](docs/adr/0001-implementation-stack.md). The current build discovers branches and linked worktrees in one local repository, watches their state, and renders them as an animated harbor with keyboard inspection. An opt-in GitHub observer adds pull requests, reviews, checks, and releases without making them a core requirement.
+
+## See it work in 30–60 seconds
+
+With Git and the Rust toolchain installed, create the disposable fixture and run Git Buoy against it:
+
+```sh
+./scripts/demo.sh setup
+./scripts/demo.sh run
+```
+
+Setup replaces only `/tmp/git-buoy-demo`. It creates a local bare origin, a main worktree, nine linked worktrees, and two moored branches. All commits use fixed demo identities and timestamps; no network, credentials, GitHub state, global Git configuration, or private repository data is used. Run uses a fixture-local Git Buoy settings file, surveys every half-second, and marks unchanged workspaces idle after one second.
+
+The first screen covers calm/idle, loading, sealed, outbound, incoming, diverged, and blocked docks, plus wrapped cargo and an overflow marker. Ambient mode advances to the two moored branches. Press `i`, use `j`/`k` to choose a dirty dock, then press `Enter` twice to inspect exact changed paths.
+
+To see a live repository transition, leave Git Buoy running and use another terminal:
+
+```sh
+./scripts/demo.sh transition
+```
+
+Each call adds or removes twelve untracked paths in `demo/live-loading`, so the cargo visibly loads or unloads on the next survey.
 
 ## Getting started
 
@@ -156,9 +177,9 @@ Git Buoy should work in two complementary modes:
 
 When every dock does not fit, ambient mode advances through dock-sized pages by default and reports how many docks remain above or below the current view. Harbor Controls can hold the first page instead. Reduced motion also keeps the first page static while preserving the independent cycling preference and the same overflow information.
 
-![Inspect mode floating a detail panel over the harbor](docs/inspect.svg)
+![Inspect mode showing exact changed paths over the harbor](docs/inspect.svg)
 
-<sup>Inspect mode: the detail panel floats over the full-width harbor and sizes itself to its content, so workspace paths and commit messages stay on one line.</sup>
+<sup>Inspect mode captured from the fixture: the panel shows the real categories and paths reported by the collector while the full-width harbor remains visible underneath.</sup>
 
 The visual style should feel cozy, precise, and restrained. Animation should carry information rather than merely add activity. The application must remain understandable with reduced motion and in terminals with limited color support.
 
@@ -206,6 +227,14 @@ The project is young and the information model is still settling, so expect chur
 Before making changes, read [AGENTS.md](AGENTS.md). It records the working expectations, the module layering, and the exact commands CI runs.
 The repeatable idle-resource release gate and recorded platform baselines are in
 [docs/profiling.md](docs/profiling.md).
+
+Regenerate all README media from the current collector, application state machine, and ratatui renderer with:
+
+```sh
+./scripts/demo.sh capture
+```
+
+The capture command rebuilds the fixture, records a real cargo transition, writes `docs/demo.svg`, `docs/demo-motion.svg`, and `docs/inspect.svg`, restores the changed worktree, and rejects private-looking local paths in the generated files.
 
 ## License
 
