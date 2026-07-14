@@ -1,8 +1,9 @@
 # Publishing a release
 
-Git Buoy publishes the Rust package to crates.io and native archives through
-[the release workflow](../.github/workflows/release.yml). Homebrew and other
-package-manager distribution remain follow-up work.
+Git Buoy publishes the Rust package to crates.io, native archives through
+[the release workflow](../.github/workflows/release.yml), and an Apple Silicon
+formula through the [Homebrew tap](https://github.com/markg-05/homebrew-tap).
+Other package-manager distribution remains follow-up work.
 
 ## Before creating the tag
 
@@ -34,4 +35,7 @@ The tag starts the release workflow. Before publishing, it:
 
 Only the final job has `contents: write` permission. It receives the already accepted archives and checksums and creates the GitHub release using the matching notes file. A failed prerequisite leaves the tag without a published release.
 
-After publication, verify the release page and checksums, close the release-artifact issue, and re-audit the parent readiness tracker before closing it.
+After publication, verify the release page and checksums, update the Homebrew
+formula URL, version, and SHA-256, run `brew audit --strict`, and install and
+test the formula from the public tap. Then close the release-artifact issue and
+re-audit the parent readiness tracker before closing it.

@@ -37,6 +37,15 @@ Each call adds or removes twelve untracked paths in `demo/live-loading`; the nex
 
 ## Installation
 
+### Install with Homebrew
+
+On an Apple Silicon Mac:
+
+```sh
+brew install markg-05/tap/git-buoy
+git-buoy path/to/repository
+```
+
 ### Install with Cargo
 
 With a stable Rust toolchain and Git installed:
@@ -48,7 +57,7 @@ git-buoy path/to/repository
 
 ### Download a release
 
-Once v0.1.0 is published on GitHub, download the archive for your platform from
+Download the v0.1.0 archive for your platform from
 [GitHub Releases](https://github.com/markg-05/git-buoy/releases):
 
 | Platform | Release asset |
@@ -84,8 +93,7 @@ cargo run --release -- path/to/repository
 
 With no path argument, Git Buoy observes the repository containing the current directory.
 
-The crate is published on crates.io. Versioned GitHub archives are published
-separately by the tagged release workflow.
+The crate, Homebrew formula, and versioned GitHub archives are all public.
 
 ### Optional GitHub state
 
@@ -93,7 +101,7 @@ Install and authenticate [GitHub CLI](https://cli.github.com/), then start with 
 
 ```sh
 gh auth login
-cargo run --release -- --github path/to/repository
+git-buoy --github path/to/repository
 ```
 
 The observer is off by default. When enabled, it runs independently from local Git collection; a GitHub failure appears in the footer but does not stop the local harbor.
@@ -200,21 +208,20 @@ These records are the compatibility and performance evidence. Git Buoy does not 
 - Live events are inferred from consecutive surveys, topology, and local reflog evidence. The first survey never replays history, changes that begin and end between polls can be missed, squash merges look like commits, and some reference movement can only be called `updated`. The full evidence table is in [live-event semantics](docs/live-events.md).
 - GitHub is the only hosting adapter. It requires an authenticated `gh` executable and makes network requests only when the observer is enabled. Pull-request/check and release surveys can fail independently, and local observation continues.
 - A pull request attaches to a local dock only when GitHub reports that its head belongs to the same repository. Fork heads and other remote heads become separate awaiting docks; deleted fork metadata may fall back to pull-request identity.
-- The hosted Windows runner cannot exercise the interactive terminal suite. Git Buoy has no installer, package-manager formula, or signed binary yet.
+- The hosted Windows runner cannot exercise the interactive terminal suite. The Homebrew formula supports Apple Silicon macOS only; release archives are not code-signed.
 - ANSI 16-color mode inherits the user's terminal palette, so exact contrast cannot be guaranteed. Condition words remain the authoritative non-color fallback.
 
 ## Releases and support
 
-Version `0.1.0` is published on crates.io. There is no public GitHub release
-yet; a matching tag runs the format, Clippy, test, packaging, terminal smoke,
-and checksum gates described in [Publishing a release](docs/releasing.md). When
-the GitHub release is published, the badge at the top of this README and the
-[Releases page](https://github.com/markg-05/git-buoy/releases) update
-automatically.
+Version `0.1.0` is published on
+[GitHub Releases](https://github.com/markg-05/git-buoy/releases/tag/v0.1.0),
+[crates.io](https://crates.io/crates/git-buoy), and the
+[Homebrew tap](https://github.com/markg-05/homebrew-tap). The tagged workflow
+passed the format, Clippy, test, packaging, terminal smoke, and checksum gates
+described in [Publishing a release](docs/releasing.md).
 
-Until then, install the published crate or build from source at a reviewed
-commit. Report reproducible defects and accessibility or compatibility findings
-in [GitHub Issues](https://github.com/markg-05/git-buoy/issues). This is an early
+Report reproducible defects and accessibility or compatibility findings in
+[GitHub Issues](https://github.com/markg-05/git-buoy/issues). This is an early
 project maintained on a best-effort basis; there is no commercial support
 commitment or private security-response channel.
 
