@@ -10,7 +10,7 @@ use crate::harbor::{
     DockTransitionKind, EventKind, Harbor, Inspection, InspectionStatus, LandingStatus,
     ReviewStatus, Vessel, VesselActivity,
 };
-use crate::hosting::{CheckState, HostingSnapshot, MergeState, ReviewState};
+use crate::hosting::{CheckState, HostingSnapshot, HostingSurvey, MergeState, ReviewState};
 
 const DEFAULT_IDLE_AFTER: Duration = Duration::from_secs(30);
 const DEFAULT_POLL_INTERVAL: Duration = Duration::from_secs(2);
@@ -233,7 +233,7 @@ pub enum Msg {
         observed_at: Instant,
     },
     /// A fresh optional remote-hosting survey arrived.
-    Hosting(Result<HostingSnapshot, String>),
+    Hosting(HostingSurvey),
 }
 
 /// Application state: the current scene plus mode, selection, and clock.
@@ -386,19 +386,23 @@ impl App {
             } => {
                 self.error = Some(message);
             }
-            Msg::Hosting(Ok(snapshot)) => {
+            Msg::Hosting(survey) => {
                 if !self.settings.github_enabled {
                     return;
                 }
-                apply_hosting(&mut self.harbor, &snapshot);
-                self.hosting = Some(snapshot);
-                self.hosting_error = None;
-                self.clamp_selection();
-            }
-            Msg::Hosting(Err(message)) => {
-                if self.settings.github_enabled {
-                    self.hosting_error = Some(message);
+                let snapshot = self.hosting.get_or_insert_with(HostingSnapshot::default);
+                let mut failures = Vec::new();
+                match survey.pull_requests {
+                    Ok(pull_requests) => snapshot.pull_requests = pull_requests,
+                    Err(error) => failures.push(format!("pull-request survey failed: {error}")),
                 }
+                match survey.releases {
+                    Ok(releases) => snapshot.releases = releases,
+                    Err(error) => failures.push(format!("release survey failed: {error}")),
+                }
+                apply_hosting(&mut self.harbor, snapshot);
+                self.hosting_error = (!failures.is_empty()).then(|| failures.join("; "));
+                self.clamp_selection();
             }
             Msg::Key(key) => self.handle_key(key),
         }
@@ -815,23 +819,43 @@ fn apply_hosting(harbor: &mut Harbor, snapshot: &HostingSnapshot) {
                 })
                 .collect(),
         };
-        if let Some(dock) = harbor
-            .docks
-            .iter_mut()
-            .find(|dock| dock.name == pull_request.head_branch)
-        {
+        let remote_dock_name = if pull_request.is_cross_repository {
+            pull_request.head_repository.as_ref().map_or_else(
+                || {
+                    format!(
+                        "fork PR#{}:{}",
+                        pull_request.number, pull_request.head_branch
+                    )
+                },
+                |repository| format!("{repository}:{}", pull_request.head_branch),
+            )
+        } else {
+            pull_request.head_branch.clone()
+        };
+        let matching_dock = harbor.docks.iter_mut().find(|dock| {
+            if pull_request.is_cross_repository {
+                dock.kind == DockKind::RemoteBranch && dock.name == remote_dock_name
+            } else {
+                dock.name == pull_request.head_branch
+            }
+        });
+        if let Some(dock) = matching_dock {
             dock.clearances.push(clearance);
         } else {
+            let mut detail = vec![
+                ("branch", pull_request.head_branch.clone()),
+                ("workspace", "remote only".to_string()),
+            ];
+            if let Some(repository) = &pull_request.head_repository {
+                detail.insert(0, ("repository", repository.clone()));
+            }
             harbor.docks.push(Dock {
-                name: pull_request.head_branch.clone(),
+                name: remote_dock_name,
                 kind: DockKind::RemoteBranch,
                 condition: Condition::Awaiting,
                 vessel: None,
                 sync: None,
-                detail: vec![
-                    ("branch", pull_request.head_branch.clone()),
-                    ("workspace", "remote only".to_string()),
-                ],
+                detail,
                 events: Vec::new(),
                 transition: None,
                 clearances: vec![clearance],
@@ -1203,7 +1227,7 @@ mod tests {
         BranchInfo, ChangeCounts, ChangeFile, ChangeKind, HeadState, Operation, RepoSnapshot,
         SyncState, TipInfo, UpstreamAction, Workspace,
     };
-    use crate::hosting::{Check, PullRequest, Release};
+    use crate::hosting::{Check, HostingSurvey, PullRequest, Release};
 
     use super::*;
 
@@ -1363,6 +1387,8 @@ mod tests {
                     number: 7,
                     title: "Local clearance".to_string(),
                     head_branch: "topic".to_string(),
+                    head_repository: Some("markg-05/git-buoy".to_string()),
+                    is_cross_repository: false,
                     url: "https://example/pr/7".to_string(),
                     is_draft: false,
                     review: ReviewState::Approved,
@@ -1377,6 +1403,8 @@ mod tests {
                     number: 8,
                     title: "Remote clearance".to_string(),
                     head_branch: "remote-topic".to_string(),
+                    head_repository: Some("markg-05/git-buoy".to_string()),
+                    is_cross_repository: false,
                     url: "https://example/pr/8".to_string(),
                     is_draft: true,
                     review: ReviewState::Required,
@@ -1391,6 +1419,13 @@ mod tests {
                 is_prerelease: false,
                 published_at: Some("2026-07-13T00:00:00Z".to_string()),
             }],
+        }
+    }
+
+    fn hosting_survey(snapshot: HostingSnapshot) -> HostingSurvey {
+        HostingSurvey {
+            pull_requests: Ok(snapshot.pull_requests),
+            releases: Ok(snapshot.releases),
         }
     }
 
@@ -2004,7 +2039,7 @@ mod tests {
         let mut app =
             App::new("test".to_string(), false).with_github(true, DEFAULT_GITHUB_POLL_INTERVAL);
         app.update(snapshot_msg(Ok(snapshot_with_branches(&["topic"]))));
-        app.update(Msg::Hosting(Ok(hosting_snapshot())));
+        app.update(Msg::Hosting(hosting_survey(hosting_snapshot())));
 
         let local = app
             .harbor
@@ -2038,11 +2073,141 @@ mod tests {
     }
 
     #[test]
+    fn hosted_head_identity_prevents_forks_from_attaching_to_a_local_branch() {
+        let mut app =
+            App::new("test".to_string(), false).with_github(true, DEFAULT_GITHUB_POLL_INTERVAL);
+        app.update(snapshot_msg(Ok(snapshot_with_branches(&["topic"]))));
+        let mut snapshot = hosting_snapshot();
+        snapshot.pull_requests = vec![
+            PullRequest {
+                number: 1,
+                title: "Same repository".to_string(),
+                head_branch: "topic".to_string(),
+                head_repository: Some("markg-05/git-buoy".to_string()),
+                is_cross_repository: false,
+                url: "https://example/pr/1".to_string(),
+                is_draft: false,
+                review: ReviewState::None,
+                merge: MergeState::Ready,
+                checks: Vec::new(),
+            },
+            PullRequest {
+                number: 2,
+                title: "Alice's fork".to_string(),
+                head_branch: "topic".to_string(),
+                head_repository: Some("alice/git-buoy".to_string()),
+                is_cross_repository: true,
+                url: "https://example/pr/2".to_string(),
+                is_draft: false,
+                review: ReviewState::None,
+                merge: MergeState::Ready,
+                checks: Vec::new(),
+            },
+            PullRequest {
+                number: 3,
+                title: "Bob's fork".to_string(),
+                head_branch: "topic".to_string(),
+                head_repository: Some("bob/git-buoy".to_string()),
+                is_cross_repository: true,
+                url: "https://example/pr/3".to_string(),
+                is_draft: false,
+                review: ReviewState::None,
+                merge: MergeState::Ready,
+                checks: Vec::new(),
+            },
+        ];
+
+        app.update(Msg::Hosting(hosting_survey(snapshot)));
+
+        let local = app
+            .harbor
+            .docks
+            .iter()
+            .find(|dock| dock.name == "topic")
+            .unwrap();
+        assert_eq!(local.clearances.len(), 1);
+        assert_eq!(local.clearances[0].number, 1);
+        let alice = app
+            .harbor
+            .docks
+            .iter()
+            .position(|dock| dock.name == "alice/git-buoy:topic")
+            .unwrap();
+        let bob = app
+            .harbor
+            .docks
+            .iter()
+            .position(|dock| dock.name == "bob/git-buoy:topic")
+            .unwrap();
+        assert_eq!(app.harbor.docks[alice].clearances[0].number, 2);
+        assert_eq!(app.harbor.docks[bob].clearances[0].number, 3);
+
+        app.selected = alice;
+        app.update(key(KeyCode::Char('i')));
+        app.update(key(KeyCode::Char('p')));
+        assert_eq!(app.inspect_target, InspectTarget::PullRequest(0));
+    }
+
+    #[test]
+    fn hosting_categories_update_and_fail_independently() {
+        let mut app =
+            App::new("test".to_string(), false).with_github(true, DEFAULT_GITHUB_POLL_INTERVAL);
+        app.update(snapshot_msg(Ok(snapshot_with_branches(&["topic"]))));
+        app.update(Msg::Hosting(hosting_survey(hosting_snapshot())));
+
+        let replacement_pr = PullRequest {
+            number: 9,
+            title: "New clearance".to_string(),
+            head_branch: "topic".to_string(),
+            head_repository: Some("markg-05/git-buoy".to_string()),
+            is_cross_repository: false,
+            url: "https://example/pr/9".to_string(),
+            is_draft: false,
+            review: ReviewState::None,
+            merge: MergeState::Ready,
+            checks: Vec::new(),
+        };
+        app.update(Msg::Hosting(HostingSurvey {
+            pull_requests: Ok(vec![replacement_pr]),
+            releases: Err("release API unavailable".to_string()),
+        }));
+
+        assert_eq!(app.harbor.docks[0].clearances[0].number, 9);
+        assert_eq!(app.harbor.convoys[0].tag, "v1.0.0");
+        assert!(
+            app.hosting_error
+                .as_deref()
+                .unwrap()
+                .contains("release survey")
+        );
+
+        app.update(Msg::Hosting(HostingSurvey {
+            pull_requests: Err("pull-request API unavailable".to_string()),
+            releases: Ok(vec![Release {
+                tag: "v2.0.0".to_string(),
+                name: "Two".to_string(),
+                is_latest: true,
+                is_prerelease: false,
+                published_at: None,
+            }]),
+        }));
+
+        assert_eq!(app.harbor.docks[0].clearances[0].number, 9);
+        assert_eq!(app.harbor.convoys[0].tag, "v2.0.0");
+        assert!(
+            app.hosting_error
+                .as_deref()
+                .unwrap()
+                .contains("pull-request survey")
+        );
+    }
+
+    #[test]
     fn disabling_github_clears_remote_state_and_ignores_late_results() {
         let mut app =
             App::new("test".to_string(), false).with_github(true, DEFAULT_GITHUB_POLL_INTERVAL);
         app.update(snapshot_msg(Ok(snapshot_with_branches(&["topic"]))));
-        app.update(Msg::Hosting(Ok(hosting_snapshot())));
+        app.update(Msg::Hosting(hosting_survey(hosting_snapshot())));
         assert_eq!(app.harbor.docks.len(), 2);
         assert!(!app.harbor.convoys.is_empty());
 
@@ -2057,8 +2222,14 @@ mod tests {
         assert!(app.harbor.docks[0].clearances.is_empty());
         assert!(app.harbor.convoys.is_empty());
 
-        app.update(Msg::Hosting(Ok(hosting_snapshot())));
+        app.update(Msg::Hosting(hosting_survey(hosting_snapshot())));
         assert_eq!(app.harbor.docks.len(), 1);
         assert!(app.harbor.convoys.is_empty());
+
+        app.update(key(KeyCode::Right));
+        assert!(app.settings.github_enabled);
+        app.update(Msg::Hosting(hosting_survey(hosting_snapshot())));
+        assert_eq!(app.harbor.docks.len(), 2);
+        assert!(!app.harbor.convoys.is_empty());
     }
 }

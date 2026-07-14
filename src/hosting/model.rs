@@ -4,11 +4,25 @@ pub struct HostingSnapshot {
     pub releases: Vec<Release>,
 }
 
+/// Independently useful results from one remote-hosting survey.
+///
+/// A failed observation does not erase the other category or its last
+/// successful value in the application.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HostingSurvey {
+    pub pull_requests: Result<Vec<PullRequest>, String>,
+    pub releases: Result<Vec<Release>, String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PullRequest {
     pub number: u64,
     pub title: String,
     pub head_branch: String,
+    /// `owner/repository` for the hosted head, when GitHub still has it.
+    pub head_repository: Option<String>,
+    /// True when the head and base repositories differ.
+    pub is_cross_repository: bool,
     pub url: String,
     pub is_draft: bool,
     pub review: ReviewState,

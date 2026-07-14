@@ -103,7 +103,7 @@ fn draw_footer(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     }
     if let Some(error) = &app.hosting_error {
         let warning = Paragraph::new(Span::styled(
-            format!(" github survey failed: {error}"),
+            format!(" github {error}"),
             Style::new().fg(theme.condition(crate::harbor::Condition::Blocked)),
         ));
         frame.render_widget(warning, area);
@@ -291,5 +291,19 @@ mod tests {
         let lines = render(&app, 40, 7);
         assert!(lines.iter().any(|line| line.contains("GitHub survey")));
         assert!(lines.iter().any(|line| line.contains('▶')));
+    }
+
+    #[test]
+    fn footer_identifies_the_failed_hosting_observation() {
+        let mut app = inspect_app(Vec::new());
+        app.hosting_error = Some("release survey failed: unavailable".to_string());
+
+        let lines = render(&app, 72, 22);
+
+        assert!(
+            lines
+                .iter()
+                .any(|line| line.contains("github release survey failed: unavailable"))
+        );
     }
 }

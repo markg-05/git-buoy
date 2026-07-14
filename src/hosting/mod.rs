@@ -9,5 +9,6 @@ mod model;
 
 pub use github::collect_github;
 pub use model::{
-    Check, CheckState, HostingSnapshot, MergeState, PullRequest, Release, ReviewState,
+    Check, CheckState, HostingSnapshot, HostingSurvey, MergeState, PullRequest, Release,
+    ReviewState,
 };

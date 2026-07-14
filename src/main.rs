@@ -159,8 +159,8 @@ impl SettingsPersistence {
     }
 }
 
-fn spawn_hosting_collector(root: PathBuf) -> Collector<Result<hosting::HostingSnapshot, String>> {
-    spawn_worker(move || hosting::collect_github(&root).map_err(|error| error.to_string()))
+fn spawn_hosting_collector(root: PathBuf) -> Collector<hosting::HostingSurvey> {
+    spawn_worker(move || hosting::collect_github(&root))
 }
 
 struct RepositorySurvey {
@@ -239,10 +239,11 @@ impl ProfileRecorder {
 /// A request-driven worker keeps repository and hosting reads off the render
 /// path while allowing session settings to change their cadence immediately.
 struct Collector<T> {
-    requests: mpsc::Sender<()>,
-    results: mpsc::Receiver<T>,
+    requests: mpsc::Sender<u64>,
+    results: mpsc::Receiver<(u64, T)>,
     in_flight: bool,
     last_started: Option<Instant>,
+    generation: u64,
 }
 
 impl<T> Collector<T> {
@@ -254,19 +255,29 @@ impl<T> Collector<T> {
         {
             return;
         }
-        if self.requests.send(()).is_ok() {
+        if self.requests.send(self.generation).is_ok() {
             self.in_flight = true;
             self.last_started = Some(Instant::now());
         }
     }
 
     fn try_recv(&mut self) -> Option<T> {
-        let result = self.results.try_recv().ok()?;
-        self.in_flight = false;
-        Some(result)
+        while let Ok((generation, result)) = self.results.try_recv() {
+            if generation == self.generation {
+                self.in_flight = false;
+                return Some(result);
+            }
+        }
+        None
     }
 
     fn reset_schedule(&mut self) {
+        self.last_started = None;
+    }
+
+    fn invalidate(&mut self) {
+        self.generation = self.generation.wrapping_add(1);
+        self.in_flight = false;
         self.last_started = None;
     }
 }
@@ -279,8 +290,8 @@ where
     let (request_sender, request_receiver) = mpsc::channel();
     let (result_sender, result_receiver) = mpsc::channel();
     thread::spawn(move || {
-        while request_receiver.recv().is_ok() {
-            if result_sender.send(collect()).is_err() {
+        while let Ok(generation) = request_receiver.recv() {
+            if result_sender.send((generation, collect())).is_err() {
                 return;
             }
         }
@@ -290,6 +301,7 @@ where
         results: result_receiver,
         in_flight: false,
         last_started: None,
+        generation: 0,
     }
 }
 
@@ -298,7 +310,7 @@ fn run(
     app: &mut App,
     theme: &ui::Theme,
     collector: &mut Collector<RepositorySurvey>,
-    hosting_collector: &mut Collector<Result<hosting::HostingSnapshot, String>>,
+    hosting_collector: &mut Collector<hosting::HostingSurvey>,
     tick: Duration,
     support: &mut RunSupport<'_>,
 ) -> Result<()> {
@@ -323,6 +335,9 @@ fn run(
                 app.update(Msg::Hosting(result));
             }
         } else {
+            if github_was_enabled {
+                hosting_collector.invalidate();
+            }
             // Drain an observation that completed just as the user disabled
             // the adapter; App intentionally ignores it while disabled.
             while let Some(result) = hosting_collector.try_recv() {
@@ -363,6 +378,32 @@ fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn collector_discards_results_from_an_invalidated_generation() {
+        let (allow_sender, allow_receiver) = mpsc::channel();
+        let next_result = std::sync::atomic::AtomicUsize::new(0);
+        let mut collector = spawn_worker(move || {
+            allow_receiver.recv().unwrap();
+            next_result.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1
+        });
+
+        collector.request_if_due(Duration::ZERO);
+        collector.invalidate();
+        collector.request_if_due(Duration::ZERO);
+        allow_sender.send(()).unwrap();
+        allow_sender.send(()).unwrap();
+
+        let deadline = Instant::now() + Duration::from_secs(1);
+        let result = loop {
+            if let Some(result) = collector.try_recv() {
+                break result;
+            }
+            assert!(Instant::now() < deadline, "collector result timed out");
+            thread::yield_now();
+        };
+        assert_eq!(result, 2);
+    }
 
     #[test]
     fn saved_preferences_supply_values_when_flags_are_absent() {

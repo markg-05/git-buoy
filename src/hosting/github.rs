@@ -5,11 +5,10 @@ use anyhow::{Context, Result, bail};
 use serde::Deserialize;
 
 use super::model::{
-    Check, CheckState, HostingSnapshot, MergeState, PullRequest, Release, ReviewState,
+    Check, CheckState, HostingSurvey, MergeState, PullRequest, Release, ReviewState,
 };
 
-const PR_FIELDS: &str =
-    "number,title,headRefName,url,isDraft,reviewDecision,mergeStateStatus,statusCheckRollup";
+const PR_FIELDS: &str = "number,title,headRefName,headRepository,headRepositoryOwner,isCrossRepository,url,isDraft,reviewDecision,mergeStateStatus,statusCheckRollup";
 const RELEASE_FIELDS: &str = "tagName,name,isDraft,isPrerelease,isLatest,publishedAt";
 
 /// Survey GitHub through the optional `gh` executable.
@@ -17,18 +16,18 @@ const RELEASE_FIELDS: &str = "tagName,name,isDraft,isPrerelease,isLatest,publish
 /// This is only called after the user opts in through `--github` or Harbor
 /// Controls; the local Git collector and core harbor remain offline and do not
 /// require `gh`.
-pub fn collect_github(root: &Path) -> Result<HostingSnapshot> {
+pub fn collect_github(root: &Path) -> HostingSurvey {
     let prs = run_gh(
         root,
         &[
             "pr", "list", "--state", "open", "--limit", "100", "--json", PR_FIELDS,
         ],
-    )?;
+    );
     let releases = run_gh(
         root,
         &["release", "list", "--limit", "20", "--json", RELEASE_FIELDS],
-    )?;
-    parse_snapshot(&prs, &releases)
+    );
+    parse_survey(prs, releases)
 }
 
 fn run_gh(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
@@ -44,20 +43,28 @@ fn run_gh(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
     Ok(output.stdout)
 }
 
-fn parse_snapshot(prs: &[u8], releases: &[u8]) -> Result<HostingSnapshot> {
-    let raw_prs: Vec<RawPullRequest> =
-        serde_json::from_slice(prs).context("cannot parse pull requests returned by gh")?;
-    let raw_releases: Vec<RawRelease> =
-        serde_json::from_slice(releases).context("cannot parse releases returned by gh")?;
-
-    Ok(HostingSnapshot {
-        pull_requests: raw_prs.into_iter().map(PullRequest::from).collect(),
-        releases: raw_releases
-            .into_iter()
-            .filter(|release| !release.is_draft)
-            .map(Release::from)
-            .collect(),
-    })
+fn parse_survey(prs: Result<Vec<u8>>, releases: Result<Vec<u8>>) -> HostingSurvey {
+    HostingSurvey {
+        pull_requests: prs
+            .and_then(|json| {
+                serde_json::from_slice::<Vec<RawPullRequest>>(&json)
+                    .context("cannot parse pull requests returned by gh")
+            })
+            .map(|raw| raw.into_iter().map(PullRequest::from).collect())
+            .map_err(|error| error.to_string()),
+        releases: releases
+            .and_then(|json| {
+                serde_json::from_slice::<Vec<RawRelease>>(&json)
+                    .context("cannot parse releases returned by gh")
+            })
+            .map(|raw| {
+                raw.into_iter()
+                    .filter(|release| !release.is_draft)
+                    .map(Release::from)
+                    .collect()
+            })
+            .map_err(|error| error.to_string()),
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -66,6 +73,9 @@ struct RawPullRequest {
     number: u64,
     title: String,
     head_ref_name: String,
+    head_repository: Option<RawRepository>,
+    head_repository_owner: Option<RawRepositoryOwner>,
+    is_cross_repository: bool,
     url: String,
     is_draft: bool,
     #[serde(default)]
@@ -74,6 +84,16 @@ struct RawPullRequest {
     merge_state_status: String,
     #[serde(default)]
     status_check_rollup: Vec<RawCheck>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawRepository {
+    name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawRepositoryOwner {
+    login: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -91,10 +111,16 @@ struct RawCheck {
 
 impl From<RawPullRequest> for PullRequest {
     fn from(raw: RawPullRequest) -> Self {
+        let head_repository = raw
+            .head_repository_owner
+            .zip(raw.head_repository)
+            .map(|(owner, repository)| format!("{}/{}", owner.login, repository.name));
         Self {
             number: raw.number,
             title: raw.title,
             head_branch: raw.head_ref_name,
+            head_repository,
+            is_cross_repository: raw.is_cross_repository,
             url: raw.url,
             is_draft: raw.is_draft,
             review: review_state(&raw.review_decision),
@@ -195,17 +221,31 @@ mod tests {
 
     #[test]
     fn parses_pr_review_checks_and_release() {
-        let prs = br#"[{"number":42,"title":"Ship it","headRefName":"feature/ship","url":"https://example/pr/42","isDraft":false,"reviewDecision":"APPROVED","mergeStateStatus":"CLEAN","statusCheckRollup":[{"name":"test","status":"COMPLETED","conclusion":"SUCCESS","detailsUrl":"https://example/check"},{"context":"deploy","state":"PENDING","targetUrl":null}]}]"#;
+        let prs = br#"[{"number":42,"title":"Ship it","headRefName":"feature/ship","headRepository":{"name":"git-buoy"},"headRepositoryOwner":{"login":"markg-05"},"isCrossRepository":false,"url":"https://example/pr/42","isDraft":false,"reviewDecision":"APPROVED","mergeStateStatus":"CLEAN","statusCheckRollup":[{"name":"test","status":"COMPLETED","conclusion":"SUCCESS","detailsUrl":"https://example/check"},{"context":"deploy","state":"PENDING","targetUrl":null}]}]"#;
         let releases = br#"[{"tagName":"v1.0.0","name":"One","isDraft":false,"isPrerelease":false,"isLatest":true,"publishedAt":"2026-07-13T00:00:00Z"}]"#;
 
-        let snapshot = parse_snapshot(prs, releases).unwrap();
-        let pr = &snapshot.pull_requests[0];
+        let survey = parse_survey(Ok(prs.to_vec()), Ok(releases.to_vec()));
+        let pull_requests = survey.pull_requests.unwrap();
+        let releases = survey.releases.unwrap();
+        let pr = &pull_requests[0];
         assert_eq!(pr.head_branch, "feature/ship");
+        assert_eq!(pr.head_repository.as_deref(), Some("markg-05/git-buoy"));
+        assert!(!pr.is_cross_repository);
         assert_eq!(pr.review, ReviewState::Approved);
         assert_eq!(pr.merge, MergeState::Ready);
         assert_eq!(pr.checks[0].state, CheckState::Passing);
         assert_eq!(pr.checks[1].state, CheckState::Pending);
-        assert_eq!(snapshot.releases[0].tag, "v1.0.0");
+        assert_eq!(releases[0].tag, "v1.0.0");
+    }
+
+    #[test]
+    fn parser_failures_are_independent() {
+        let releases = br#"[{"tagName":"v1.0.0","name":"One","isDraft":false,"isPrerelease":false,"isLatest":true,"publishedAt":null}]"#;
+
+        let survey = parse_survey(Ok(b"not json".to_vec()), Ok(releases.to_vec()));
+
+        assert!(survey.pull_requests.unwrap_err().contains("pull requests"));
+        assert_eq!(survey.releases.unwrap()[0].tag, "v1.0.0");
     }
 
     #[test]

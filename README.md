@@ -175,7 +175,9 @@ The first useful version focuses on one local repository and establishes the cor
 - Degrade gracefully across terminal sizes and color capabilities.
 - Optionally attach GitHub pull requests, review decisions, individual checks, and releases to the local harbor.
 
-Remote hosting is an opt-in layer implemented through the authenticated `gh` executable. It is surveyed independently, failures are non-fatal, and the default local workflow performs no network access. Pull requests whose head branch is not available locally appear as remote docks awaiting clearance.
+Remote hosting is an opt-in layer implemented through the authenticated `gh` executable. It is surveyed independently, failures are non-fatal, and the default local workflow performs no network access. Pull-request/check and release observations fail independently; the footer identifies the failed observation while the last successful data from the other category remains available.
+
+A pull request attaches to a local branch dock only when GitHub reports that its head belongs to the same repository. Other same-repository heads and all fork heads appear as remote docks awaiting clearance. Fork docks use `owner/repository:branch` so equal short branch names from different forks remain distinct; if GitHub no longer reports a deleted fork's repository, the dock uses the pull-request number as a fallback identity.
 
 ## Non-goals
 
