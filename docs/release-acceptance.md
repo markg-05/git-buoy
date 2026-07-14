@@ -6,14 +6,14 @@ release build in a native pseudo-terminal against disposable Git repositories.
 
 ## Current decision
 
-Release status: Blocked
+Release status: Accepted
 
-**Blocked pending a clean native workflow run.** The packaged macOS and Linux
-artifacts must pass all 20 pseudo-terminal rows. The packaged Windows artifact
-must pass archive extraction, `--help`, and `--version`; GitHub-hosted Windows
+The packaged artifacts passed the native release workflow on July 13, 2026 in
+[run 29310559371](https://github.com/markg-05/git-buoy/actions/runs/29310559371)
+at commit `611bb9b`. macOS and Linux passed all 20 pseudo-terminal rows. Windows
+passed archive extraction, `--help`, and `--version`; GitHub-hosted Windows
 runners do not expose a usable interactive terminal, so the disposable-Git PTY
-suite is skipped there. Do not tag `v0.1.0` until all three jobs are green and
-this section records the run link.
+suite was skipped there. The v0.1 release gate is clear.
 
 There are no failed macOS or Linux rows and no open defect from those runs. One
 acceptance finding was fixed in the candidate: Harbor Controls persisted
