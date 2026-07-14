@@ -182,6 +182,7 @@ The conceptual boundary is `git → harbor → app → ui`, with hosting as an o
 In the update loop, the application asks the harbor layer to map each incoming repository snapshot, enriches that scene with observed events and optional hosting data, then gives the resulting state to the UI. The executable in [`src/main.rs`](src/main.rs) owns polling, terminal setup, configuration I/O, and message delivery.
 
 The stack rationale and rejected alternatives are recorded in [ADR 0001](docs/adr/0001-implementation-stack.md).
+A concise [project case study](docs/case-study.md) explains the problem framing, key engineering constraints, major decisions, and release evidence.
 
 ## Testing and recorded evidence
 
@@ -221,13 +222,16 @@ passed the format, Clippy, test, packaging, terminal smoke, and checksum gates
 described in [Publishing a release](docs/releasing.md).
 
 Report reproducible defects and accessibility or compatibility findings in
-[GitHub Issues](https://github.com/markg-05/git-buoy/issues). This is an early
-project maintained on a best-effort basis; there is no commercial support
-commitment or private security-response channel.
+[GitHub Issues](https://github.com/markg-05/git-buoy/issues). Report suspected
+vulnerabilities through [GitHub's private vulnerability reporting](https://github.com/markg-05/git-buoy/security/advisories/new)
+and follow the [security policy](SECURITY.md). This is an early project
+maintained on a best-effort basis; there is no commercial support commitment or
+guaranteed response time.
 
 ## Contributing
 
 Public contribution setup, change expectations, and pull-request checks are in [CONTRIBUTING.md](CONTRIBUTING.md). Coding agents should additionally read [AGENTS.md](AGENTS.md), which contains agent-oriented repository constraints and execution guidance.
+Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 To regenerate the README captures from the current collector, state machine, and ratatui renderer:
 

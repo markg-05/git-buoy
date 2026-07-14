@@ -1,0 +1,61 @@
+name: Accessibility or compatibility report
+description: Report a terminal, platform, input, color, motion, or assistive-use finding.
+title: "[Compatibility]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Accessibility and terminal-compatibility evidence is welcome, including
+        findings that are not conventional defects. Remove private repository
+        names, paths, and remote URLs from captures or logs.
+
+  - type: input
+    id: version
+    attributes:
+      label: Git Buoy version
+      placeholder: git-buoy 0.1.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and configuration
+      description: Include operating system, terminal, shell, dimensions, color capability, motion setting, input method, and other relevant configuration.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Keyboard navigation or input
+        - Reduced motion or animation
+        - Color, contrast, or glyphs
+        - Terminal size or layout
+        - Screen reader or assistive use
+        - Platform or terminal compatibility
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: finding
+    attributes:
+      label: Finding
+      description: Describe what was difficult, unavailable, misleading, or incompatible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected or preferred behavior
+      description: Describe what would make the state or interaction understandable and usable.
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction details
+      description: Provide a minimal sequence or sanitized fixture description when possible.

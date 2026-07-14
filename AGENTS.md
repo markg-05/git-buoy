@@ -81,7 +81,7 @@ Record consequential, difficult-to-reverse decisions in a short architecture dec
 
 ## Toolchain commands
 
-Requires a stable Rust toolchain via `rustup` (pinned by `rust-toolchain.toml`). CI runs exactly these on Linux, macOS, and Windows:
+Requires a stable Rust toolchain via `rustup` (selected by `rust-toolchain.toml`). CI runs exactly these on Linux, macOS, and Windows:
 
 ```sh
 cargo fmt --check

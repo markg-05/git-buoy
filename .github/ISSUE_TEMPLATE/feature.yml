@@ -1,0 +1,55 @@
+name: Feature proposal
+description: Propose a focused improvement to Git Buoy's live repository view or inspect workflow.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Git Buoy is a local-first live view of current repository activity. It
+        complements Git rather than replacing Git operations, and the harbor
+        metaphor must communicate real state. Please frame proposals around an
+        observable user problem.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is difficult to understand or do today, and who encounters it?
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_workflow
+    attributes:
+      label: Current workflow
+      description: How is this handled with Git Buoy or other Git tools today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe observable behavior rather than an implementation plan.
+    validations:
+      required: true
+
+  - type: textarea
+    id: product_fit
+    attributes:
+      label: Product fit and tradeoffs
+      description: Explain how the proposal preserves local-first use, precise inspection, accessibility, and the distinction between live state and repository history.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Note smaller changes, existing commands, or other approaches that could address the problem.
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Add sketches, prior art, or sanitized examples if useful.

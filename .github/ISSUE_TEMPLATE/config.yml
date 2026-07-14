@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/markg-05/git-buoy/security/advisories/new
+    about: Do not disclose suspected vulnerabilities or private repository data in a public issue.

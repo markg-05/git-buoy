@@ -4,6 +4,9 @@ Thanks for helping make concurrent repository activity easier to understand. Bug
 
 Git Buoy is still settling its harbor metaphor. Changes should make real Git state clearer, preserve precise inspection, and keep the default local workflow independent of GitHub, an AI provider, or a hosted service.
 
+By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Report suspected vulnerabilities privately according to the [security policy](SECURITY.md), not through a public issue.
+
 ## Before opening a change
 
 1. Read the [product intent and limitations](README.md).

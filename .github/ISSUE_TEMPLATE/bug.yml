@@ -1,0 +1,80 @@
+name: Bug report
+description: Report reproducible behavior that does not match Git Buoy's documentation.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. Remove repository names,
+        paths, remote URLs, and other private data before sharing output.
+
+        For a suspected security vulnerability, use the private reporting link
+        from the issue chooser instead of this public form.
+
+  - type: input
+    id: version
+    attributes:
+      label: Git Buoy version
+      description: Run `git-buoy --version` and paste the result.
+      placeholder: git-buoy 0.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation method
+      options:
+        - Homebrew
+        - Cargo
+        - GitHub release archive
+        - Built from source
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include operating system, terminal application, terminal size, and color mode when relevant.
+      placeholder: macOS 15, iTerm2, 120x40, truecolor
+    validations:
+      required: true
+
+  - type: textarea
+    id: repository_shape
+    attributes:
+      label: Repository shape
+      description: Describe only the facts needed to reproduce the problem, such as branch count, linked worktrees, detached HEAD, or an in-progress Git operation.
+      placeholder: One main worktree and two linked worktrees; one worktree is in a merge conflict.
+
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed behavior
+      description: What did Git Buoy display or do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest sequence that reproduces the behavior. A disposable repository is ideal.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What state or interaction did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Add sanitized screenshots, terminal captures, or logs if they materially help explain the problem.
