@@ -70,7 +70,7 @@ fn demo_app(repository: &Path) -> Result<(App, Instant)> {
     settings.idle_after = Duration::from_secs(1);
     settings.cycle_interval = Duration::from_secs(1);
     settings.github_enabled = false;
-    let mut app = App::with_settings(snapshot.name.clone(), settings).with_frames_per_second(8);
+    let mut app = App::with_settings(snapshot.name.clone(), settings).with_frames_per_second(16);
     observe(&mut app, snapshot.clone(), started);
     observe(&mut app, snapshot, started + Duration::from_secs(2));
     Ok((app, started))
@@ -170,7 +170,7 @@ fn capture_motion(repository: &Path) -> Result<Vec<RenderedFrame>> {
 
     let result = (|| {
         let mut frames = Vec::new();
-        for _ in 0..16 {
+        for _ in 0..32 {
             frames.push(render(&app, 124, 29)?);
             app.update(Msg::Tick);
         }
