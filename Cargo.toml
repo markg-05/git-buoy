@@ -2,8 +2,10 @@
 name = "git-buoy"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
 description = "A living terminal harbor for understanding parallel software work at a glance."
 license = "MIT"
+homepage = "https://github.com/markg-05/git-buoy"
 repository = "https://github.com/markg-05/git-buoy"
 keywords = ["git", "tui", "terminal", "visualization"]
 categories = ["command-line-utilities", "development-tools"]
