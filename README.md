@@ -1,242 +1,225 @@
 # Git Buoy
 
-> A living terminal harbor for understanding parallel software work at a glance.
+[![CI](https://github.com/markg-05/git-buoy/actions/workflows/ci.yml/badge.svg)](https://github.com/markg-05/git-buoy/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/markg-05/git-buoy?display_name=tag&sort=semver)](https://github.com/markg-05/git-buoy/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-7ec091.svg)](LICENSE)
+
+Parallel branches and linked worktrees are hard to understand as one live system. Git status can describe one checkout precisely, and commit graphs explain history, but neither makes current activity across a busy repository easy to see at a glance.
+
+Git Buoy turns that current state into a terminal harbor. Branches and worktrees become docks, checked-out work becomes vessels, uncommitted changes become cargo, and sync or conflict states change how each vessel sits or moves. The scene is an overview, not a substitute for Git: press a key to inspect the exact branch, worktree, pull request, check, or changed path behind it.
 
 ![Git Buoy observing live cargo and paging through an overflowing harbor](docs/demo-motion.svg)
 
-<sup>Captured from the current application against the local demo fixture. Twelve changed paths load onto `demo/live-loading`, directional vessels move, and the overflowing harbor advances to its next page. Prefer a still image? See the [static ambient capture](docs/demo.svg).</sup>
+<sup>This current capture comes from the deterministic local demo fixture. Twelve changed paths load onto `demo/live-loading`, directional vessels move, and the overflowing harbor advances to its next page. The same capture respects reduced-motion preferences; a [static ambient frame](docs/demo.svg) is also available.</sup>
 
-Git Buoy is an experimental terminal application that turns the state of a Git repository into an animated seaport. Instead of presenting another commit graph or a wall of status text, it gives branches, worktrees, coding agents, pull requests, and CI activity a shared visual language.
+Git Buoy is local-first and agent-agnostic. The core view reads an ordinary local repository without a hosted service, GitHub account, or AI provider. Optional GitHub observation adds pull requests, reviews, checks, and published releases through the authenticated `gh` CLI.
 
-The goal is not to disguise Git. It is to make a busy repository feel legible, especially when several worktrees or coding agents are active at once, while creating something calm and interesting enough to leave running in a spare terminal pane.
+## Try it in 60 seconds
 
-## Status
-
-Git Buoy is in early development. The stack is Rust with [ratatui](https://ratatui.rs), chosen and recorded in [docs/adr/0001-implementation-stack.md](docs/adr/0001-implementation-stack.md). The current build discovers branches and linked worktrees in one local repository, watches their state, and renders them as an animated harbor with keyboard inspection. An opt-in GitHub observer adds pull requests, reviews, checks, and releases without making them a core requirement.
-
-## See it work in 30–60 seconds
-
-With Git and the Rust toolchain installed, create the disposable fixture and run Git Buoy against it:
+With Git and a stable Rust toolchain installed:
 
 ```sh
+git clone https://github.com/markg-05/git-buoy.git
+cd git-buoy
 ./scripts/demo.sh setup
 ./scripts/demo.sh run
 ```
 
-Setup replaces only `/tmp/git-buoy-demo`. It creates a local bare origin, a main worktree, nine linked worktrees, and two moored branches. All commits use fixed demo identities and timestamps; no network, credentials, GitHub state, global Git configuration, or private repository data is used. Run uses a fixture-local Git Buoy settings file, surveys every half-second, and marks unchanged workspaces idle after one second.
+The script replaces only its marked `/tmp/git-buoy-demo` fixture. It creates a local bare origin, a main worktree, nine linked worktrees, and two moored branches using fixed demo identities and timestamps. It does not use the network, credentials, global Git configuration, or private repository data.
 
-The first screen covers calm/idle, loading, sealed, outbound, incoming, diverged, and blocked docks, plus wrapped cargo and an overflow marker. Ambient mode advances to the two moored branches. Press `i`, use `j`/`k` to choose a dirty dock, then press `Enter` twice to inspect exact changed paths.
-
-To see a live repository transition, leave Git Buoy running and use another terminal:
+Press `i`, select a dirty dock with `j` or `k`, then press `Enter` twice to reach exact changed paths. In another terminal, run the following command while Git Buoy is open:
 
 ```sh
 ./scripts/demo.sh transition
 ```
 
-Each call adds or removes twelve untracked paths in `demo/live-loading`, so the cargo visibly loads or unloads on the next survey.
+Each call adds or removes twelve untracked paths in `demo/live-loading`; the next repository survey visibly loads or unloads that cargo.
 
-## Getting started
+## Installation
 
-Requires a stable [Rust toolchain](https://rustup.rs) and Git.
+### Download a release
+
+After v0.1.0 passes its recorded native acceptance gate, download the archive
+for your platform from [GitHub Releases](https://github.com/markg-05/git-buoy/releases):
+
+| Platform | Release asset |
+| --- | --- |
+| macOS on Apple Silicon | `git-buoy-v0.1.0-macos-aarch64.tar.gz` |
+| Linux on x86-64 with glibc | `git-buoy-v0.1.0-linux-x86_64.tar.gz` |
+| Windows on x86-64 | `git-buoy-v0.1.0-windows-x86_64.zip` |
+
+Extract the archive, place `git-buoy` (or `git-buoy.exe`) somewhere on your
+`PATH`, and check the installed version:
+
+```sh
+git-buoy --version
+git-buoy path/to/repository
+```
+
+Git and an interactive terminal are required at runtime.
+
+Each archive has a companion `.sha256` file. On Linux, verify it with
+`sha256sum --check <archive>.sha256`; on macOS, use
+`shasum -a 256 --check <archive>.sha256`. The release notes contain the
+equivalent PowerShell command. v0.1 archives and checksums are not code-signed.
+
+### Build from source
+
+Git Buoy currently requires a stable [Rust toolchain](https://rustup.rs) and Git:
 
 ```sh
 git clone https://github.com/markg-05/git-buoy.git
 cd git-buoy
-cargo run --release -- path/to/some/repository
+cargo run --release -- path/to/repository
 ```
 
 With no path argument, Git Buoy observes the repository containing the current directory.
 
-To start with GitHub state enabled, install and authenticate [GitHub CLI](https://cli.github.com/), then add `--github`:
+There is not yet a public release. v0.1 remains blocked on the recorded native
+Windows acceptance run; see [Releases and support](#releases-and-support) for
+the exact status rather than treating the crate version as a published release.
+
+### Optional GitHub state
+
+Install and authenticate [GitHub CLI](https://cli.github.com/), then start with `--github`:
 
 ```sh
 gh auth login
-cargo run --release -- --github path/to/some/repository
+cargo run --release -- --github path/to/repository
 ```
 
-GitHub observation can also be enabled during a session from Harbor Controls. GitHub failures are shown in the footer and do not stop local repository observation.
+The observer is off by default. When enabled, it runs independently from local Git collection; a GitHub failure appears in the footer but does not stop the local harbor.
+
+## Keyboard use
 
 | Key | Action |
 | --- | --- |
-| `i` or `Enter` | Enter inspect mode on the current dock |
-| `s` | Open Harbor Controls |
-| `Enter` / right arrow | Drill from dock to vessel to changed files |
-| `Esc` / `h` / left arrow | Step back one inspection level |
+| `i` or `Enter` | Enter inspect mode on the selected dock |
+| `Enter` / right arrow | Drill from dock to vessel to exact changed files or checks |
+| `Esc` / `h` / left arrow | Step back one inspection level; from ambient mode, exit |
 | `Tab` / `Shift-Tab` | Select a dock |
-| `j` / `k` / up/down arrows | Select a dock, drilled-in item, or harbor control; scroll the legend while it is open |
-| `p` | Inspect a pull request on the selected dock |
-| `l` or `?` | Toggle the legend overlay; `l` adjusts a selected harbor control while that panel is open |
-| `Esc` | Close the active overlay, then leave inspect mode, then quit |
+| `j` / `k` / up/down arrows | Move within docks, files, pull requests, checks, controls, or the legend |
+| `p` | Inspect pull requests on the selected dock |
+| `s` | Open Harbor Controls |
+| `l` or `?` | Toggle the legend; `l` adjusts a selected control while controls are open |
 | `m` | Toggle reduced motion |
-| `q` | Quit |
+| `q` | Quit from any view |
 
-Useful flags: `--reduced-motion` starts with a static scene, `--fps` sets the ambient animation rate, `--poll-interval` sets how often the repository is re-read, and `--idle-after` controls when an unchanged workspace is labeled idle. `--github` starts with optional hosting data enabled; `--github-poll-interval` sets its initial independent refresh rate. Explicit flags override saved preferences for that run.
+Harbor Controls change motion, overflow paging, help, local survey timing, workspace idle timing, and the optional GitHub observer. Changes save immediately as global viewing preferences; the controls panel and footer both say `saved globally`. Explicit CLI flags override saved values for that run without rewriting them.
 
-Press `s` to open Harbor Controls. Use `j`/`k` to select a row, left/right or `h`/`l` to adjust it, and `s` or `Esc` to close the panel. Changes save immediately as global viewing preferences and apply the next time Git Buoy starts. The `m` reduced-motion shortcut saves the same preference. Explicit CLI flags take precedence without changing the saved value.
+Useful flags include `--reduced-motion`, `--fps`, `--poll-interval`, `--idle-after`, `--github`, and `--github-poll-interval`. Run `cargo run --release -- --help` for their accepted values.
 
-| Harbor control | Behavior |
-| --- | --- |
-| Motion | Switch between full and reduced motion. The `m` shortcut remains available. |
-| Overflow pages | Cycle automatically or hold the first page when docks exceed the available height. |
-| Page interval | Choose how long each overflowing page remains visible. |
-| Setting help | Show or hide the immediate logbook note explaining the selected control. |
-| Repository survey | Change the local repository polling interval. |
-| Workspace idle | Change how long unchanged work remains active before it is labeled idle. |
-| GitHub observer | Enable or disable the optional GitHub layer. No GitHub request is made while it is off. |
-| GitHub survey | Change the GitHub polling interval. |
-
-Setting help is on by default. Its fixed logbook-note region updates immediately as selection moves and is omitted when terminal height is too constrained. Reduced motion pauses overflow cycling without changing its setting. If motion is restored, cycling resumes only when **Overflow pages** is still set to cycle.
-
-On macOS and other Unix-like systems, preferences are stored at `$XDG_CONFIG_HOME/git-buoy/settings.json`, falling back to `$HOME/.config/git-buoy/settings.json`. On Windows they are stored at `%APPDATA%\git-buoy\settings.json`. Set `GIT_BUOY_CONFIG` to use a specific file instead. The file contains viewing preferences only—never repository data or GitHub credentials. Enabling the GitHub observer is itself a saved preference, so later sessions will resume remote surveys until it is disabled.
-
-## Product intent
-
-Modern development increasingly involves several streams of work happening in parallel: a developer in one branch, agents in separate worktrees, automated checks running remotely, and pull requests waiting to merge. Existing Git tools are excellent at operating on those objects, but few make the whole workspace feel observable as one system.
-
-Git Buoy should answer questions such as:
-
-- What work is active right now?
-- Which worktrees are clean, changing, idle, or blocked?
-- What is ready to leave the machine as a commit or push?
-- Which pull requests are waiting for review or CI?
-- Where are conflicts or failures preventing work from landing?
-
-It should answer them primarily through motion and spatial relationships, with precise details available on demand.
-
-## The harbor metaphor
-
-The metaphor is functional, not decorative. Every object in the scene should communicate repository state consistently.
-
-| Development concept | Harbor representation |
-| --- | --- |
-| Repository | Harbor |
-| Default branch, when identified by a remote or bare-repository `HEAD` | Main terminal |
-| Branch or worktree | Dock |
-| Checked-out workspace | Vessel at a dock |
-| Uncommitted changes | Cargo being loaded |
-| Commit | Sealed cargo container |
-| Push | Outbound vessel |
-| Pull request | Vessel awaiting clearance |
-| CI checks | Harbor inspection |
-| Merge conflict | Blocked shipping lane |
-| Successful merge | Cargo arriving at the main terminal |
-| Release | Convoy departing the harbor |
-
-The mapping will evolve as the product is prototyped. Clarity takes precedence over completing the metaphor.
+Preferences are stored at `$XDG_CONFIG_HOME/git-buoy/settings.json`, falling back to `$HOME/.config/git-buoy/settings.json`, on Unix-like systems and at `%APPDATA%\git-buoy\settings.json` on Windows. `GIT_BUOY_CONFIG` selects a specific file. The file contains viewing preferences only, never repository data or GitHub credentials.
 
 ## Reading the harbor
 
-Every dock resolves to a single **condition**, shown by color and by a word on its pier. The same legend is available inside the application at any time by pressing `l`.
+The metaphor communicates repository state; it is not decoration over a conventional Git graph.
 
-| | Condition | What it means |
-| --- | --- | --- |
-| 🟩 | **calm** | Checked out, committed, and in sync with the upstream. |
-| ⬜ | **local** | Checked out with no upstream configured. |
-| 🟨 | **loading** | Uncommitted changes are still being loaded (modified or new files). |
-| 🟪 | **sealed** | Changes are staged, ready to become a commit. |
-| 🟦 | **outbound** | Commits are ahead of the upstream, ready to push. |
-| 🔵 | **incoming** | Commits are behind the upstream, ready to pull. |
-| 🟧 | **diverged** | Local and upstream histories both contain unique commits. |
-| 🟦 | **awaiting** | A remote-only pull-request branch is awaiting clearance. |
-| 🟥 | **blocked** | A merge conflict or an in-progress operation is stopping work from landing. |
-| ⬜ | **moored** | A branch with no worktree checked out. |
-
-A vessel's hull carries **cargo** that counts the pending change categories, and a few **symbols** stand in for the rest:
-
-| Symbol | Meaning |
+| Git concept | Harbor representation |
 | --- | --- |
-| `▣` | Staged files |
-| `▢` | Unstaged (modified) files |
-| `+` | Untracked files |
-| `✕` | Conflicted files |
-| `▙▄▄▟` | A vessel: work is checked out at this dock |
-| `◍` | A mooring buoy: a branch with no worktree |
-| `↑` / `↓` | Commits ahead of / behind the upstream |
-| `≈~` | A wake from recent or directional activity |
-| `▣ committed` | A commit observed while Git Buoy is running |
-| `▙▄▄▟→ pushed` | Ahead commits sent upstream |
-| `←▣ merged` | A merge commit arriving at a dock |
-| `↔ updated` | A branch or upstream reference moved; the cause is not proven |
-| `PR#42 ✓!` | Pull request 42: review approved, at least one check failing |
-| `▙▄▄▟ ▙▄▄▟→` | Latest published release convoy |
+| Repository | Harbor |
+| Authoritative default branch | Main terminal |
+| Branch or linked worktree | Dock |
+| Checked-out workspace | Vessel |
+| Uncommitted change | Cargo |
+| Commit ready to push | Outbound vessel |
+| Pull request | Vessel awaiting clearance |
+| Check | Harbor inspection |
+| Merge conflict or Git operation | Blocked shipping lane |
+| Published release | Departing convoy |
 
-An occupied dock is initially labeled `observing`. After Git Buoy sees its repository state change, it is `recent` until the idle threshold passes; an unchanged workspace is then `idle`. This describes observable repository activity, not whether a particular process or person is present.
+Each dock also carries a plain-language condition so the view does not depend on color or motion alone:
 
-Motion reinforces those facts: recent vessels work against a wake, outbound vessels travel away from the pier, incoming vessels travel toward it, and diverged vessels shift without making progress. Newly observed cargo changes load or unload over one short transition, vessels slide in or out when a workspace arrives at or leaves a dock, and a changed lane condition briefly signals from the pier. Each dock shows at most one of these cues at a time, with blocked or cleared lanes taking priority over vessel and cargo motion.
+| Condition | Git state |
+| --- | --- |
+| `calm` | Checked out, committed, and in sync with the upstream |
+| `local` | Checked out with no upstream |
+| `loading` | Unstaged or untracked changes |
+| `sealed` | Staged changes |
+| `outbound` | Commits ahead of the upstream |
+| `incoming` | Commits behind the upstream |
+| `diverged` | Local and upstream histories both have unique commits |
+| `awaiting` | Remote-only pull-request branch |
+| `blocked` | Conflict or in-progress Git operation |
+| `moored` | Branch with no checked-out worktree |
 
-With reduced motion, transitions collapse immediately to the current state. The same conditions, arrows, activity words, and cargo remain visible in a fixed frame.
+Occupied workspaces begin as `observing`, become `recent` after Git Buoy sees a change, and become `idle` after the configured quiet period. These labels describe observed repository activity, not whether a person or process is present.
 
-Commits, pushes, successful merges, and neutral updates appear as short-lived transitions only when Git Buoy observes them happen. The initial survey does not replay existing history. A branch is `merged` only when its reflog action and a new multi-parent tip both support that conclusion; fast-forward pulls and unclassified branch moves are `updated`, while squash merges appear as ordinary commits. A `pushed` event additionally requires the upstream reference reflog to say `update by push`, the local tip to stay unchanged, and the ahead count to fall. Other upstream movement is `updated`, even if the ahead count falls. The complete evidence table and polling limits are in [docs/live-events.md](docs/live-events.md).
-
-## Intended experience
-
-Git Buoy should work in two complementary modes:
-
-1. **Ambient mode:** A quiet, animated overview suitable for a spare terminal pane. Important state changes should be noticeable without demanding attention.
-2. **Inspect mode:** Keyboard-driven navigation drills from a dock into its vessel and exact changed paths. Pull requests and checks join the same hierarchy when remote-hosting observation is enabled.
-
-When every dock does not fit, ambient mode advances through dock-sized pages by default and reports how many docks remain above or below the current view. Harbor Controls can hold the first page instead. Reduced motion also keeps the first page static while preserving the independent cycling preference and the same overflow information.
+Reduced motion collapses transitions immediately and pauses overflow cycling. Conditions, arrows, activity words, cargo counts, and inspect mode remain available in a fixed frame.
 
 ![Inspect mode showing exact changed paths over the harbor](docs/inspect.svg)
 
-<sup>Inspect mode captured from the fixture: the panel shows the real categories and paths reported by the collector while the full-width harbor remains visible underneath.</sup>
+<sup>Inspect mode shows the real categories and paths returned by the collector while keeping the harbor visible on terminals wide enough to hold both.</sup>
 
-The visual style should feel cozy, precise, and restrained. Animation should carry information rather than merely add activity. The application must remain understandable with reduced motion and in terminals with limited color support.
+## Architecture
 
-## Initial scope
+The conceptual boundary is `git → harbor → app → ui`, with hosting as an optional input to the application:
 
-The first useful version focuses on one local repository and establishes the core model:
+| Layer | Responsibility | Boundary |
+| --- | --- | --- |
+| [`src/git/`](src/git/) | Read one repository with git2 | Produces a plain `RepoSnapshot`; git2 types do not escape |
+| [`src/harbor/`](src/harbor/) | Map repository facts to `Harbor`, `Dock`, and `Vessel`; own deterministic animation time | Pure scene data; no git2 or ratatui types |
+| [`src/app.rs`](src/app.rs) | Receive snapshots, apply activity and live-event semantics, combine optional hosting state, and own mode/selection/settings transitions | Deterministic state machine over messages |
+| [`src/ui/`](src/ui/) | Render the current application state and terminal overlays with ratatui | All terminal-specific types remain here |
+| [`src/hosting/`](src/hosting/) | Optionally survey GitHub through `gh` | Produces a plain `HostingSurvey`; provider failures are non-fatal |
 
-- Discover branches and linked worktrees.
-- Identify the main terminal only when Git provides an authoritative default-branch reference.
-- Observe clean, modified, staged, ahead, behind, and conflicted states.
-- Update the scene as local repository state changes.
-- Represent concurrent work without requiring any particular coding agent.
-- Provide keyboard inspection of the real Git data behind each visual object.
-- Degrade gracefully across terminal sizes and color capabilities.
-- Optionally attach GitHub pull requests, review decisions, individual checks, and releases to the local harbor.
+In the update loop, the application asks the harbor layer to map each incoming repository snapshot, enriches that scene with observed events and optional hosting data, then gives the resulting state to the UI. The executable in [`src/main.rs`](src/main.rs) owns polling, terminal setup, configuration I/O, and message delivery.
 
-Remote hosting is an opt-in layer implemented through the authenticated `gh` executable. It is surveyed independently, failures are non-fatal, and the default local workflow performs no network access. Pull-request/check and release observations fail independently; the footer identifies the failed observation while the last successful data from the other category remains available.
+The stack rationale and rejected alternatives are recorded in [ADR 0001](docs/adr/0001-implementation-stack.md).
 
-A pull request attaches to a local branch dock only when GitHub reports that its head belongs to the same repository. Other same-repository heads and all fork heads appear as remote docks awaiting clearance. Fork docks use `owner/repository:branch` so equal short branch names from different forks remain distinct; if GitHub no longer reports a deleted fork's repository, the dock uses the pull-request number as a fallback identity.
+## Testing and recorded evidence
 
-## Non-goals
+CI runs the same required checks on Linux, macOS, and Windows:
 
-Git Buoy is not intended to be:
+```sh
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test
+```
 
-- A complete replacement for Git, a shell, or established Git clients.
-- A Git tutorial that simulates commands.
-- A historical commit-replay tool.
-- A dashboard that requires an AI provider or proprietary service.
-- A generic animation with repository statistics painted on top.
+The test suite covers collector edge cases, snapshot-to-harbor mapping, state transitions, animation, settings persistence, hosting parsing, and ratatui output. Integration tests construct disposable repositories with the Git CLI; no developer repository is used as a fixture.
 
-## Product principles
+Two slower gates support claims that ordinary unit tests cannot:
 
-- **Truth before theater.** The scene must accurately reflect repository state.
-- **Useful while idle.** Ambient mode should provide value without interaction.
-- **Details on demand.** The metaphor offers orientation; inspect mode supplies precision.
-- **Local first.** Core functionality should work offline against an ordinary Git repository.
-- **Agent agnostic.** Work should be visible whether produced by a person, script, or coding agent.
-- **Terminal native.** Keyboard control, low overhead, and broad terminal compatibility are fundamental.
-- **Delight through restraint.** A small number of excellent animations is better than constant spectacle.
+- [Release acceptance](docs/release-acceptance.md) exercises packaged executables in native pseudo-terminals across real Git states, terminal sizes, color modes, reduced motion, keyboard navigation, saved settings, and optional-GitHub failure paths. macOS and Linux currently pass 20/20; the native Windows run is still the v0.1 blocker.
+- [Idle resource profiling](docs/profiling.md) records the method, budgets, machine context, and raw JSON for CPU, resident memory, and repository-survey latency. All 24 recorded macOS and Debian Bookworm runs are within the published budgets; the document links the exact baseline files.
+
+These records are the compatibility and performance evidence. Git Buoy does not claim behavior on an unrecorded platform or terminal solely because it compiles there.
+
+## Limitations
+
+- Git Buoy observes one local repository at a time. It complements Git commands; it does not stage, commit, merge, rebase, or push.
+- Live events are inferred from consecutive surveys, topology, and local reflog evidence. The first survey never replays history, changes that begin and end between polls can be missed, squash merges look like commits, and some reference movement can only be called `updated`. The full evidence table is in [live-event semantics](docs/live-events.md).
+- GitHub is the only hosting adapter. It requires an authenticated `gh` executable and makes network requests only when the observer is enabled. Pull-request/check and release surveys can fail independently, and local observation continues.
+- A pull request attaches to a local dock only when GitHub reports that its head belongs to the same repository. Fork heads and other remote heads become separate awaiting docks; deleted fork metadata may fall back to pull-request identity.
+- The recorded native executable acceptance is complete on macOS and Linux, not Windows. Git Buoy has no installer, package-manager formula, or signed binary yet.
+- ANSI 16-color mode inherits the user's terminal palette, so exact contrast cannot be guaranteed. Condition words remain the authoritative non-color fallback.
+
+## Releases and support
+
+There is no public GitHub release yet. The `0.1.0` crate version is a release
+candidate, not evidence that v0.1 has shipped. The
+[release-acceptance decision](docs/release-acceptance.md) blocks publication
+until all three native platform jobs pass and their evidence is recorded. A
+matching tag then runs the format, Clippy, test, packaging, terminal smoke, and
+checksum gates described in [Publishing a release](docs/releasing.md). When a
+release is published, the badge at the top of this README and the
+[Releases page](https://github.com/markg-05/git-buoy/releases) update
+automatically.
+
+Until then, build from source at a reviewed commit. Report reproducible defects and accessibility or compatibility findings in [GitHub Issues](https://github.com/markg-05/git-buoy/issues). This is an early project maintained on a best-effort basis; there is no commercial support commitment or private security-response channel.
 
 ## Contributing
 
-The project is young and the information model is still settling, so expect churn. Discussion, prior-art references, accessibility concerns, and critiques of the information model are especially welcome.
+Public contribution setup, change expectations, and pull-request checks are in [CONTRIBUTING.md](CONTRIBUTING.md). Coding agents should additionally read [AGENTS.md](AGENTS.md), which contains agent-oriented repository constraints and execution guidance.
 
-Before making changes, read [AGENTS.md](AGENTS.md). It records the working expectations, the module layering, and the exact commands CI runs.
-The repeatable idle-resource release gate and recorded platform baselines are in
-[docs/profiling.md](docs/profiling.md).
-The broader executable, Git-state, terminal, keyboard, and optional-GitHub
-release gate is in [docs/release-acceptance.md](docs/release-acceptance.md).
-
-Regenerate all README media from the current collector, application state machine, and ratatui renderer with:
+To regenerate the README captures from the current collector, state machine, and ratatui renderer:
 
 ```sh
 ./scripts/demo.sh capture
 ```
 
-The capture command rebuilds the fixture, records a real cargo transition, writes `docs/demo.svg`, `docs/demo-motion.svg`, and `docs/inspect.svg`, restores the changed worktree, and rejects private-looking local paths in the generated files.
+The command rebuilds the deterministic fixture, records a real cargo transition, writes `docs/demo.svg`, `docs/demo-motion.svg`, and `docs/inspect.svg`, restores the changed worktree, and rejects private-looking local paths in the generated files.
 
 ## License
 

@@ -6,25 +6,29 @@ release build in a native pseudo-terminal against disposable Git repositories.
 
 ## Current decision
 
+Release status: Blocked
+
 **Blocked pending the native Windows run.** The packaged macOS and Linux
 artifacts passed all 20 automated rows on July 13, 2026. The Windows row is
 implemented in the release-acceptance workflow, but it has not run for the
-commit containing this document. Do not tag v0.1 until that workflow reports
+commit containing this document. Do not tag `v0.1.0` until that workflow reports
 `20 passed, 0 failed` on `windows-latest` and this section records its artifact
 hash and run link.
 
 There are no failed macOS or Linux rows and no open defect from those runs. One
 acceptance finding was fixed in the candidate: Harbor Controls persisted
-changes globally while its footer incorrectly said `session only`. The footer
-now says `saved globally`, matching the panel and behavior.
+changes globally while its footer incorrectly described them as temporary. The
+footer now says `saved globally`, matching the panel and behavior.
 
 Git Buoy does not yet have signing or installer packaging. For this gate, the
-final artifacts are the platform-native optimized executables in the `.tar.gz`
-or `.zip` produced by
+candidate artifacts are the platform-native optimized executables in the
+`.tar.gz` or `.zip` produced by
 [`release-acceptance.yml`](../.github/workflows/release-acceptance.yml). The
 workflow extracts each archive and passes that extracted executable—not the
 debug build or pre-archive path—to the acceptance runner before uploading the
-same archive.
+same archive. The tagged [release workflow](../.github/workflows/release.yml)
+repeats that acceptance against each final versioned archive before it can
+publish.
 
 ## Recorded results
 
@@ -244,7 +248,13 @@ gh run watch <run-id> --exit-status
 Download and inspect all three `release-acceptance.log` files. Every job must
 end with `summary: 20 passed, 0 failed`. Record the Windows archive and
 executable SHA-256 values in this document, link the successful workflow run,
-and change the current decision to **Accepted** before tagging v0.1.
+and change the current decision to **Accepted** before tagging `v0.1.0`.
+
+Also change the machine-readable line near the top of this document to
+`Release status: Accepted`. The release workflow requires that exact committed
+line in addition to closed blocker issues; this prevents a tag from publishing
+when the tracker and the recorded native evidence disagree. The complete tag
+procedure is in [Publishing a release](releasing.md).
 
 If any row fails, do not upload or tag that candidate as a release. Fix and
 rerun it, or link a blocking issue here with the platform, fixture, exact row,

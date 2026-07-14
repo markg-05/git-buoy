@@ -1,0 +1,230 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  gate:
+    name: Check release metadata and readiness
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Match tag, crate version, notes, and acceptance record
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          version="$(awk -F '"' '/^version = "/ { print $2; exit }' Cargo.toml)"
+
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$tag" = "v$version"
+          test -f "docs/release-notes/$tag.md"
+          grep -Fxq "Release status: Accepted" docs/release-acceptance.md
+
+      - name: Require every other v0.1 tracker blocker to be closed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Issue #7 is this release and #12 is the parent tracker. Every other
+          # blocker linked by #12 must be complete before publishing v0.1.
+          for issue in 4 5 6 8 9 10 11; do
+            state="$(gh issue view "$issue" --repo "$GITHUB_REPOSITORY" --json state --jq .state)"
+            if [[ "$state" != "CLOSED" ]]; then
+              echo "release blocker #$issue is $state" >&2
+              exit 1
+            fi
+          done
+
+  quality:
+    name: Quality gates (${{ matrix.os }})
+    needs: gate
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt --check
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Test
+        run: cargo test
+
+  package:
+    name: Package ${{ matrix.platform }}-${{ matrix.arch }}
+    needs: [gate, quality]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux
+            arch: x86_64
+          - runner: macos-15
+            platform: macos
+            arch: aarch64
+          - runner: windows-2025
+            platform: windows
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+            tools/release-acceptance -> target
+
+      - name: Build release binary
+        run: cargo build --locked --release
+
+      - name: Package, extract, and smoke-test metadata (Unix)
+        if: runner.os != 'Windows'
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$(uname -m)" in
+            x86_64) actual_arch=x86_64 ;;
+            arm64) actual_arch=aarch64 ;;
+            *) echo "unsupported runner architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
+          test "$actual_arch" = "$EXPECTED_ARCH"
+
+          version="${GITHUB_REF_NAME#v}"
+          asset="git-buoy-${GITHUB_REF_NAME}-${PLATFORM}-${EXPECTED_ARCH}.tar.gz"
+          mkdir -p dist/stage dist/smoke
+          cp target/release/git-buoy dist/stage/git-buoy
+          tar -C dist/stage -czf "dist/$asset" git-buoy
+          tar -C dist/smoke -xzf "dist/$asset"
+
+          dist/smoke/git-buoy --help >/dev/null
+          test "$(dist/smoke/git-buoy --version)" = "git-buoy $version"
+
+          cd dist
+          if command -v sha256sum >/dev/null; then
+            sha256sum "$asset" > "$asset.sha256"
+          else
+            shasum -a 256 "$asset" > "$asset.sha256"
+          fi
+
+      - name: Package, extract, and smoke-test metadata (Windows)
+        if: runner.os == 'Windows'
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        shell: pwsh
+        run: |
+          if ($env:PROCESSOR_ARCHITECTURE -ne "AMD64") {
+            throw "expected an x86_64 runner, found $env:PROCESSOR_ARCHITECTURE"
+          }
+
+          $Version = $env:GITHUB_REF_NAME.Substring(1)
+          $Asset = "git-buoy-$env:GITHUB_REF_NAME-$env:PLATFORM-$env:EXPECTED_ARCH.zip"
+          New-Item -ItemType Directory -Force dist/stage, dist/smoke | Out-Null
+          Copy-Item target/release/git-buoy.exe dist/stage/git-buoy.exe
+          Compress-Archive -Path dist/stage/git-buoy.exe -DestinationPath "dist/$Asset"
+          Expand-Archive -Path "dist/$Asset" -DestinationPath dist/smoke
+
+          & dist/smoke/git-buoy.exe --help | Out-Null
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $DisplayedVersion = & dist/smoke/git-buoy.exe --version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($DisplayedVersion -ne "git-buoy $Version") {
+            throw "displayed version '$DisplayedVersion' does not match git-buoy $Version"
+          }
+
+          $Hash = (Get-FileHash -Algorithm SHA256 "dist/$Asset").Hash.ToLowerInvariant()
+          "$Hash  $Asset" | Out-File -Encoding ascii "dist/$Asset.sha256"
+
+      - name: Smoke-test packaged binary against disposable Git fixtures (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo run \
+            --locked \
+            --manifest-path tools/release-acceptance/Cargo.toml \
+            -- \
+            --binary dist/smoke/git-buoy | tee release-acceptance.log
+
+      - name: Smoke-test packaged binary against disposable Git fixtures (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cargo run `
+            --locked `
+            --manifest-path tools/release-acceptance/Cargo.toml `
+            -- `
+            --binary dist/smoke/git-buoy.exe |
+            Tee-Object -FilePath release-acceptance.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload acceptance log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-${{ matrix.platform }}-${{ matrix.arch }}
+          path: release-acceptance.log
+          if-no-files-found: warn
+
+      - name: Upload accepted release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/*.sha256
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release
+    needs: [gate, quality, package]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-assets-*
+          path: dist
+          merge-multiple: true
+      - name: Publish accepted assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            dist/*.tar.gz \
+            dist/*.zip \
+            dist/*.sha256 \
+            --verify-tag \
+            --latest \
+            --title "Git Buoy $version" \
+            --notes-file "docs/release-notes/$GITHUB_REF_NAME.md"

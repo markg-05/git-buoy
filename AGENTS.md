@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file defines the working expectations for humans and coding agents contributing to Git Buoy. It applies to the entire repository unless a more specific `AGENTS.md` is added in a subdirectory later.
+This file defines operational expectations for coding agents contributing to Git Buoy. Human contributors should start with [CONTRIBUTING.md](CONTRIBUTING.md); the product and quality constraints below still apply to every change. These instructions apply to the entire repository unless a more specific `AGENTS.md` is added in a subdirectory later.
 
 ## Start here
 
